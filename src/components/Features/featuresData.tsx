@@ -1,3 +1,4 @@
+// src/components/Features/featuresData.tsx
 import { Feature } from "@/types/feature";
 
 const featuresData: Feature[] = [

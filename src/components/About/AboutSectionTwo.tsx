@@ -1,3 +1,4 @@
+// src/components/About/AboutSectionTwo.tsx
 import Image from "next/image";
 
 const AboutSectionTwo = () => {

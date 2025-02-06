@@ -1,3 +1,4 @@
+// src/components/Contact/index.tsx
 import NewsLatterBox from "./NewsLatterBox";
 
 const Contact = () => {

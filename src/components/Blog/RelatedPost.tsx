@@ -1,3 +1,4 @@
+// src/components/Blog/RelatedPost.tsx
 import Image from "next/image";
 import Link from "next/link";
 

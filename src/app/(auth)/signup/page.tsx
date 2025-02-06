@@ -1,3 +1,4 @@
+// src/app/(auth)/signup/page.tsx
 import Link from "next/link";
 
 import { Metadata } from "next";

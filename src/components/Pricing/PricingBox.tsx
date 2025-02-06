@@ -1,3 +1,4 @@
+// src/components/Pricing/PricingBox.tsx
 const PricingBox = (props: {
   price: string;
   duration: string;

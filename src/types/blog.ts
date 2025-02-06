@@ -1,3 +1,4 @@
+// src/types/blog.ts
 type Author = {
   name: string;
   image: string;

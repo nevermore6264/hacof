@@ -1,3 +1,4 @@
+// src/components/Blog/SharePost.tsx
 const SharePost = () => {
   return (
     <>

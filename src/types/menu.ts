@@ -1,3 +1,4 @@
+// src/types/menu.ts
 export type Menu = {
   id: number;
   title: string;

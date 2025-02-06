@@ -1,3 +1,4 @@
+// src/services/auth.service.ts
 import { apiClient } from "./apiClient";
 
 export async function login(username: string, password: string) {

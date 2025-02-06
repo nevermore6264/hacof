@@ -1,3 +1,4 @@
+// src/components/Brands/brandsData.tsx
 import { Brand } from "@/types/brand";
 
 const brandsData: Brand[] = [

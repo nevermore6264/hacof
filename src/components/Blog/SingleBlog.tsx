@@ -1,3 +1,4 @@
+// src/components/Blog/SingleBlog.tsx
 import { Blog } from "@/types/blog";
 import Image from "next/image";
 import Link from "next/link";

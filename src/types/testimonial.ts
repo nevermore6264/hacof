@@ -1,3 +1,4 @@
+// src/types/testimonial.ts
 export type Testimonial = {
   id: number;
   name: string;

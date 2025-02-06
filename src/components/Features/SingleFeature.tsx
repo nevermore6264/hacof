@@ -1,3 +1,4 @@
+// src/components/Features/SingleFeature.tsx
 import { Feature } from "@/types/feature";
 
 const SingleFeature = ({ feature }: { feature: Feature }) => {

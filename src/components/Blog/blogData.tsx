@@ -1,3 +1,4 @@
+// src/components/Blog/blogData.tsx
 import { Blog } from "@/types/blog";
 
 const blogData: Blog[] = [

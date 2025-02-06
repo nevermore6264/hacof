@@ -1,3 +1,4 @@
+// src/components/Contact/NewsLatterBox.tsx
 "use client";
 
 import { useTheme } from "next-themes";
