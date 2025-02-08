@@ -1,4 +1,6 @@
 // src/services/apiClient.ts
+
+//being redundant, after adding apiService.ts to centralize API calls
 import { refreshToken } from "./auth.service";
 
 export async function apiClient(endpoint: string, options: RequestInit = {}) {

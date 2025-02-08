@@ -1,4 +1,6 @@
 // src/services/auth.service.ts
+
+//being redundant, after create useAuth and useAuthStore hooks, ensuring authentication state updates correctly with Zustand
 import { apiClient } from "./apiClient";
 
 export async function login(email: string, password: string) {
