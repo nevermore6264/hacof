@@ -1,10 +1,23 @@
 // src/services/auth.service.ts
 import { apiClient } from "./apiClient";
 
-export async function login(username: string, password: string) {
+export async function login(email: string, password: string) {
   return apiClient("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function loginSimulate(email: string, password: string) {
+  // Simulate API request
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (email === "user@example.com" && password === "123456") {
+        resolve("Success");
+      } else {
+        reject("Invalid credentials");
+      }
+    }, 1000);
   });
 }
 
