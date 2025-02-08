@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { loginSimulate } from "@/services/auth.service";
+import { useAuth } from "@/hooks/useAuth";
 import SocialLoginButtons from "./SocialLoginButtons";
 
 const SigninForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const { login } = useAuth(); // Use the latest authentication hook
   const router = useRouter();
 
   async function handleLogin(e: React.FormEvent) {
@@ -17,8 +18,8 @@ const SigninForm = () => {
     setError("");
 
     try {
-      await loginSimulate(email, password);
-      router.push("/"); // Redirect after successful login
+      await login(email, password);
+      router.push("/"); // Redirect to dashboard after successful login
     } catch (err: any) {
       setError("Invalid credentials. Please try again.");
     }

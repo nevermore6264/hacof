@@ -1,16 +1,18 @@
-// src/hooks/useAuth.ts
-import { useState, useEffect } from "react";
-import { login, logout } from "@/services/auth.service";
+"use client";
+import { useAuthStore } from "@/hooks/useAuthStore";
+import { useEffect, useState } from "react";
 
 export function useAuth() {
-  const [user, setUser] = useState(null);
+  const { user, login, logout, checkUser, loading } = useAuthStore();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      // Fetch user data
+    async function initAuth() {
+      await checkUser();
+      setIsChecking(false);
     }
-  }, []);
+    initAuth();
+  }, [checkUser]);
 
-  return { user, login, logout };
+  return { user, login, logout, loading, isChecking };
 }
