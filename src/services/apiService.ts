@@ -7,11 +7,15 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+/**
+ * Generic function to handle API requests.
+ */
 async function request<T>(
   method: "GET" | "POST" | "PATCH" | "DELETE",
   endpoint: string,
   payload?: Record<string, any>,
   customHeaders: HeadersInit = {},
+  includeCredentials: boolean = false, // New flag to control credentials
   retry: boolean = true
 ): Promise<T> {
   const headers: HeadersInit = {
@@ -22,7 +26,7 @@ async function request<T>(
   const options: RequestInit = {
     method,
     headers,
-    credentials: "include", // Ensures cookies (tokens) are sent
+    credentials: includeCredentials ? "include" : "omit", // Use based on flag
   };
 
   if (payload) {
@@ -32,11 +36,18 @@ async function request<T>(
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
 
-    if (response.status === 401 && retry) {
+    if (includeCredentials && response.status === 401 && retry) {
       console.warn("Token expired. Attempting refresh...");
       const refreshed = await refreshToken();
       if (refreshed) {
-        return request<T>(method, endpoint, payload, customHeaders, false);
+        return request<T>(
+          method,
+          endpoint,
+          payload,
+          customHeaders,
+          true,
+          false
+        );
       }
     }
 
@@ -53,6 +64,9 @@ async function request<T>(
   }
 }
 
+/**
+ * Refresh the authentication token.
+ */
 async function refreshToken(): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -73,19 +87,40 @@ async function refreshToken(): Promise<boolean> {
   }
 }
 
+/**
+ * API service with separate authenticated & public requests.
+ */
 export const apiService = {
-  get: <T>(endpoint: string, headers?: HeadersInit) =>
-    request<T>("GET", endpoint, undefined, headers),
-  post: <T>(
-    endpoint: string,
-    payload: Record<string, any>,
-    headers?: HeadersInit
-  ) => request<T>("POST", endpoint, payload, headers),
-  patch: <T>(
-    endpoint: string,
-    payload: Record<string, any>,
-    headers?: HeadersInit
-  ) => request<T>("PATCH", endpoint, payload, headers),
-  delete: <T>(endpoint: string, headers?: HeadersInit) =>
-    request<T>("DELETE", endpoint, undefined, headers),
+  auth: {
+    get: <T>(endpoint: string, headers?: HeadersInit) =>
+      request<T>("GET", endpoint, undefined, headers, true),
+    post: <T>(
+      endpoint: string,
+      payload: Record<string, any>,
+      headers?: HeadersInit
+    ) => request<T>("POST", endpoint, payload, headers, true),
+    patch: <T>(
+      endpoint: string,
+      payload: Record<string, any>,
+      headers?: HeadersInit
+    ) => request<T>("PATCH", endpoint, payload, headers, true),
+    delete: <T>(endpoint: string, headers?: HeadersInit) =>
+      request<T>("DELETE", endpoint, undefined, headers, true),
+  },
+  public: {
+    get: <T>(endpoint: string, headers?: HeadersInit) =>
+      request<T>("GET", endpoint, undefined, headers, false),
+    post: <T>(
+      endpoint: string,
+      payload: Record<string, any>,
+      headers?: HeadersInit
+    ) => request<T>("POST", endpoint, payload, headers, false),
+    patch: <T>(
+      endpoint: string,
+      payload: Record<string, any>,
+      headers?: HeadersInit
+    ) => request<T>("PATCH", endpoint, payload, headers, false),
+    delete: <T>(endpoint: string, headers?: HeadersInit) =>
+      request<T>("DELETE", endpoint, undefined, headers, false),
+  },
 };
