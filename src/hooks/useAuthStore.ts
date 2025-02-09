@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   checkUser: async () => {
     try {
-      const user = await apiService.get<User>("/auth/me");
+      const user = await apiService.auth.get<User>("/auth/me");
       set({ user });
     } catch (error) {
       console.warn("User not authenticated. Trying to refresh token...");
@@ -34,18 +34,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   login: async (email, password) => {
-    await apiService.post("/auth/login", { email, password });
+    await apiService.public.post("/auth/login", { email, password });
     await useAuthStore.getState().checkUser();
   },
 
   logout: async () => {
-    await apiService.post("/auth/logout", {});
+    await apiService.auth.post("/auth/logout", {});
     set({ user: null });
   },
 
   refreshToken: async () => {
     try {
-      const refreshed = await apiService.post<boolean>("/auth/refresh", {});
+      const refreshed = await apiService.auth.post<boolean>(
+        "/auth/refresh",
+        {}
+      );
       if (refreshed) {
         console.info("Token refreshed successfully");
         await useAuthStore.getState().checkUser();
