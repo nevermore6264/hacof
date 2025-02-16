@@ -1,67 +1,70 @@
 "use client";
 import { create } from "zustand";
-import { apiService } from "@/services/apiService";
+import { authService } from "@/services/auth.service";
 
 interface User {
   id: string;
   email: string;
   name: string;
 }
-
 interface AuthState {
   user: User | null;
   loading: boolean;
+  isRefreshing: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkUser: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   loading: true,
+  isRefreshing: false,
 
   checkUser: async () => {
     try {
-      const user = await apiService.auth.get<User>("/auth/me");
+      const user = await authService.getUser();
       set({ user });
     } catch (error) {
       console.warn("User not authenticated. Trying to refresh token...");
-      await useAuthStore.getState().refreshToken();
+      await get().refreshToken();
     } finally {
       set({ loading: false });
     }
   },
 
   login: async (email, password) => {
-    await apiService.public.post("/auth/login", { email, password });
-    await useAuthStore.getState().checkUser();
+    await authService.login(email, password);
+    await get().checkUser();
   },
 
   logout: async () => {
-    await apiService.auth.post("/auth/logout", {});
+    await authService.logout();
     set({ user: null });
   },
 
   refreshToken: async () => {
+    if (get().isRefreshing) return false;
+
+    set({ isRefreshing: true });
     try {
-      const refreshed = await apiService.auth.post<boolean>(
-        "/auth/refresh",
-        {}
-      );
+      const refreshed = await authService.refreshToken();
       if (refreshed) {
         console.info("Token refreshed successfully");
-        await useAuthStore.getState().checkUser();
+        await get().checkUser();
         return true;
       } else {
         console.warn("Refresh token expired. Logging out...");
-        useAuthStore.getState().logout();
+        get().logout();
         return false;
       }
     } catch (error) {
       console.error("Error refreshing token:", error);
-      useAuthStore.getState().logout();
+      get().logout();
       return false;
+    } finally {
+      set({ isRefreshing: false });
     }
   },
 }));
