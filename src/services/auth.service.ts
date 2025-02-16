@@ -17,7 +17,26 @@ export const authService = {
   async logout() {
     return apiService.auth.post("/auth/logout", {});
   },
-  async refreshToken() {
-    return apiService.auth.post<boolean>("/auth/refresh", {});
+  async refreshToken(): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        console.info("Token refreshed successfully.");
+        return true;
+      } else {
+        console.warn("Token refresh failed. User must re-login.");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      return false;
+    }
   },
 };
