@@ -1,3 +1,4 @@
+// src/hooks/useAuthStore.ts
 "use client";
 import { create } from "zustand";
 import { authService } from "@/services/auth.service";

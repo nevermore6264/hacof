@@ -1,3 +1,4 @@
+// src/app/(auth)/signin/SocialLoginButtons.tsx
 const SocialLoginButtons = () => {
   return (
     <>

@@ -1,3 +1,4 @@
+// src/app/hackathon/_components/FilterSidebar.tsx
 export default function FilterSidebar() {
   return (
     <div className="w-64 bg-gray-100 p-4">

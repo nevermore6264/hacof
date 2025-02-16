@@ -1,4 +1,4 @@
-// services/apiService.ts
+// src/services/apiService.ts
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
 interface ApiResponse<T> {
