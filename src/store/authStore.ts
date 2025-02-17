@@ -51,7 +51,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await authService.logout();
-    set({ user: null, refreshAttempts: 0 });
+    set({
+      user: null,
+      refreshAttempts: 0,
+      isRefreshing: false,
+      loading: false,
+    }); // Ensure all states reset
   },
 
   refreshToken: async () => {
