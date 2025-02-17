@@ -1,4 +1,4 @@
-// src/hooks/useAuthStore.ts
+// src/store/authStore.ts
 "use client";
 import { create } from "zustand";
 import { authService } from "@/services/auth.service";
@@ -80,6 +80,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 }));
 
-setTimeout(() => {
-  useAuthStore.getState().checkUser();
-}, 0); // Defer execution until after initial render
+if (typeof window !== "undefined") {
+  setTimeout(() => {
+    useAuthStore.getState().checkUser();
+  }, 0); // Defer execution until after initial render
+}

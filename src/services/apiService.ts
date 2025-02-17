@@ -1,4 +1,6 @@
 // src/services/apiService.ts
+import { tokenService } from "@/services/token.service";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
 interface ApiResponse<T> {
@@ -16,7 +18,7 @@ async function request<T>(
   endpoint: string,
   payload?: Record<string, any>,
   customHeaders: HeadersInit = {},
-  includeCredentials: boolean = false, // ✅ Flag to control credentials
+  includeCredentials: boolean = false, // Flag to control credentials
   timeoutMs: number = 5000, // Default timeout, can be overridden
   retry: boolean = true
 ): Promise<T> {
@@ -25,7 +27,7 @@ async function request<T>(
     ...customHeaders,
   };
 
-  // ⚡ Add request cancellation
+  // Add request cancellation
   if (controllers.has(endpoint)) {
     controllers.get(endpoint)?.abort();
   }
@@ -35,7 +37,7 @@ async function request<T>(
   const options: RequestInit = {
     method,
     headers,
-    credentials: includeCredentials ? "include" : "omit", // ✅ Uses credentials only for auth requests
+    credentials: includeCredentials ? "include" : "omit", // Uses credentials only for auth requests
     signal: controller.signal,
   };
 
@@ -43,7 +45,7 @@ async function request<T>(
     options.body = JSON.stringify(payload);
   }
 
-  // ⚡ Set timeout
+  // Set timeout
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
@@ -54,7 +56,7 @@ async function request<T>(
       console.warn(
         `Token expired on ${method} ${endpoint}. Attempting refresh...`
       );
-      const refreshed = await refreshToken();
+      const refreshed = await tokenService.refreshToken();
       if (refreshed) {
         return request<T>(
           method,
@@ -82,29 +84,6 @@ async function request<T>(
     throw error;
   } finally {
     controllers.delete(endpoint); // Cleanup
-  }
-}
-
-/**
- * Refresh the authentication token.
- */
-async function refreshToken(): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-    });
-
-    if (response.ok) {
-      console.info("Token refreshed successfully");
-      return true;
-    } else {
-      console.warn("Token refresh failed. User must re-login.");
-      return false;
-    }
-  } catch (error) {
-    console.error("Error refreshing token:", error);
-    return false;
   }
 }
 
