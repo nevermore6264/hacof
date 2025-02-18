@@ -1,14 +1,14 @@
 // src/components/HackathonCard/index.tsx
 import Link from "next/link";
 import Image from "next/image";
-
+// TODO: [lv5] Replace <img> with <Image> from "next/image"
 export default function HackathonCard({ hackathon }) {
   return (
     <Link
       href={`/hackathon/${hackathon.id}`}
       className="block bg-white shadow-md rounded-lg p-4"
     >
-      <Image
+      <img
         src={hackathon.image}
         alt={hackathon.name}
         className="rounded-md w-full"
