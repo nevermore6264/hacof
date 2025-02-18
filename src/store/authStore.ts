@@ -29,6 +29,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   refreshAttempts: 0, // Initialize refresh attempts
 
   checkUser: async () => {
+    set({ loading: true }); // Explicitly set loading before checking
     try {
       const user = await authService.getUser();
       set({ user, refreshAttempts: 0 }); // Reset attempts on success
@@ -45,18 +46,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   login: async (email, password) => {
-    await authService.login(email, password);
-    await get().checkUser();
+    set({ loading: true }); // Explicitly set loading before login attempt
+    try {
+      await authService.login(email, password);
+      await get().checkUser();
+    } finally {
+      set({ loading: false }); // Ensure loading is turned off after login attempt
+    }
   },
 
   logout: async () => {
-    await authService.logout();
-    set({
-      user: null,
-      refreshAttempts: 0,
-      isRefreshing: false,
-      loading: false,
-    }); // Ensure all states reset
+    set({ loading: true });
+    try {
+      await authService.logout();
+    } finally {
+      set({
+        user: null,
+        refreshAttempts: 0,
+        isRefreshing: false,
+        loading: false,
+      }); // Ensure all states reset
+    }
   },
 
   refreshToken: async () => {

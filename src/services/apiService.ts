@@ -1,5 +1,5 @@
 // src/services/apiService.ts
-import { tokenService } from "@/services/token.service";
+import { useAuthStore } from "@/store/authStore";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -56,7 +56,8 @@ async function request<T>(
       console.warn(
         `Token expired on ${method} ${endpoint}. Attempting refresh...`
       );
-      const refreshed = await tokenService.refreshToken();
+      // Use authStore's refreshToken which includes attempt tracking
+      const refreshed = await useAuthStore.getState().refreshToken();
       if (refreshed) {
         return request<T>(
           method,
@@ -96,7 +97,7 @@ function handleGlobalError(error: any, method: string, endpoint: string) {
   if (error.message.includes("Failed to fetch")) {
     alert("Network error! Please check your internet connection.");
   } else if (error.message.includes("401")) {
-    alert("Refresh token failed. Session expired. Please log in again.");
+    alert("Session expired. Refresh token failed. Please log in again.");
   } else if (error.message.includes("Request timed out")) {
     alert("Request timed out. Please try again.");
   }
