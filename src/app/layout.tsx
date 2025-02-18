@@ -23,7 +23,7 @@ export default function RootLayout({
       <head />
 
       <body
-        className={`pt-[80px] bg-[#FCFCFC] dark:bg-black ${inter.className}`}
+        className={`pt-[100px] bg-[#FCFCFC] dark:bg-black ${inter.className}`}
       >
         <Providers>
           <Header />
