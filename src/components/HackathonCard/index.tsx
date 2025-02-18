@@ -1,5 +1,6 @@
 // src/components/HackathonCard/index.tsx
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HackathonCard({ hackathon }) {
   return (
@@ -7,11 +8,12 @@ export default function HackathonCard({ hackathon }) {
       href={`/hackathon/${hackathon.id}`}
       className="block bg-white shadow-md rounded-lg p-4"
     >
-      <img
+      <Image
         src={hackathon.image}
         alt={hackathon.name}
         className="rounded-md w-full"
       />
+
       <h3 className="font-semibold mt-2">{hackathon.name}</h3>
       <p className="text-sm text-gray-500">{hackathon.date}</p>
     </Link>
