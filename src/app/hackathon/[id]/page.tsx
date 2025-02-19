@@ -6,9 +6,12 @@ type HackathonProps = {
 };
 
 async function getHackathonData(id: string) {
-  const res = await fetch(`http://localhost:3000/api/hackathon/${id}`, {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `http://localhost:3000/api/hackathon/${id}`,
+    process.env.NODE_ENV === "production"
+      ? { next: { revalidate: 10 } }
+      : { cache: "no-store" }
+  );
   if (!res.ok) throw new Error("Failed to fetch hackathon data");
   return res.json();
 }
