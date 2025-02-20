@@ -7,14 +7,15 @@ export const hackathonsMock: Hackathon[] = [
     id: "1",
     title: "Hackathon 2024",
     subtitle: "Innovate, Build, Compete!",
-    bannerImageUrl: "https://example.com/images/hackathon-2024-banner.jpg",
+    bannerImageUrl:
+      "https://doanthanhnien.vn/Content/uploads/images/132311755918511627_Banner.jpg",
     enrollStartDate: "2024-03-01",
     enrollEndDate: "2024-04-01",
     enrollmentCount: 150,
     startDate: "2024-04-05",
     endDate: "2024-04-07",
     information:
-      "Join us for an exciting 48-hour hackathon where innovation meets execution.",
+      "Join us for an exciting 48-hour hackathon where innovation meets execution. Join us for an exciting 48-hour hackathon where innovation meets execution. Join us for an exciting 48-hour hackathon where innovation meets execution.",
     description:
       "A great hackathon that brings together developers, designers, and entrepreneurs.",
     participant: "Open to students and professionals from all backgrounds.",
@@ -28,7 +29,8 @@ export const hackathonsMock: Hackathon[] = [
     id: "2",
     title: "Hackathon 2023",
     subtitle: "Code, Create, Collaborate!",
-    bannerImageUrl: "https://example.com/images/hackathon-2023-banner.jpg",
+    bannerImageUrl:
+      "https://doanthanhnien.vn/Content/uploads/images/132311755918511627_Banner.jpg",
     enrollStartDate: "2023-03-10",
     enrollEndDate: "2023-04-10",
     enrollmentCount: 120,
@@ -48,7 +50,8 @@ export const hackathonsMock: Hackathon[] = [
     id: "3",
     title: "Hackathon 2022",
     subtitle: "Think Big, Build Bigger!",
-    bannerImageUrl: "https://example.com/images/hackathon-2022-banner.jpg",
+    bannerImageUrl:
+      "https://doanthanhnien.vn/Content/uploads/images/132311755918511627_Banner.jpg",
     enrollStartDate: "2022-03-15",
     enrollEndDate: "2022-04-15",
     enrollmentCount: 100,
