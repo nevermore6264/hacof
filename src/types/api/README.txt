@@ -13,3 +13,5 @@ export type HackathonListResponse = {
   success: boolean;
   data: Hackathon[];
 };
+
+filename convention: camelCase

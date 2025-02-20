@@ -13,3 +13,5 @@ export type Hackathon = {
   status: string;
   requiredTechnologies: string[];
 };
+
+filename convention: camelCase

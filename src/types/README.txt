@@ -12,3 +12,5 @@
 Best Practice: Keep types/ in Next.js and models/ in Spring Boot
 Next.js frontend → Define types (src/types/) for API response validation.
 Spring Boot backend → Define models for database handling and API response.
+
+filename convention in types folder: camelCase

@@ -13,3 +13,5 @@ export enum HackathonStatus {
   CLOSED = "closed",
   IN_PROGRESS = "in_progress",
 }
+
+filename convention: camelCase
