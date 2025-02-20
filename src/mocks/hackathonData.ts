@@ -1,3 +1,5 @@
+// src\mocks\hackathonData.ts
+
 export const mockHackathons = [
   {
     id: "1",

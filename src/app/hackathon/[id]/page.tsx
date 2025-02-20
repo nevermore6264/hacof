@@ -3,6 +3,10 @@
 // TODO: [Lv1] check if should cache the page server side and revalidate
 // TODO: [Lv1] check if nextjs able to cache this page client-side
 import { Metadata } from "next";
+import HackathonBanner from "./_components/HackathonBanner";
+import HackathonTabs from "./_components/HackathonTabs";
+import HackathonOverview from "./_components/HackathonOverview";
+import { Hackathon } from "@/types/entities/hackathon"; // Import type
 
 type HackathonProps = {
   params: { id: string }; //Keep this to access the dynamic route param
@@ -11,7 +15,7 @@ type HackathonProps = {
 // TODO: [Lv1] check if memoization is enabled by default, without the need of enable force-cache
 
 // This function should be memoized to avoid fetching the same data multiple times
-async function getHackathonData(id: string) {
+async function getHackathonData(id: string): Promise<Hackathon> {
   const res = await fetch(`http://localhost:3000/api/hackathon/${id}`, {
     cache: "no-store",
   });
@@ -39,9 +43,25 @@ export default async function HackathonDetail({ params }: HackathonProps) {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold">{hackathon.name}</h1>
-      <p className="text-gray-600">{hackathon.date}</p>
-      <p>{hackathon.description}</p>
+      <HackathonBanner
+        bannerImageUrl={hackathon.bannerImageUrl}
+        altText={hackathon.title}
+      />
+      <HackathonOverview
+        title={hackathon.title}
+        subtitle={hackathon.subtitle}
+        date={hackathon.enrollStartDate}
+        enrollmentCount={hackathon.enrollmentCount}
+      />
+      <HackathonTabs
+        content={{
+          information: hackathon.information,
+          description: hackathon.description,
+          participant: hackathon.participant,
+          documentation: hackathon.documentation,
+          contact: hackathon.contact,
+        }}
+      />
     </div>
   );
 }
