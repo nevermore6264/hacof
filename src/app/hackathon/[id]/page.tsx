@@ -5,13 +5,13 @@ type HackathonProps = {
   params: { id: string }; //Keep this to access the dynamic route param
 };
 
+// TODO: [Lv1] check if memoization is enabled by default, without the need of enable force-cache
+
+// This function should be memoized to avoid fetching the same data multiple times
 async function getHackathonData(id: string) {
-  const res = await fetch(
-    `http://localhost:3000/api/hackathon/${id}`,
-    process.env.NODE_ENV === "production"
-      ? { next: { revalidate: 10 } }
-      : { cache: "no-store" }
-  );
+  const res = await fetch(`http://localhost:3000/api/hackathon/${id}`, {
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error("Failed to fetch hackathon data");
   return res.json();
 }
