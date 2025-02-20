@@ -1,6 +1,7 @@
 // src\types\entities\hackathon.ts
 
 export type Hackathon = {
+  id: string;
   title: string;
   subtitle: string;
   bannerImageUrl: string;
