@@ -1,7 +1,7 @@
 //src\app\api\hackathon\[id]\route.ts
 
 import { NextResponse } from "next/server";
-import { getMockHackathonById } from "@/mocks/hackathonData";
+import { getMockHackathonById } from "@/mocks/hackathons.mock";
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   // Await the params object

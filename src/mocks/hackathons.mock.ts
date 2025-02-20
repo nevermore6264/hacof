@@ -1,6 +1,6 @@
-// src\mocks\hackathonData.ts
+// src\mocks\hackathons.mock.ts
 
-export const mockHackathons = [
+export const hackathonsMock = [
   {
     id: "1",
     name: "Hackathon 2024",
@@ -22,5 +22,5 @@ export const mockHackathons = [
 ];
 
 export function getMockHackathonById(id: string) {
-  return mockHackathons.find((h) => h.id === id) || null;
+  return hackathonsMock.find((h) => h.id === id) || null;
 }
