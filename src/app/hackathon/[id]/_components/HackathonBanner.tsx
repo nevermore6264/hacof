@@ -15,7 +15,7 @@ export default function HackathonBanner({
 }: HackathonBannerProps) {
   // Image should have width full of the parent div, h-auto/h set to a proportion, and shrink to fit the device width
   // This component use h-auto, which can make UI weird if the image has high height and low width
-  // Solution 1: set a ratio for height and width. Solution 2: provide feature for organizer to crop the image with a predefined ratio
+  // Solution 1: set a ratio for height and width for the parent div with aspect-[16/9] overflow-hidden. Solution 2: provide feature for organizer to crop the image with a predefined ratio
   return (
     <div className="relative w-full overflow-hidden">
       <Image
