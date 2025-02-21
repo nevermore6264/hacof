@@ -30,7 +30,7 @@ export const hackathonsMock: Hackathon[] = [
     title: "Hackathon 2023",
     subtitle: "Code, Create, Collaborate!",
     bannerImageUrl:
-      "https://doanthanhnien.vn/Content/uploads/images/132311755918511627_Banner.jpg",
+      "https://i0.wp.com/hannahed.co/wp-content/uploads/2022/07/290782336_7746065928768366_6033188322521996662_n.jpg?w=1080&ssl=1",
     enrollStartDate: "2023-03-10",
     enrollEndDate: "2023-04-10",
     enrollmentCount: 120,
@@ -51,7 +51,7 @@ export const hackathonsMock: Hackathon[] = [
     title: "Hackathon 2022",
     subtitle: "Think Big, Build Bigger!",
     bannerImageUrl:
-      "https://doanthanhnien.vn/Content/uploads/images/132311755918511627_Banner.jpg",
+      "https://moitruongachau.com/vnt_upload/career/06_2022/Vong_chung_ket_cuoc_thi_hoc_thuat_Loc_Xanh.png",
     enrollStartDate: "2022-03-15",
     enrollEndDate: "2022-04-15",
     enrollmentCount: 100,

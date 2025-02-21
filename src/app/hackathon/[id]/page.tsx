@@ -15,7 +15,7 @@ type HackathonProps = {
 // TODO: [Lv1] check if memoization is enabled by default, without the need of enable force-cache
 
 // This function should be memoized to avoid fetching the same data multiple times
-async function getHackathonData(id: string): Promise<Hackathon> {
+async function getHackathon(id: string): Promise<Hackathon> {
   const res = await fetch(`http://localhost:3000/api/hackathon/${id}`, {
     cache: "no-store",
   });
@@ -29,7 +29,7 @@ export async function generateMetadata({
 }: HackathonProps): Promise<Metadata> {
   // Await the params object
   const id = (await params).id;
-  const hackathon = await getHackathonData(id);
+  const hackathon = await getHackathon(id);
   return {
     title: hackathon.name,
     description: hackathon.description,
@@ -39,7 +39,7 @@ export async function generateMetadata({
 export default async function HackathonDetail({ params }: HackathonProps) {
   // Await the params object
   const id = (await params).id;
-  const hackathon = await getHackathonData(id);
+  const hackathon = await getHackathon(id);
 
   return (
     <div className="container mx-auto p-6">
