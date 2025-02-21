@@ -1,4 +1,4 @@
-// src\app\hackathon\[id]\_components\Tabs.tsx
+// src/app/hackathon/[id]/_components/HackathonTabs.tsx
 "use client";
 
 import { useState, useEffect } from "react";

@@ -1,5 +1,4 @@
-//src\app\hackathon\_components\HackathonList.tsx
-
+// src/app/hackathon/_components/HackathonList.tsx
 import HackathonCard from "@/components/HackathonCard";
 import { Hackathon } from "@/types/entities/hackathon";
 

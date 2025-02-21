@@ -1,4 +1,4 @@
-// src\app\hackathon\[id]\_components\HackathonOverview.tsx
+// src/app/hackathon/[id]/_components/HackathonOverview.tsx
 
 type HackathonOverviewProps = {
   title: string;

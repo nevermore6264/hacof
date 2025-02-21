@@ -1,4 +1,4 @@
-// src\mocks\hackathons.mock.ts
+// src/mocks/hackathons.mock.ts
 
 import { Hackathon } from "@/types/entities/hackathon";
 

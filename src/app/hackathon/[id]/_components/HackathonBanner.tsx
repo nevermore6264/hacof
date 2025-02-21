@@ -1,4 +1,4 @@
-// src\app\hackathon\[id]\_components\HackathonBanner.tsx
+// src/app/hackathon/[id]/_components/HackathonBanner.tsx
 
 import Image from "next/image";
 

@@ -1,4 +1,4 @@
-// src\types\entities\hackathon.ts
+// src/types/entities/hackathon.ts
 
 export type Hackathon = {
   id: string;

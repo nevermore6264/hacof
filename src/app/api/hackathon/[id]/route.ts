@@ -1,4 +1,4 @@
-//src\app\api\hackathon\[id]\route.ts
+// src/app/api/hackathon/[id]/route.ts
 
 import { NextResponse } from "next/server";
 import { getMockHackathonById } from "@/mocks/hackathons.mock";
