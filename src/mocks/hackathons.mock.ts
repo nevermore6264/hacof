@@ -24,6 +24,9 @@ export const hackathonsMock: Hackathon[] = [
       "https://example.com/docs/hackathon-2024-schedule.pdf",
     ],
     contact: "contact@hackathon2024.com",
+    category: "Coding Hackathons",
+    organization: "FPTU",
+    enrollmentStatus: "open",
   },
   {
     id: "2",
@@ -45,6 +48,9 @@ export const hackathonsMock: Hackathon[] = [
       "https://example.com/docs/hackathon-2023-schedule.pdf",
     ],
     contact: "contact@hackathon2023.com",
+    category: "Design Hackathons",
+    organization: "NASA",
+    enrollmentStatus: "closed",
   },
   {
     id: "3",
@@ -67,6 +73,9 @@ export const hackathonsMock: Hackathon[] = [
       "https://example.com/docs/hackathon-2022-schedule.pdf",
     ],
     contact: "contact@hackathon2022.com",
+    category: "External Hackathons",
+    organization: "IAI HACKATHON",
+    enrollmentStatus: "open",
   },
 ];
 

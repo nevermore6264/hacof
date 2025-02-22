@@ -2,6 +2,7 @@
 import HackathonCard from "@/components/HackathonCard";
 import { Hackathon } from "@/types/entities/hackathon";
 
+// TODO: {Lv2} Instead of hardcoding the grid layout inside HackathonList.tsx, pass the pass the number value as a prop
 type HackathonListProps = {
   hackathons: Hackathon[];
 };

@@ -1,7 +1,5 @@
 // src/app/hackathon/_components/Filters.tsx
 "use client";
-import { useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 
 const categories = [
   "Coding Hackathons",
@@ -19,26 +17,41 @@ const organizations = [
   "Others",
 ];
 
-export default function Filters() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+const enrollmentStatusOptions = ["upcoming", "open", "closed"];
 
-  const [selectedStatus, setSelectedStatus] = useState<string>("open");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(
-    []
-  );
+type FiltersProps = {
+  selectedFilters: {
+    enrollmentStatus: string[];
+    categories: string[];
+    organizations: string[];
+  };
+  onFilterChange: (filters: {
+    enrollmentStatus: string[];
+    categories: string[];
+    organizations: string[];
+  }) => void;
+};
+
+export default function Filters({
+  selectedFilters,
+  onFilterChange,
+}: FiltersProps) {
+  const {
+    enrollmentStatus,
+    categories: selectedCategories,
+    organizations: selectedOrganizations,
+  } = selectedFilters;
 
   const toggleSelection = (
     value: string,
     state: string[],
-    setter: (val: string[]) => void
+    key: "categories" | "organizations" | "enrollmentStatus"
   ) => {
-    setter(
-      state.includes(value)
-        ? state.filter((item) => item !== value)
-        : [...state, value]
-    );
+    const newState = state.includes(value)
+      ? state.filter((item) => item !== value)
+      : [...state, value];
+
+    onFilterChange({ ...selectedFilters, [key]: newState });
   };
 
   return (
@@ -54,7 +67,7 @@ export default function Filters() {
               type="checkbox"
               checked={selectedCategories.includes(cat)}
               onChange={() =>
-                toggleSelection(cat, selectedCategories, setSelectedCategories)
+                toggleSelection(cat, selectedCategories, "categories")
               }
             />
             {cat}
@@ -62,27 +75,25 @@ export default function Filters() {
         ))}
       </div>
 
-      {/* Status Filter */}
+      {/* Enrollment Status Filter */}
       <div className="mt-4">
-        <h4 className="font-semibold">Status</h4>
-        <label className="block">
-          <input
-            type="radio"
-            value="open"
-            checked={selectedStatus === "open"}
-            onChange={() => setSelectedStatus("open")}
-          />
-          Registration Open
-        </label>
-        <label className="block">
-          <input
-            type="radio"
-            value="closed"
-            checked={selectedStatus === "closed"}
-            onChange={() => setSelectedStatus("closed")}
-          />
-          Closed
-        </label>
+        <h4 className="font-semibold">Enrollment Status</h4>
+        {enrollmentStatusOptions.map((statusValue) => (
+          <label key={statusValue} className="block">
+            <input
+              type="checkbox"
+              checked={enrollmentStatus.includes(statusValue)}
+              onChange={() =>
+                toggleSelection(
+                  statusValue,
+                  enrollmentStatus,
+                  "enrollmentStatus"
+                )
+              }
+            />
+            {statusValue.charAt(0).toUpperCase() + statusValue.slice(1)}
+          </label>
+        ))}
       </div>
 
       {/* Organization Filter */}
@@ -94,11 +105,7 @@ export default function Filters() {
               type="checkbox"
               checked={selectedOrganizations.includes(org)}
               onChange={() =>
-                toggleSelection(
-                  org,
-                  selectedOrganizations,
-                  setSelectedOrganizations
-                )
+                toggleSelection(org, selectedOrganizations, "organizations")
               }
             />
             {org}

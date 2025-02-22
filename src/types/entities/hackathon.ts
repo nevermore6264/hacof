@@ -15,4 +15,7 @@ export type Hackathon = {
   participant: string;
   documentation: string[]; // document public URLs
   contact: string;
+  category: string; // New: Used for category filtering
+  organization: string; // New: Used for organization filtering
+  enrollmentStatus: string;
 };
