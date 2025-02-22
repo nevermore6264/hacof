@@ -1,10 +1,12 @@
 // src/app/hackathon/page.tsx
+"use client";
 import { Metadata } from "next";
 import HackathonList from "./_components/HackathonList";
 import Filters from "./_components/Filters";
 import SearchSortBar from "./_components/SearchSortBar";
 import Pagination from "./_components/Pagination";
 import { Hackathon } from "@/types/entities/hackathon";
+import { useQuery } from "@tanstack/react-query";
 
 export const metadata: Metadata = {
   title: "Hackathon Page",
@@ -20,8 +22,22 @@ async function getHackathons(): Promise<Hackathon[]> {
   return res.json();
 }
 
-export default async function HackathonPage() {
-  const hackathons: Hackathon[] = await getHackathons();
+// TODO: {lv3} Should I Enable Refetching
+export default function HackathonPage() {
+  const {
+    data: hackathons,
+    error,
+    isLoading,
+  } = useQuery<Hackathon[]>({
+    queryKey: ["hackathons"],
+    queryFn: getHackathons,
+    staleTime: 60 * 1000, // 1 minute before refetch
+    refetchOnWindowFocus: false, // Disable automatic refetching when the window regains focus to avoid unnecessary API calls
+  });
+
+  if (isLoading) return <p>Loading hackathons...</p>;
+  if (error) return <p>Failed to load hackathons.</p>;
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex gap-4">
@@ -33,7 +49,8 @@ export default async function HackathonPage() {
         {/* Main Content */}
         <div className="w-3/4">
           <SearchSortBar />
-          <HackathonList hackathons={hackathons} />
+          {/* Safely fallback to empty array if hackathons is undefined */}
+          <HackathonList hackathons={hackathons ?? []} />
           <Pagination />
         </div>
       </div>

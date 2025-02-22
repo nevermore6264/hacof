@@ -1,6 +1,7 @@
 // src/app/hackathon/_components/Filters.tsx
 "use client";
 import { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 const categories = [
   "Coding Hackathons",
@@ -19,6 +20,9 @@ const organizations = [
 ];
 
 export default function Filters() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [selectedStatus, setSelectedStatus] = useState<string>("open");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(
