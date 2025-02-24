@@ -42,7 +42,7 @@ export default async function HackathonDetail({ params }: HackathonProps) {
   const hackathon = await getHackathon(id);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-4 sm:p-6">
       <HackathonBanner
         bannerImageUrl={hackathon.bannerImageUrl}
         altText={hackathon.title}

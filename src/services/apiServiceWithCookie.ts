@@ -1,5 +1,4 @@
-// src\services\apiService.ts
-
+// src\services\apiServiceWithCookie.ts
 import { useAuthStore } from "@/store/authStore";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -19,20 +18,14 @@ async function request<T>(
   endpoint: string,
   payload?: Record<string, any>,
   customHeaders: HeadersInit = {},
-  useAuthHeader: boolean = false, // Toggle for Authorization header
-  timeoutMs: number = 5000, // Default timeout
+  includeCredentials: boolean = false, // Flag to control credentials
+  timeoutMs: number = 5000, // Default timeout, can be overridden
   retry: boolean = true
 ): Promise<T> {
-  const accessToken = useAuthStore.getState().accessToken;
-
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...customHeaders,
   };
-
-  if (useAuthHeader && accessToken) {
-    Object.assign(headers, { Authorization: `Bearer ${accessToken}` });
-  }
 
   // Add request cancellation
   if (controllers.has(endpoint)) {
@@ -44,6 +37,7 @@ async function request<T>(
   const options: RequestInit = {
     method,
     headers,
+    credentials: includeCredentials ? "include" : "omit", // Uses credentials only for auth requests
     signal: controller.signal,
   };
 
@@ -58,30 +52,22 @@ async function request<T>(
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
     clearTimeout(timeout); // Clear timeout when response is received
 
-    if (useAuthHeader && response.status === 401 && retry) {
+    if (includeCredentials && response.status === 401 && retry) {
       console.warn(
         `Token expired on ${method} ${endpoint}. Attempting refresh...`
       );
       // Use authStore's refreshToken which includes attempt tracking
       const refreshed = await useAuthStore.getState().refreshToken();
-      const newToken = useAuthStore.getState().accessToken; // Ensure the latest token is used
-      if (refreshed && newToken) {
-        controllers.get(endpoint)?.abort();
-        controllers.delete(endpoint);
+      if (refreshed) {
         return request<T>(
           method,
           endpoint,
           payload,
-          newToken
-            ? { ...customHeaders, Authorization: `Bearer ${newToken}` }
-            : customHeaders,
+          customHeaders,
           true,
           timeoutMs,
-          false // No further retries
+          false
         );
-      } else {
-        console.warn("Token refresh failed. User must log in again.");
-        throw new Error("Unauthorized - Token refresh failed.");
       }
     }
 
@@ -118,7 +104,7 @@ function handleGlobalError(error: any, method: string, endpoint: string) {
 }
 
 /**
- * API service with categorized requests.
+ * API service with separate authenticated & public requests.
  */
 export const apiService = {
   auth: {

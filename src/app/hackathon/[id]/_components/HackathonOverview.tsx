@@ -14,10 +14,10 @@ export default function HackathonOverview({
   enrollmentCount,
 }: HackathonOverviewProps) {
   return (
-    <div className="p-6 bg-white border border-gray-200 rounded-lg shadow">
-      <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-      <p className="text-gray-600 mt-1">📅 {date}</p>
-      <p className="mt-4 text-gray-700">{subtitle}</p>
+    <div className="p-4 sm:p-6 bg-white border border-gray-200 rounded-lg shadow">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
+      <p className="text-gray-600 mt-1 text-sm sm:text-base">📅 {date}</p>
+      <p className="mt-4 text-gray-700 text-sm sm:text-base">{subtitle}</p>
       <div className="mt-6">
         <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition">
           Enroll

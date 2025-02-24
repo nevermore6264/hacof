@@ -7,6 +7,10 @@ interface User {
   name: string;
 }
 
+interface LoginResponse {
+  accessToken: string;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
 export const authService = {
@@ -14,12 +18,20 @@ export const authService = {
     return apiService.auth.get<User>("/auth/me");
   },
   async login(email: string, password: string) {
-    return apiService.public.post("/auth/login", { email, password });
+    const response = await apiService.public.post<LoginResponse>(
+      "/auth/login",
+      {
+        email,
+        password,
+      }
+    );
+    return { accessToken: response.accessToken };
   },
   async logout() {
     return apiService.auth.post("/auth/logout", {});
   },
-  async refreshToken(): Promise<boolean> {
+
+  async refreshToken(): Promise<{ accessToken: string | null }> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: "POST",
@@ -27,15 +39,15 @@ export const authService = {
       });
 
       if (response.ok) {
-        console.info("Token refreshed successfully.");
-        return true;
+        const data = await response.json();
+        return { accessToken: data.accessToken };
       } else {
         console.warn("Token refresh failed. User must re-login.");
-        return false;
+        return { accessToken: null };
       }
     } catch (error) {
       console.error("Error refreshing token:", error);
-      return false;
+      return { accessToken: null };
     }
   },
 };
