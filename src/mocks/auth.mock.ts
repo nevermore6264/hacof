@@ -1,4 +1,4 @@
-// src\mocks\auth.mock.ts
+// src/mocks/auth.mock.ts
 
 export const mockUser = {
   id: "123",

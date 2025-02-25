@@ -15,7 +15,7 @@ COMMENT_STYLES = {
 }
 
 SRC_FOLDER = "src"
-HEADER_REGEX = re.compile(r"^(#|//|/\*|<!--) .*?(\*/|-->)?$")
+HEADER_REGEX = re.compile(r"^(#|//|/\*|<!--)\s*.*?(\*/|-->)?$")
 
 def get_relative_path(file_path):
     return os.path.relpath(file_path, os.getcwd()).replace("\\", "/")

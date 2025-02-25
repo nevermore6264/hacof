@@ -1,4 +1,6 @@
+// src/services/auth.service.ts
 import { apiService } from "@/services/apiService";
+import { tokenService } from "@/services/token.service";
 import { useAuthStore } from "@/store/authStore";
 
 interface User {
@@ -11,15 +13,7 @@ interface LoginResponse {
   accessToken: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
-
 class AuthService {
-  private accessToken: string | null = null;
-
-  getToken() {
-    return this.accessToken;
-  }
-
   async getUser() {
     return apiService.auth.get<User>("/auth/me");
   }
@@ -29,8 +23,7 @@ class AuthService {
       "/auth/login",
       { email, password }
     );
-    this.accessToken = response.accessToken;
-    useAuthStore.getState().setAuth({ accessToken: this.accessToken });
+    tokenService.setToken(response.accessToken);
     return response;
   }
 
@@ -38,30 +31,8 @@ class AuthService {
     try {
       await apiService.auth.post("/auth/logout", {});
     } finally {
-      this.accessToken = null;
+      tokenService.setToken(null);
       useAuthStore.getState().setAuth({ user: null, accessToken: null });
-    }
-  }
-
-  async refreshToken(): Promise<boolean> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        this.accessToken = data.accessToken;
-        useAuthStore.getState().setAuth({ accessToken: this.accessToken });
-        return true;
-      } else {
-        console.warn("Token refresh failed. User must re-login.");
-        return false;
-      }
-    } catch (error) {
-      console.error("Error refreshing token:", error);
-      return false;
     }
   }
 }

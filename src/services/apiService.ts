@@ -1,7 +1,6 @@
-// src\services\apiService.ts
+// src/services/apiService.ts
 
-import { authService } from "@/services/auth.service";
-
+import { tokenService } from "@/services/token.service";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
 interface ApiResponse<T> {
@@ -23,7 +22,7 @@ async function request<T>(
   timeoutMs: number = 5000, // Default timeout
   retry: boolean = true
 ): Promise<T> {
-  const accessToken = authService.getToken();
+  const accessToken = tokenService.getToken();
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -62,7 +61,7 @@ async function request<T>(
       console.warn(
         `Token expired on ${method} ${endpoint}. Attempting refresh...`
       );
-      const refreshed = await authService.refreshToken();
+      const refreshed = await tokenService.refreshToken();
       if (refreshed) {
         return request<T>(
           method,

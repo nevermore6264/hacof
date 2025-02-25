@@ -1,4 +1,4 @@
-// src\services\apiServiceWithCookie.ts
+// src/services/apiServiceWithCookie.ts
 import { useAuthStore } from "@/store/authStore";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
