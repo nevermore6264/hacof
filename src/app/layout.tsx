@@ -22,7 +22,7 @@ export default function RootLayout({
       */}
       <head />
 
-      <body className={`pt-[100px] ${inter.className}`}>
+      <body className={`pt-[142px] ${inter.className}`}>
         <Providers>
           <Header />
           {children}
