@@ -1,6 +1,6 @@
 // src\services\apiService.ts
 
-import { useAuthStore } from "@/store/authStore";
+import { authService } from "@/services/auth.service";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -23,7 +23,7 @@ async function request<T>(
   timeoutMs: number = 5000, // Default timeout
   retry: boolean = true
 ): Promise<T> {
-  const accessToken = useAuthStore.getState().accessToken;
+  const accessToken = authService.getToken();
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -62,22 +62,16 @@ async function request<T>(
       console.warn(
         `Token expired on ${method} ${endpoint}. Attempting refresh...`
       );
-      // Use authStore's refreshToken which includes attempt tracking
-      const refreshed = await useAuthStore.getState().refreshToken();
-      const newToken = useAuthStore.getState().accessToken; // Ensure the latest token is used
-      if (refreshed && newToken) {
-        controllers.get(endpoint)?.abort();
-        controllers.delete(endpoint);
+      const refreshed = await authService.refreshToken();
+      if (refreshed) {
         return request<T>(
           method,
           endpoint,
           payload,
-          newToken
-            ? { ...customHeaders, Authorization: `Bearer ${newToken}` }
-            : customHeaders,
+          customHeaders,
           true,
           timeoutMs,
-          false // No further retries
+          false
         );
       } else {
         console.warn("Token refresh failed. User must log in again.");

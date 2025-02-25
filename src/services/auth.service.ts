@@ -1,5 +1,5 @@
-// src/services/auth.service.ts
 import { apiService } from "@/services/apiService";
+import { useAuthStore } from "@/store/authStore";
 
 interface User {
   id: string;
@@ -13,25 +13,37 @@ interface LoginResponse {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
-export const authService = {
+class AuthService {
+  private accessToken: string | null = null;
+
+  getToken() {
+    return this.accessToken;
+  }
+
   async getUser() {
     return apiService.auth.get<User>("/auth/me");
-  },
+  }
+
   async login(email: string, password: string) {
     const response = await apiService.public.post<LoginResponse>(
       "/auth/login",
-      {
-        email,
-        password,
-      }
+      { email, password }
     );
-    return { accessToken: response.accessToken };
-  },
-  async logout() {
-    return apiService.auth.post("/auth/logout", {});
-  },
+    this.accessToken = response.accessToken;
+    useAuthStore.getState().setAuth({ accessToken: this.accessToken });
+    return response;
+  }
 
-  async refreshToken(): Promise<{ accessToken: string | null }> {
+  async logout() {
+    try {
+      await apiService.auth.post("/auth/logout", {});
+    } finally {
+      this.accessToken = null;
+      useAuthStore.getState().setAuth({ user: null, accessToken: null });
+    }
+  }
+
+  async refreshToken(): Promise<boolean> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: "POST",
@@ -40,14 +52,18 @@ export const authService = {
 
       if (response.ok) {
         const data = await response.json();
-        return { accessToken: data.accessToken };
+        this.accessToken = data.accessToken;
+        useAuthStore.getState().setAuth({ accessToken: this.accessToken });
+        return true;
       } else {
         console.warn("Token refresh failed. User must re-login.");
-        return { accessToken: null };
+        return false;
       }
     } catch (error) {
       console.error("Error refreshing token:", error);
-      return { accessToken: null };
+      return false;
     }
-  },
-};
+  }
+}
+
+export const authService = new AuthService();

@@ -1,7 +1,7 @@
 // src/services/apiClient.ts
 
 //being redundant, after adding apiService.ts to centralize API calls
-import { refreshToken } from "./auth.service";
+import { authService } from "@/services/auth.service";
 
 export async function apiClient(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem("accessToken");
@@ -17,7 +17,7 @@ export async function apiClient(endpoint: string, options: RequestInit = {}) {
   });
 
   if (res.status === 401) {
-    await refreshToken(); // Try refreshing token if unauthorized
+    await authService.refreshToken(); // Try refreshing token if unauthorized
     return apiClient(endpoint, options); // Retry request
   }
 
