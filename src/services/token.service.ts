@@ -13,7 +13,8 @@ class TokenService {
       if (response.ok) {
         const data = await response.json();
         useAuthStore.getState().setAuth({ accessToken: data.accessToken });
-        return data.accessToken; // Return the new token instead of storing it
+        console.warn("Access token successfully refreshed.");
+        return data.accessToken;
       } else {
         console.warn("Token refresh failed. User must re-login.");
         return null;

@@ -4,11 +4,6 @@ import { useAuthStore } from "@/store/authStore";
 import { tokenService } from "@/services/token.service";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
-interface ApiResponse<T> {
-  data: T;
-  error?: string;
-}
-
 const controllers = new Map<string, AbortController>();
 
 /**
@@ -37,6 +32,7 @@ async function request<T>(
   // Add request cancellation
   if (controllers.has(endpoint)) {
     controllers.get(endpoint)?.abort();
+    console.log(`[API] Aborting previous request to: ${endpoint}`);
   }
   const controller = new AbortController();
   controllers.set(endpoint, controller);
@@ -51,19 +47,32 @@ async function request<T>(
     options.body = JSON.stringify(payload);
   }
 
+  console.log(`[API] ${method} ${endpoint} - Initiating request`, {
+    payload,
+    headers,
+  });
+
   // Set timeout
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeout = setTimeout(() => {
+    console.warn(`[API] Request timeout: ${method} ${endpoint}`);
+    controller.abort();
+  }, timeoutMs);
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
     clearTimeout(timeout); // Clear timeout when response is received
 
+    console.log(`[API] ${method} ${endpoint} - Response received`, {
+      status: response.status,
+    });
+
     if (useAuthHeader && response.status === 401 && retry) {
       console.warn(
-        `Token expired on ${method} ${endpoint}. Attempting refresh...`
+        `[API] Token expired on ${method} ${endpoint}. Attempting refresh...`
       );
       const newToken = await tokenService.refreshToken();
       if (newToken) {
+        console.log(`[API] Retrying ${method} ${endpoint} with new token`);
         return request<T>(
           method,
           endpoint,
@@ -79,20 +88,29 @@ async function request<T>(
       }
     }
 
-    const data: ApiResponse<T> = await response.json();
+    const data: T = await response.json();
 
     if (!response.ok) {
+      console.error(
+        `[API] ${method} ${endpoint} - HTTP Error ${response.status}`
+      );
+
       throw new Error(
-        data.error || `HTTP Error ${response.status} on ${method} ${endpoint}`
+        `Request to ${method} ${endpoint} failed with status ${
+          response.status
+        }. Response body: ${JSON.stringify(data)}`
       );
     }
 
-    return data.data;
+    console.log(`[API] ${method} ${endpoint} - Success`, data);
+    return data;
   } catch (error: any) {
+    console.error(`[API] ${method} ${endpoint} - Error`, error);
     handleGlobalError(error, method, endpoint);
     throw error;
   } finally {
     controllers.delete(endpoint); // Cleanup
+    console.log(`[API] ${method} ${endpoint} - Request cleanup`);
   }
 }
 
@@ -100,7 +118,7 @@ async function request<T>(
  * Centralized global error handler
  */
 function handleGlobalError(error: any, method: string, endpoint: string) {
-  console.error(`API Error in ${method} ${endpoint}:`, error);
+  console.error(`[API] Error in ${method} ${endpoint}:`, error.message);
 
   if (error.message.includes("Failed to fetch")) {
     alert("Network error! Please check your internet connection.");

@@ -10,8 +10,9 @@ export function useAuth() {
     setAuth({ loading: true });
     try {
       const response = await authService.login(email, password);
+      setAuth({ accessToken: response.accessToken });
       const user = await authService.getUser();
-      setAuth({ user, accessToken: response.accessToken });
+      setAuth({ user });
     } catch (error) {
       console.error("Login failed:", error);
       setAuth({ user: null, accessToken: null });
