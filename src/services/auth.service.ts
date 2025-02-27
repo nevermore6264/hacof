@@ -1,6 +1,5 @@
 // src/services/auth.service.ts
 import { apiService } from "@/services/apiService";
-import { tokenService } from "@/services/token.service";
 
 interface User {
   id: string;
@@ -25,16 +24,14 @@ class AuthService {
         password,
       }
     );
-
-    tokenService.setToken(response.accessToken); // Store the token
     return response;
   }
 
   async logout(): Promise<void> {
     try {
       await apiService.auth.post("/auth/logout", {});
-    } finally {
-      tokenService.clearToken(); // Use a dedicated method for clearing tokens
+    } catch (error) {
+      console.warn("Logout request failed:", error);
     }
   }
 }
