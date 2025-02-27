@@ -1,7 +1,6 @@
 // src/services/auth.service.ts
 import { apiService } from "@/services/apiService";
 import { tokenService } from "@/services/token.service";
-import { useAuthStore } from "@/store/authStore";
 
 interface User {
   id: string;
@@ -14,25 +13,28 @@ interface LoginResponse {
 }
 
 class AuthService {
-  async getUser() {
+  async getUser(): Promise<User> {
     return apiService.auth.get<User>("/auth/me");
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string): Promise<LoginResponse> {
     const response = await apiService.public.post<LoginResponse>(
       "/auth/login",
-      { email, password }
+      {
+        email,
+        password,
+      }
     );
-    tokenService.setToken(response.accessToken);
+
+    tokenService.setToken(response.accessToken); // Store the token
     return response;
   }
 
-  async logout() {
+  async logout(): Promise<void> {
     try {
       await apiService.auth.post("/auth/logout", {});
     } finally {
-      tokenService.setToken(null);
-      useAuthStore.getState().setAuth({ user: null, accessToken: null });
+      tokenService.clearToken(); // Use a dedicated method for clearing tokens
     }
   }
 }
