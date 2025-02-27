@@ -1,3 +1,4 @@
+// src/utils/errorHandler.ts
 export function handleGlobalError(
   error: any,
   method: string,

@@ -1,3 +1,5 @@
+// src/utils/jwtHelper.ts
+
 //Instead of checking for a 401 response, decode the JWT and refresh before it expires.
 //Use a library like jwt-decode to extract the expiry time
 // import jwtDecode from "jwt-decode";
