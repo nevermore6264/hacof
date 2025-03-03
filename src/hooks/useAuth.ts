@@ -2,9 +2,16 @@
 import { useAuthStore } from "@/store/authStore";
 import { authService } from "@/services/auth.service";
 import { tokenService } from "@/services/token.service";
+import { useEffect } from "react";
 
 export function useAuth() {
   const { user, accessToken, loading, setAuth } = useAuthStore();
+
+  useEffect(() => {
+    if (loading) {
+      checkUser();
+    }
+  }, [loading]);
 
   const login = async (email: string, password: string) => {
     setAuth({ loading: true });
