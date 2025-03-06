@@ -1,3 +1,4 @@
+// src/components/Header/AuthenticatedMenu.tsx
 import NotificationDropdown from "./NotificationDropdown";
 import UserDropdown from "./UserDropdown";
 

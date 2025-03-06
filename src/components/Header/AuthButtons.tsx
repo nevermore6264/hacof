@@ -1,3 +1,4 @@
+// src/components/Header/AuthButtons.tsx
 import Link from "next/link";
 
 export const AuthButtons = () => {
