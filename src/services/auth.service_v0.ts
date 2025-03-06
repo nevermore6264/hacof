@@ -1,5 +1,5 @@
 // src/services/auth.service_v0.ts
-import { apiService } from "@/services/apiService";
+import { apiService } from "@/services/apiService_v0";
 import { User } from "@/types/entities/users";
 interface AuthResponse {
   accessToken: string;
