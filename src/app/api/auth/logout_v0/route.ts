@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({ message: "Logged out" });
+    return NextResponse.json({ message: "Logged out successfully" });
   } catch (error) {
     return NextResponse.json(
       { error: "Something went wrong", errorCode: "SERVER_ERROR" },
