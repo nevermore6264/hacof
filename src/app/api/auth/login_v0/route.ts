@@ -16,14 +16,11 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
-
     // Generate JWT token
-    const accessToken = signToken({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
-
+    const accessToken = signToken(
+      { id: user.id, email: user.email, role: user.role },
+      "10h" // Set an expiration time
+    );
     return NextResponse.json({ accessToken, user });
   } catch (error) {
     return NextResponse.json(

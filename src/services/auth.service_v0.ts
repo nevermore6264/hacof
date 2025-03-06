@@ -1,6 +1,7 @@
 // src/services/auth.service_v0.ts
 import { apiService } from "@/services/apiService_v0";
 import { User } from "@/types/entities/users";
+import { useAuthStore } from "@/store/authStore";
 interface AuthResponse {
   accessToken: string;
   user: { id: string; email: string };
@@ -8,7 +9,12 @@ interface AuthResponse {
 
 class AuthService_v0 {
   async getUser(): Promise<User> {
-    return apiService.auth.get<User>("/auth/me");
+    const { accessToken } = useAuthStore.getState();
+    if (!accessToken) {
+      console.warn("⚠️ No token found, delaying request...");
+      await new Promise((res) => setTimeout(res, 500)); // Small delay before retrying
+    }
+    return apiService.auth.get<User>("/auth/me_v0");
   }
 
   async login(email: string, password: string): Promise<AuthResponse> {

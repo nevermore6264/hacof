@@ -19,7 +19,7 @@ async function request<T>(
   retry: boolean = true
 ): Promise<T> {
   const { accessToken } = useAuthStore.getState(); // Get token from Zustand
-
+  console.log(" 🔹 accessToken in apiSerive:", accessToken);
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...customHeaders,
@@ -28,6 +28,8 @@ async function request<T>(
   if (useAuthHeader && accessToken) {
     Object.assign(headers, { Authorization: `Bearer ${accessToken}` });
   }
+
+  console.log("🔹 Final headers in request:", headers); // <== ADD THIS
 
   // Add request cancellation
   if (controllers.has(endpoint)) {
@@ -67,6 +69,7 @@ async function request<T>(
     });
 
     if (useAuthHeader && response.status === 401 && retry) {
+      await new Promise((res) => setTimeout(res, 500));
       console.warn(
         `[API] Token expired on ${method} ${endpoint}. Attempting refresh...`
       );

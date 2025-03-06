@@ -1,6 +1,6 @@
 // src/app/api/auth/me/route.ts
 import { NextResponse } from "next/server";
-import { mockUser, mockAccessToken } from "@/mocks/auth.mock";
+import { mockUsers, mockAccessToken } from "@/mocks/auth.mock";
 
 export async function GET(req: Request) {
   // Extract Authorization header
@@ -12,5 +12,5 @@ export async function GET(req: Request) {
   }
 
   // Return mock user data
-  return NextResponse.json(mockUser);
+  return NextResponse.json(mockUsers);
 }

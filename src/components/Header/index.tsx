@@ -8,7 +8,7 @@ import ThemeToggler from "./ThemeToggler";
 import menuData from "./menuData";
 import { AuthButtons } from "./AuthButtons";
 import { AuthenticatedMenu } from "./AuthenticatedMenu";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth_v0";
 
 const Header = () => {
   const { user, loading } = useAuth();

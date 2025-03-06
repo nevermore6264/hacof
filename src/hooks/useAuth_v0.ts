@@ -7,17 +7,27 @@ export function useAuth() {
   const { user, accessToken, loading, setAuth } = useAuthStore();
 
   useEffect(() => {
-    if (loading) {
+    console.log(
+      "🔹 useEffect triggered - loading:",
+      loading,
+      "accessToken:",
+      accessToken
+    );
+
+    if (loading && accessToken) {
+      // Ensure accessToken exists
       checkUser();
     }
-  }, [loading]);
+  }, [loading, accessToken]); // Dependency added for accessToken
 
   const login = async (email: string, password: string) => {
     setAuth({ loading: true });
     try {
       const response = await authService_v0.login(email, password);
+      console.log("🔹 Login response:", response);
       setAuth({ accessToken: response.accessToken });
       const user = await authService_v0.getUser();
+      console.log("🔹 User data after login:", user);
       setAuth({ user });
     } catch (error: any) {
       if (error?.errorCode === "INVALID_CREDENTIALS") {
