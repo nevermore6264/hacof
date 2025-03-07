@@ -1,11 +1,23 @@
 // src/services/token.service_v0.ts
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
-import { useAuthStore } from "@/store/authStore";
 
 class TokenService_v0 {
-  async refreshToken(accessToken: string): Promise<string | null> {
-    const storedToken = localStorage.getItem("accessToken");
-    if (!storedToken) return null;
+  getAccessToken(): string | null {
+    return localStorage.getItem("accessToken");
+  }
+
+  setAccessToken(token: string | null): void {
+    if (token) {
+      localStorage.setItem("accessToken", token);
+    } else {
+      localStorage.removeItem("accessToken");
+    }
+  }
+
+  async refreshToken(): Promise<string | null> {
+    const accessToken = this.getAccessToken();
+    if (!accessToken) return null;
+
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh_v0`, {
         method: "POST",
@@ -17,12 +29,12 @@ class TokenService_v0 {
 
       if (response.ok) {
         const data = await response.json();
-        useAuthStore.getState().setAuth({ accessToken: data.accessToken });
-        localStorage.setItem("accessToken", data.accessToken);
+        this.setAccessToken(data.accessToken);
         console.warn("Access token successfully refreshed (v0).");
         return data.accessToken;
       } else {
         console.warn("Token refresh failed (v0). User must re-login.");
+        this.setAccessToken(null);
         return null;
       }
     } catch (error) {

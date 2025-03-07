@@ -1,6 +1,5 @@
 // src/services/apiService_v0.ts
 
-import { useAuthStore } from "@/store/authStore";
 import { tokenService_v0 } from "@/services/token.service_v0";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -18,8 +17,8 @@ async function request<T>(
   timeoutMs: number = 5000, // Default timeout
   retry: boolean = true
 ): Promise<T> {
-  const { accessToken } = useAuthStore.getState(); // Get token from Zustand
-  console.log(" 🔹 accessToken in apiSerive:", accessToken);
+  const accessToken = tokenService_v0.getAccessToken();
+  console.log("🔹 accessToken in apiService:", accessToken);
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...customHeaders,
@@ -73,12 +72,8 @@ async function request<T>(
       console.warn(
         `[API] Token expired on ${method} ${endpoint}. Attempting refresh...`
       );
-      if (!accessToken) {
-        console.warn("No access token available. Cannot refresh.");
-        throw new Error("Unauthorized - No access token.");
-      }
 
-      const newToken = await tokenService_v0.refreshToken(accessToken);
+      const newToken = await tokenService_v0.refreshToken();
 
       if (newToken) {
         console.log(`[API] Retrying ${method} ${endpoint} with new token`);

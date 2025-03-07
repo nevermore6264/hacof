@@ -1,7 +1,6 @@
 // src/services/auth.service_v0.ts
 import { apiService } from "@/services/apiService_v0";
 import { User } from "@/types/entities/users";
-import { useAuthStore } from "@/store/authStore";
 interface AuthResponse {
   accessToken: string;
   user: { id: string; email: string };
@@ -9,43 +8,32 @@ interface AuthResponse {
 
 class AuthService_v0 {
   async getUser(): Promise<User> {
-    const { accessToken } = useAuthStore.getState();
-    if (!accessToken) {
-      console.warn("⚠️ No token found, delaying request...");
-      await new Promise((res) => setTimeout(res, 500)); // Small delay before retrying
-    }
     return apiService.auth.get<User>("/auth/me_v0");
   }
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    try {
-      return await apiService.public.post<AuthResponse>("/auth/login_v0", {
-        email,
-        password,
-      });
-    } catch (error: any) {
-      throw error.response?.data || { error: "Login failed" };
-    }
+    return await apiService.public.post<AuthResponse>("/auth/login_v0", {
+      email,
+      password,
+    });
   }
 
   async refreshToken(accessToken: string): Promise<string | null> {
     try {
       const response = await apiService.public.post<{ accessToken: string }>(
         "/auth/refresh_v0",
-        { accessToken }
+        {
+          accessToken,
+        }
       );
       return response.accessToken;
-    } catch (error: any) {
-      throw error.response?.data || { error: "Token refresh failed" };
+    } catch {
+      return null;
     }
   }
 
   async logout(accessToken: string): Promise<void> {
-    try {
-      await apiService.auth.post("/auth/logout_v0", { accessToken });
-    } catch (error) {
-      console.warn("Logout failed:", error);
-    }
+    await apiService.auth.post("/auth/logout_v0", { accessToken });
   }
 }
 
