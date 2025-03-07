@@ -9,30 +9,25 @@ interface AuthState {
   setAuth: (data: Partial<AuthState>) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => {
-  // Load accessToken from localStorage initially
-  const storedToken =
-    typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  accessToken: null,
+  loading: true,
 
-  return {
-    user: null,
-    accessToken: storedToken,
-    loading: true,
-    setAuth: (data) => {
-      set((state) => {
-        const newState = { ...state, ...data };
+  setAuth: (data) => {
+    set((state) => {
+      const newState = { ...state, ...data };
 
-        // Persist accessToken to localStorage
-        if (data.accessToken !== undefined) {
-          if (data.accessToken) {
-            localStorage.setItem("accessToken", data.accessToken);
-          } else {
-            localStorage.removeItem("accessToken");
-          }
+      // Only persist token to localStorage when it actually changes
+      if (data.accessToken !== undefined) {
+        if (data.accessToken) {
+          localStorage.setItem("accessToken", data.accessToken);
+        } else {
+          localStorage.removeItem("accessToken");
         }
+      }
 
-        return newState;
-      });
-    },
-  };
-});
+      return newState;
+    });
+  },
+}));

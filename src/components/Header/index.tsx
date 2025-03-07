@@ -28,6 +28,15 @@ const Header = () => {
       setSticky(false);
     }
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("🔹 Loading state:", loading);
+    }, 3000);
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
+  }, [loading]); // Re-run effect when `loading` changes
+
   useEffect(() => {
     window.addEventListener("scroll", handleStickyNavbar);
   });

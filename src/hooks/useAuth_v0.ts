@@ -7,11 +7,14 @@ export function useAuth() {
   const { user, accessToken, loading, setAuth } = useAuthStore();
 
   useEffect(() => {
-    // Read token from localStorage and store it in Zustand if it exists
-    const storedToken = localStorage.getItem("accessToken");
-    if (storedToken && !accessToken) {
-      setAuth({ accessToken: storedToken });
-    }
+    const syncTokenWithStorage = () => {
+      const storedToken = localStorage.getItem("accessToken");
+      if (storedToken && storedToken !== accessToken) {
+        setAuth({ accessToken: storedToken });
+      }
+    };
+
+    syncTokenWithStorage();
 
     console.log(
       "🔹 useEffect triggered - loading:",
@@ -20,10 +23,12 @@ export function useAuth() {
       accessToken
     );
 
-    if (loading && accessToken) {
+    if (accessToken) {
       checkUser();
+    } else {
+      setAuth({ loading: false }); // Ensure loading is false if there's no token
     }
-  }, [loading, accessToken]);
+  }, [accessToken]);
 
   const login = async (email: string, password: string) => {
     setAuth({ loading: true });
@@ -31,6 +36,7 @@ export function useAuth() {
       const response = await authService_v0.login(email, password);
       console.log("🔹 Login response:", response);
       setAuth({ accessToken: response.accessToken });
+      localStorage.setItem("accessToken", response.accessToken);
       const user = await authService_v0.getUser();
       console.log("🔹 User data after login:", user);
       setAuth({ user });
@@ -38,6 +44,7 @@ export function useAuth() {
       if (error?.errorCode === "INVALID_CREDENTIALS") {
         console.error("Invalid login credentials");
       }
+      localStorage.removeItem("accessToken");
       setAuth({ user: null, accessToken: null });
     } finally {
       setAuth({ loading: false });
