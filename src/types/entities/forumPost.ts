@@ -1,3 +1,4 @@
+// src/types/entities/forumPost.ts
 export type ForumPost = {
   id: string;
   threadId: string;
