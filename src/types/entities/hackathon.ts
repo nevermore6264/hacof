@@ -20,4 +20,6 @@ export type Hackathon = {
   enrollmentStatus: string;
   minimumTeamMembers: number;
   maximumTeamMembers: number;
+  numberOfRounds: number; // New: Number of rounds in the hackathon
+  markCriteria: RoundMarkCriteria[]; // New: Marking criteria per round
 };

@@ -11,10 +11,10 @@ import Pagination from "./_components/Pagination";
 import { Hackathon } from "@/types/entities/hackathon";
 import { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "User Dashboard",
-  description: "View hackathons you have enrolled in.",
-};
+// export const metadata: Metadata = {
+//   title: "User Dashboard",
+//   description: "View hackathons you have enrolled in.",
+// };
 
 const ITEMS_PER_PAGE = 6;
 

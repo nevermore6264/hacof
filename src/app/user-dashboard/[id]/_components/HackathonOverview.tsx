@@ -2,7 +2,6 @@
 "use client";
 import { useState } from "react";
 import EnrollmentModal from "./EnrollmentModal";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { getMockUserHackathons } from "@/mocks/userHackathon.mock";
 type HackathonOverviewProps = {
@@ -27,7 +26,7 @@ export default function HackathonOverview({
   const { user } = useAuthStore(); // Get current user
   console.log("user in HackathonOverview", user);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const router = useRouter();
+
   const userHackathons = user ? getMockUserHackathons(user.id) : null;
   const isEnrolled = userHackathons?.hackathons.some(
     (h) => h.hackathon.id === id
@@ -43,10 +42,7 @@ export default function HackathonOverview({
             <button className="bg-gray-400 text-white font-bold py-2 px-6 rounded-full cursor-not-allowed">
               Enrolled
             </button>
-            <button
-              onClick={() => router.push(`/hackathon/${id}/board`)}
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition"
-            >
+            <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition">
               Go to Board
             </button>
           </>
