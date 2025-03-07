@@ -1,4 +1,4 @@
-// src/app/hackathon/[id]/_components/EnrollmentModal.tsx
+// src/app/user-dashboard/[id]/_components/EnrollmentModal.tsx
 import { useState } from "react";
 
 type EnrollmentModalProps = {

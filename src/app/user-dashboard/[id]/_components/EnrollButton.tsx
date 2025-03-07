@@ -1,1 +1,1 @@
-// src/app/hackathon/[id]/_components/EnrollButton.tsx
+// src/app/user-dashboard/[id]/_components/EnrollButton.tsx

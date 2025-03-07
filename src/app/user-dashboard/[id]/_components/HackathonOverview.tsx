@@ -1,4 +1,4 @@
-// src/app/hackathon/[id]/_components/HackathonOverview.tsx
+// src/app/user-dashboard/[id]/_components/HackathonOverview.tsx
 "use client";
 import { useState } from "react";
 import EnrollmentModal from "./EnrollmentModal";
