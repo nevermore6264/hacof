@@ -1,14 +1,9 @@
-import { User } from "./users";
-import { PostSummary } from "./postSummary";
-export interface ForumThread {
+// src/types/entities/forumThread.ts
+export type ForumThread = {
   id: string;
   title: string;
-  categoryId: string;
-  author: User;
+  authorId: string;
+  subcategoryId: string;
   createdAt: string;
-  repliesCount: number;
-  viewsCount: number;
-  lastPost: PostSummary;
-  isPinned?: boolean;
-  isLocked?: boolean;
-}
+  updatedAt?: string;
+};

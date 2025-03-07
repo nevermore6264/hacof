@@ -1,10 +1,6 @@
-// Forum Category
-import { PostSummary } from "./postSummary";
-export interface ForumCategory {
+// src/types/entities/forumCategory.ts
+export type ForumCategory = {
   id: string;
   name: string;
   description: string;
-  threadsCount: number;
-  messagesCount: number;
-  lastPost?: PostSummary;
-}
+};
