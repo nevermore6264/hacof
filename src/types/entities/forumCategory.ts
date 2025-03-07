@@ -3,4 +3,5 @@ export type ForumCategory = {
   id: string;
   name: string;
   description: string;
+  section: string; // New field to categorize categories into predefined sections
 };
