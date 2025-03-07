@@ -1,21 +1,9 @@
 // src/hooks/useAuth_v0.ts
 import { useAuthStore } from "@/store/authStore";
 import { authService_v0 } from "@/services/auth.service_v0";
-import { useEffect } from "react";
 
 export function useAuth() {
   const { user, loading, setAuth } = useAuthStore();
-
-  useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    console.log("🔹 Checking localStorage accessToken:", accessToken);
-
-    if (accessToken) {
-      checkUser();
-    } else {
-      setAuth({ loading: false }); // Ensure loading is false if there's no token
-    }
-  }, []);
 
   const login = async (email: string, password: string) => {
     setAuth({ loading: true });
@@ -47,18 +35,26 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      await authService_v0.logout(accessToken);
+    try {
+      setAuth({ loading: true });
+      const accessToken = localStorage.getItem("accessToken");
+      if (accessToken) {
+        await authService_v0.logout(accessToken);
+      }
+    } catch (error) {
+      console.error("❌ Logout failed:", error);
+    } finally {
+      localStorage.removeItem("accessToken");
+      setAuth({ user: null, loading: false }); // Ensure loading is false
     }
-    setAuth({ user: null });
-    localStorage.removeItem("accessToken");
   };
 
   const checkUser = async () => {
     const accessToken = localStorage.getItem("accessToken");
+
     if (!accessToken) {
       console.warn("❌ No accessToken, skipping checkUser");
+      setAuth({ user: null, loading: false }); // Ensure loading is reset
       return;
     }
 
@@ -67,13 +63,11 @@ export function useAuth() {
       console.log("🔹 Fetching user with accessToken:", accessToken);
       const user = await authService_v0.getUser();
       console.log("🔹 Fetched user:", user);
-      setAuth({ user });
+      setAuth({ user, loading: false }); // Ensure loading is set to false
     } catch (error) {
       console.error("❌ Failed to fetch user:", error);
       localStorage.removeItem("accessToken");
-      setAuth({ user: null });
-    } finally {
-      setAuth({ loading: false });
+      setAuth({ user: null, loading: false }); // Reset loading
     }
   };
 

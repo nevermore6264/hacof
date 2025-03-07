@@ -6,6 +6,8 @@ import Header from "@/components/Header";
 import ScrollToTop from "@/components/ScrollToTop";
 import { Inter } from "next/font/google";
 import "../styles/index.css";
+import { useAuth } from "@/hooks/useAuth_v0";
+import { useEffect } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,6 +16,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { checkUser } = useAuth();
+  useEffect(() => {
+    console.log("🔹 AuthProvider: Initializing auth check");
+    checkUser(); // No need to check accessToken separately
+  }, []);
+
   return (
     <html suppressHydrationWarning lang="en">
       {/*

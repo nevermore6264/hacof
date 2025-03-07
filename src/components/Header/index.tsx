@@ -28,7 +28,7 @@ const Header = () => {
       setSticky(false);
     }
   };
-
+  // TODO: {Optional} Remove this console.log
   useEffect(() => {
     const interval = setInterval(() => {
       console.log("🔹 Loading state:", loading);
