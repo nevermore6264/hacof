@@ -1,4 +1,4 @@
-// src\app\api\auth\me_v0\route.ts
+// src/app/api/auth/me_v0/route.ts
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/utils/jwt";
 import { mockUsers } from "@/mocks/auth.mock";

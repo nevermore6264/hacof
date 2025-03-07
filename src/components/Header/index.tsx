@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth_v0";
 
 const Header = () => {
   const { user, loading } = useAuth();
+  console.log("🔹 Header - user:", user, "loading:", loading);
   // Navbar toggle
   const [navbarOpen, setNavbarOpen] = useState(false);
   const navbarToggleHandler = () => {

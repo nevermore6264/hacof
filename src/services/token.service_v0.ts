@@ -4,6 +4,8 @@ import { useAuthStore } from "@/store/authStore";
 
 class TokenService_v0 {
   async refreshToken(accessToken: string): Promise<string | null> {
+    const storedToken = localStorage.getItem("accessToken");
+    if (!storedToken) return null;
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh_v0`, {
         method: "POST",
@@ -16,6 +18,7 @@ class TokenService_v0 {
       if (response.ok) {
         const data = await response.json();
         useAuthStore.getState().setAuth({ accessToken: data.accessToken });
+        localStorage.setItem("accessToken", data.accessToken);
         console.warn("Access token successfully refreshed (v0).");
         return data.accessToken;
       } else {

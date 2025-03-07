@@ -7,6 +7,12 @@ export function useAuth() {
   const { user, accessToken, loading, setAuth } = useAuthStore();
 
   useEffect(() => {
+    // Read token from localStorage and store it in Zustand if it exists
+    const storedToken = localStorage.getItem("accessToken");
+    if (storedToken && !accessToken) {
+      setAuth({ accessToken: storedToken });
+    }
+
     console.log(
       "🔹 useEffect triggered - loading:",
       loading,
@@ -15,10 +21,9 @@ export function useAuth() {
     );
 
     if (loading && accessToken) {
-      // Ensure accessToken exists
       checkUser();
     }
-  }, [loading, accessToken]); // Dependency added for accessToken
+  }, [loading, accessToken]);
 
   const login = async (email: string, password: string) => {
     setAuth({ loading: true });
@@ -44,6 +49,7 @@ export function useAuth() {
       await authService_v0.logout(accessToken);
     }
     setAuth({ user: null, accessToken: null });
+    localStorage.removeItem("accessToken");
   };
 
   const checkUser = async () => {
@@ -53,6 +59,7 @@ export function useAuth() {
       setAuth({ user });
     } catch {
       setAuth({ user: null, accessToken: null });
+      localStorage.removeItem("accessToken");
     } finally {
       setAuth({ loading: false });
     }
@@ -64,6 +71,7 @@ export function useAuth() {
       const newToken = await authService_v0.refreshToken(accessToken);
       if (newToken) {
         setAuth({ accessToken: newToken });
+        localStorage.setItem("accessToken", newToken);
       }
       return newToken;
     } catch (error: any) {
