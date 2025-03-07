@@ -8,10 +8,10 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAuth } from "@/hooks/useAuth_v0";
 import { useRouter } from "next/navigation";
 
-export default function UserDropdown() {
+export default function UserDropdown({ user }) {
   const [isOpen, setIsOpen] = useState(false);
   const { logout } = useAuth(); // Get logout function
-
+  const router = useRouter();
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.stopPropagation();
     setIsOpen((prev) => !prev);
@@ -20,7 +20,6 @@ export default function UserDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
-  const router = useRouter(); // Router to manually navigate after logout
 
   async function handleLogout(
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
@@ -40,12 +39,17 @@ export default function UserDropdown() {
           <Image
             width={44}
             height={44}
-            src="/images/user/owner.jpg"
+            src={
+              user.avatarUrl ||
+              "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"
+            }
             alt="User"
           />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Musharof</span>
+        <span className="block mr-1 font-medium text-theme-sm">
+          {user.lastName + " " + user.firstName}
+        </span>
 
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
@@ -74,10 +78,10 @@ export default function UserDropdown() {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Musharof Chowdhury
+            {user.lastName + " " + user.firstName}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.com
+            {user.email}
           </span>
         </div>
 

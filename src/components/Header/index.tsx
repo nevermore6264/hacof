@@ -101,7 +101,8 @@ const Header = () => {
 
             {/* Auth Buttons or Authenticated Menu */}
             <div className="flex items-center justify-end px-4 xl:ml-8">
-              {!loading && (user ? <AuthenticatedMenu /> : <AuthButtons />)}
+              {!loading &&
+                (user ? <AuthenticatedMenu user={user} /> : <AuthButtons />)}
               <ThemeToggler />
             </div>
           </div>

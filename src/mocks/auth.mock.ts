@@ -8,7 +8,8 @@ export const mockUsers: User[] = [
     firstName: "Alice",
     lastName: "Johnson",
     role: "Admin",
-    avatarUrl: "https://example.com/avatar-admin.jpg",
+    avatarUrl:
+      "https://adda.io/blog/wp-content/uploads/2022/02/Admin-App-Blog-banner.jpg",
     bio: "Administrator overseeing the hackathon operations.",
     country: "USA",
     city: "San Francisco",
