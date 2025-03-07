@@ -27,6 +27,8 @@ export const hackathonsMock: Hackathon[] = [
     category: "Coding Hackathons",
     organization: "FPTU",
     enrollmentStatus: "open",
+    minimumTeamMembers: 4,
+    maximumTeamMembers: 6,
   },
   {
     id: "2",
@@ -51,6 +53,8 @@ export const hackathonsMock: Hackathon[] = [
     category: "Design Hackathons",
     organization: "NASA",
     enrollmentStatus: "closed",
+    minimumTeamMembers: 4,
+    maximumTeamMembers: 6,
   },
   {
     id: "3",
@@ -76,6 +80,8 @@ export const hackathonsMock: Hackathon[] = [
     category: "External Hackathons",
     organization: "IAI HACKATHON",
     enrollmentStatus: "open",
+    minimumTeamMembers: 4,
+    maximumTeamMembers: 6,
   },
 ];
 

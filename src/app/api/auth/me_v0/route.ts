@@ -32,7 +32,7 @@ export async function GET(req: Request) {
       );
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json(user);
   } catch (error) {
     return NextResponse.json(
       { error: "Something went wrong", errorCode: "SERVER_ERROR" },

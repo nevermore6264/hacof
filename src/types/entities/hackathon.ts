@@ -18,4 +18,6 @@ export type Hackathon = {
   category: string; // New: Used for category filtering
   organization: string; // New: Used for organization filtering
   enrollmentStatus: string;
+  minimumTeamMembers: number;
+  maximumTeamMembers: number;
 };

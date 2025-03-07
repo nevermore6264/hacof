@@ -9,7 +9,7 @@ export const mockUsers: User[] = [
     lastName: "Johnson",
     role: "Admin",
     avatarUrl:
-      "https://adda.io/blog/wp-content/uploads/2022/02/Admin-App-Blog-banner.jpg",
+      "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
     bio: "Administrator overseeing the hackathon operations.",
     country: "USA",
     city: "San Francisco",
@@ -29,7 +29,8 @@ export const mockUsers: User[] = [
     firstName: "Bob",
     lastName: "Smith",
     role: "Organizer",
-    avatarUrl: "https://example.com/avatar-organizer.jpg",
+    avatarUrl:
+      "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
     bio: "Passionate about bringing developers together for innovation.",
     country: "Canada",
     city: "Toronto",
@@ -49,7 +50,8 @@ export const mockUsers: User[] = [
     firstName: "Charlie",
     lastName: "Davis",
     role: "Judge",
-    avatarUrl: "https://example.com/avatar-judge.jpg",
+    avatarUrl:
+      "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
     bio: "Experienced software engineer evaluating hackathon projects.",
     country: "UK",
     city: "London",
@@ -69,7 +71,8 @@ export const mockUsers: User[] = [
     firstName: "David",
     lastName: "Williams",
     role: "Mentor",
-    avatarUrl: "https://example.com/avatar-mentor.jpg",
+    avatarUrl:
+      "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
     bio: "Helping young developers shape their career paths.",
     country: "Germany",
     city: "Berlin",
@@ -89,7 +92,8 @@ export const mockUsers: User[] = [
     firstName: "Eva",
     lastName: "Martinez",
     role: "TeamLeader",
-    avatarUrl: "https://example.com/avatar-teamleader.jpg",
+    avatarUrl:
+      "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
     bio: "Leading a team of ambitious coders.",
     country: "France",
     city: "Paris",
@@ -106,10 +110,11 @@ export const mockUsers: User[] = [
   {
     id: "6",
     email: "thanhphuccrkh@gmail.com",
-    firstName: "Frank",
-    lastName: "Brown",
+    firstName: "Phan Thanh Phuc",
+    lastName: "Bui",
     role: "TeamMember",
-    avatarUrl: "https://example.com/avatar-teammember.jpg",
+    avatarUrl:
+      "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
     bio: "Excited to collaborate and learn new skills.",
     country: "Japan",
     city: "Tokyo",
@@ -133,7 +138,7 @@ export function simulateLogin(email: string, password: string) {
     return {
       accessToken: mockAccessToken,
       refreshToken: mockRefreshToken,
-      user: mockUser,
+      user: mockUsers,
     };
   }
   throw new Error("Invalid credentials");

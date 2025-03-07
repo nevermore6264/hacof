@@ -31,7 +31,7 @@ export async function generateMetadata({
   const id = (await params).id;
   const hackathon = await getHackathon(id);
   return {
-    title: hackathon.name,
+    title: hackathon.title,
     description: hackathon.description,
   };
 }
@@ -40,7 +40,6 @@ export default async function HackathonDetail({ params }: HackathonProps) {
   // Await the params object
   const id = (await params).id;
   const hackathon = await getHackathon(id);
-
   return (
     <div className="container mx-auto p-4 sm:p-6">
       <HackathonBanner
@@ -52,6 +51,9 @@ export default async function HackathonDetail({ params }: HackathonProps) {
         subtitle={hackathon.subtitle}
         date={hackathon.enrollStartDate}
         enrollmentCount={hackathon.enrollmentCount}
+        id={id}
+        minimumTeamMembers={hackathon.minimumTeamMembers}
+        maximumTeamMembers={hackathon.maximumTeamMembers}
       />
       <HackathonTabs
         content={{
