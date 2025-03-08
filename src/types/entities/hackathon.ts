@@ -1,5 +1,5 @@
 // src/types/entities/hackathon.ts
-
+import { Round } from "./round";
 export type Hackathon = {
   id: string;
   title: string;
@@ -21,5 +21,5 @@ export type Hackathon = {
   minimumTeamMembers: number;
   maximumTeamMembers: number;
   numberOfRounds: number; // New: Number of rounds in the hackathon
-  markCriteria: RoundMarkCriteria[]; // New: Marking criteria per round
+  rounds: Round[]; // New: Directly linking rounds
 };

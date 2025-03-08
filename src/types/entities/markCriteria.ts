@@ -4,4 +4,5 @@ export type RoundMarkCriteria = {
   roundId: string;
   criteria: string;
   maxScore: number;
+  note?: string;
 };
