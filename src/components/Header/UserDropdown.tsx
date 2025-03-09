@@ -7,8 +7,9 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAuth } from "@/hooks/useAuth_v0";
 import { useRouter } from "next/navigation";
+import { User } from "@/types/entities/users";
 
-export default function UserDropdown({ user }) {
+export default function UserDropdown({ user }: { user: User }) {
   const [isOpen, setIsOpen] = useState(false);
   const { logout } = useAuth(); // Get logout function
   const router = useRouter();
