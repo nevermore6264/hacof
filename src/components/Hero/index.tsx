@@ -1,3 +1,4 @@
+// src/components/Hero/index.tsx
 const Hero = () => {
   return (
     <section className="relative bg-white py-16">

@@ -1,3 +1,4 @@
+// src/app/_components/FeaturedBlogPosts.tsx
 "use client";
 import { useRef, useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";

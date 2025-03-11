@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "This is Home for Startup Nextjs Template",
   // other metadata
 };
-
+// TODO: {lv1} Update Home component then delete related asset in public/images
 export default function Home() {
   return (
     <>
