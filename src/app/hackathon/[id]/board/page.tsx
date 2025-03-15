@@ -2,6 +2,11 @@
 "use client";
 import { useState } from "react";
 import SubmissionAndResultTab from "./_components/SubmissionAndResultTab";
+import Kaban from "./_components/Kaban";
+
+import { store, persistor } from "./models";
+import { StoreProvider } from "easy-peasy";
+import { PersistGate } from "redux-persist/integration/react";
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
 export default function HackathonBoardPage() {
@@ -14,11 +19,10 @@ export default function HackathonBoardPage() {
         {TABS.map((tab) => (
           <button
             key={tab}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === tab
-                ? "border-b-2 border-blue-500 text-blue-600"
-                : "text-gray-500"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === tab
+              ? "border-b-2 border-blue-500 text-blue-600"
+              : "text-gray-500"
+              }`}
             onClick={() => setActiveTab(tab)}
           >
             {tab}
@@ -28,7 +32,11 @@ export default function HackathonBoardPage() {
 
       {/* Tab Content */}
       <div className="mt-4 p-4 border rounded-lg bg-white shadow">
-        {activeTab === "Task Board" && <p>This is the Kanban board.</p>}
+        {activeTab === "Task Board" && <StoreProvider store={store}>
+          <PersistGate persistor={persistor}>
+            <Kaban />
+          </PersistGate>
+        </StoreProvider>}
         {activeTab === "Submission and Result" && <SubmissionAndResultTab />}
         {activeTab === "Schedule" && <p>Placeholder for schedule.</p>}
         {activeTab === "Analytics" && <p>Placeholder for analytics.</p>}

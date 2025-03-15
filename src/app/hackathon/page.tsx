@@ -61,14 +61,14 @@ export default function HackathonPage() {
       const matchesCategory =
         filters.categories.length > 0
           ? filters.categories.some((category) =>
-              hackathon.category.includes(category)
-            )
+            hackathon.category.includes(category)
+          )
           : true;
       const matchesOrganization =
         filters.organizations.length > 0
           ? filters.organizations.some((org) =>
-              hackathon.organization.includes(org)
-            )
+            hackathon.organization.includes(org)
+          )
           : true;
 
       return matchesStatus && matchesCategory && matchesOrganization;
