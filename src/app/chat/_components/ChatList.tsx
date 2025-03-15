@@ -1,4 +1,5 @@
-// src/components/ChatList.tsx
+/* eslint-disable @next/next/no-img-element */
+// src/app/_components/ChatList.tsx
 import React from 'react';
 
 interface Chat {
@@ -11,9 +12,10 @@ interface Chat {
 
 interface ChatListProps {
     chats: Chat[];
+    onChatSelect: (chatId: number) => void;
 }
 
-const ChatList: React.FC<ChatListProps> = ({ chats }) => {
+const ChatList: React.FC<ChatListProps> = ({ chats, onChatSelect }) => {
     return (
         <div className="w-1/3 bg-white border-r border-gray-200">
             <div className="p-4 border-b border-gray-200">
@@ -21,7 +23,11 @@ const ChatList: React.FC<ChatListProps> = ({ chats }) => {
             </div>
             <div className="overflow-y-auto">
                 {chats.map((chat) => (
-                    <div key={chat.id} className="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
+                    <div
+                        key={chat.id}
+                        className="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => onChatSelect(chat.id)}
+                    >
                         <div className="flex items-center">
                             <img src={chat.image} alt={chat.name} className="w-10 h-10 rounded-md" />
                             <div className="ml-3">
