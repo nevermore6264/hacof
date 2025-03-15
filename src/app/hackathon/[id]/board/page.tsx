@@ -32,11 +32,15 @@ export default function HackathonBoardPage() {
 
       {/* Tab Content */}
       <div className="mt-4 p-4 border rounded-lg bg-white shadow">
-        {activeTab === "Task Board" && <StoreProvider store={store}>
-          <PersistGate persistor={persistor}>
-            <Kaban />
-          </PersistGate>
-        </StoreProvider>}
+        {
+          activeTab === "Task Board" && (
+            <StoreProvider store={store}>
+              <PersistGate persistor={persistor}>
+                <Kaban />
+              </PersistGate>
+            </StoreProvider>
+          )
+        }
         {activeTab === "Submission and Result" && <SubmissionAndResultTab />}
         {activeTab === "Schedule" && <p>Placeholder for schedule.</p>}
         {activeTab === "Analytics" && <p>Placeholder for analytics.</p>}
