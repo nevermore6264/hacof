@@ -22,7 +22,61 @@ export default function ChatClient() {
                 { sender: "You", time: "05:15 pm", content: "What's up?", type: "text" },
             ],
         },
-        // Thêm các chat khác...
+        {
+            id: 2,
+            name: "Jane Cooper",
+            image: "https://randomuser.me/api/portraits/men/11.jpg",
+            lastMessage: "Haha that’s terrifying 😊",
+            lastMessageTime: "07:38 am",
+            messages: [
+                { sender: "Jane Cooper", time: "07:38 am", content: "Haha that’s terrifying 😊", type: "text" },
+                { sender: "You", time: "07:40 am", content: "https://example.com/image.jpg", type: "image" },
+            ],
+        },
+        {
+            id: 3,
+            name: "Floyd Miles",
+            image: "https://randomuser.me/api/portraits/men/22.jpg",
+            lastMessage: "perfect!",
+            lastMessageTime: "11:49 pm",
+            messages: [
+                { sender: "Jane Cooper", time: "07:38 am", content: "Haha that’s terrifying 😊", type: "text" },
+                { sender: "You", time: "07:40 am", content: "https://example.com/image.jpg", type: "image" },
+            ],
+        },
+        {
+            id: 4,
+            name: "Marvin McKinney",
+            image: "https://randomuser.me/api/portraits/men/23.jpg",
+            lastMessage: "omg, this is amazing...",
+            lastMessageTime: "07:40 am",
+            messages: [
+                { sender: "Jane Cooper", time: "07:38 am", content: "Haha that’s terrifying 😊", type: "text" },
+                { sender: "You", time: "07:40 am", content: "https://example.com/image.jpg", type: "image" },
+            ],
+        },
+        {
+            id: 5,
+            name: "Courtney Henry",
+            image: "https://randomuser.me/api/portraits/men/55.jpg",
+            lastMessage: "aww",
+            lastMessageTime: "08:20 pm",
+            messages: [
+                { sender: "Jane Cooper", time: "07:38 am", content: "Haha that’s terrifying 😊", type: "text" },
+                { sender: "You", time: "07:40 am", content: "https://example.com/image.jpg", type: "image" },
+            ],
+        },
+        {
+            id: 6,
+            name: "Dianne Russell",
+            image: "https://randomuser.me/api/portraits/men/15.jpg",
+            lastMessage: "I'll be there in 2 mins",
+            lastMessageTime: "01:09 am",
+            messages: [
+                { sender: "Jane Cooper", time: "07:38 am", content: "Haha that’s terrifying 😊", type: "text" },
+                { sender: "You", time: "07:40 am", content: "https://example.com/image.jpg", type: "image" },
+            ],
+        },
     ]);
 
     // Danh sách người dùng có sẵn
