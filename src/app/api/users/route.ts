@@ -1,6 +1,6 @@
 // src/app/api/user/route.ts
 import { NextResponse } from "next/server";
-import { verifyToken } from "@/utils/jwt";
+// import { verifyToken } from "@/utils/jwt";
 import { mockUsers } from "@/mocks/auth.mock";
 
 export async function GET(req: Request) {
@@ -15,20 +15,20 @@ export async function GET(req: Request) {
         }
 
         // Xác thực token
-        const token = authHeader.split(" ")[1];
-        const payload = verifyToken(token);
-        if (!payload) {
-            return NextResponse.json(
-                { error: "Invalid token", errorCode: "INVALID_TOKEN" },
-                { status: 401 }
-            );
-        }
+        // const token = authHeader.split(" ")[1];
+        // const payload = verifyToken(token);
+        // if (!payload) {
+        //     return NextResponse.json(
+        //         { error: "Invalid token", errorCode: "INVALID_TOKEN" },
+        //         { status: 401 }
+        //     );
+        // }
 
         // Trả về danh sách người dùng (loại bỏ thông tin nhạy cảm như mật khẩu)
         const users = mockUsers.map((user) => ({
-            id: user.id,
-            name: user.name,
-            image: user.image,
+            id: user?.id,
+            name: user?.firstName + " " + user?.lastName,
+            image: user?.avatarUrl,
         }));
 
         return NextResponse.json(users);

@@ -102,6 +102,31 @@ export default function ChatClient() {
         setChats([...chats, newChat]); // Thêm chat mới vào danh sách
     };
 
+    // Hàm tạo cuộc hội thoại mới bằng API
+    // const handleCreateChat = async (selectedUsers: { id: number; name: string; image: string }[]) => {
+    //     try {
+    //         const userIds = selectedUsers.map((user) => user.id); // Lấy danh sách ID người dùng
+    //         const response = await fetch('/api/chats', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 Authorization: `Bearer ${localStorage.getItem('token')}`, // Giả sử token được lưu trong localStorage
+    //             },
+    //             body: JSON.stringify({ userIds }),
+    //         });
+
+    //         if (response.ok) {
+    //             const newChat = await response.json();
+    //             setChats([...chats, newChat]); // Thêm chat mới vào danh sách
+    //             setIsCreateChatModalOpen(false); // Đóng modal
+    //         } else {
+    //             console.error("Failed to create chat");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error creating chat:", error);
+    //     }
+    // };
+
     // Hàm mở modal
     const handleOpenCreateChatModal = () => {
         setIsCreateChatModalOpen(true);
