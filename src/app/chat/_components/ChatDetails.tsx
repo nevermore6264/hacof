@@ -1,14 +1,14 @@
 'use client';
 import React, { useState } from 'react';
-import EmojiPicker from 'emoji-picker-react'; // Thư viện chọn emoji
 import { FaPaperclip, FaSmile } from 'react-icons/fa'; // Icon cho tài liệu và emoji
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react'; // Thư viện EmojiPicker
 
 interface Message {
     sender: string;
     time: string;
     content: string;
     type: string;
-    likes?: string[]; // Danh sách người like
+    likes?: { emoji: string; user: string }[]; // Danh sách like với emoji và người like
     seenBy?: string[]; // Danh sách người đã xem
 }
 
@@ -56,8 +56,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
         }
     };
 
-    // Xử lý chọn emoji
-    const handleEmojiClick = (emojiObject: { emoji: string }) => {
+    // Xử lý chọn emoji từ EmojiPicker
+    const handleEmojiClick = (emojiObject: EmojiClickData) => {
         setMessage((prev) => prev + emojiObject.emoji);
     };
 
@@ -65,6 +65,19 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
+        }
+    };
+
+    // Xử lý thả emoji vào tin nhắn
+    const handleDropEmoji = (messageIndex: number, emoji: string) => {
+        const message = chat.messages[messageIndex];
+        if (!message.likes) message.likes = [];
+        // Kiểm tra xem người dùng đã like chưa
+        const existingLike = message.likes.find((like) => like.user === 'You');
+        if (existingLike) {
+            existingLike.emoji = emoji; // Cập nhật emoji nếu đã like
+        } else {
+            message.likes.push({ emoji, user: 'You' }); // Thêm like mới
         }
     };
 
@@ -101,17 +114,13 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                         )}
                         {/* Like và xem ai đã xem */}
                         <div className="flex items-center mt-2">
-                            <button
-                                onClick={() => {
-                                    if (!message.likes) message.likes = [];
-                                    if (!message.likes.includes('You')) {
-                                        message.likes.push('You');
-                                    }
-                                }}
-                                className="text-sm text-gray-500 hover:text-blue-500"
-                            >
-                                {message.likes?.length || 0} Likes
-                            </button>
+                            <div className="flex items-center space-x-1">
+                                {message.likes?.map((like, i) => (
+                                    <span key={i} className="text-sm">
+                                        {like.emoji}
+                                    </span>
+                                ))}
+                            </div>
                             <span className="mx-2 text-gray-300">|</span>
                             <button
                                 onClick={() => {
@@ -124,6 +133,18 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                             >
                                 Seen by {message.seenBy?.length || 0}
                             </button>
+                        </div>
+                        {/* Danh sách emoji để thả */}
+                        <div className="flex items-center mt-2 space-x-1">
+                            {['👍', '❤️', '😂', '😮', '😢', '👏'].map((emoji, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleDropEmoji(index, emoji)}
+                                    className="text-sm hover:scale-110 transition-transform"
+                                >
+                                    {emoji}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 ))}
