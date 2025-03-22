@@ -7,7 +7,7 @@ export type UserHackathon = {
   id: string;
   user?: User;
   userId?: string;
-  hackathon?: Hackathon;
+  hackathon?: Partial<Hackathon>;
   hackathonId?: string;
   role: string;
 } & AuditBase;
