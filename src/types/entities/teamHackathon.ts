@@ -1,3 +1,4 @@
+// src/types/entities/teamHackathon.ts
 import { AuditBase } from "./auditBase";
 import { Team } from "./team";
 import { Hackathon } from "./hackathon";

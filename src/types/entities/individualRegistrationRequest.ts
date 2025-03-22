@@ -1,3 +1,4 @@
+// src/types/entities/individualRegistrationRequest.ts
 import { AuditCreatedBase } from "./auditCreatedBase";
 import { Hackathon } from "./hackathon";
 import { User } from "./user";

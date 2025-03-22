@@ -1,3 +1,4 @@
+// src/types/entities/threadPost.ts
 import { AuditCreatedBase } from "./auditCreatedBase";
 import { ForumThread } from "./forumThread";
 import { User } from "./user";

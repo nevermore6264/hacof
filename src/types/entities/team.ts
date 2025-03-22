@@ -1,3 +1,4 @@
+// src/types/entities/team.ts
 import { User } from "./user";
 import { Hackathon } from "./hackathon";
 import { UserTeam } from "./userTeam";

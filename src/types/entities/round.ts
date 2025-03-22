@@ -1,3 +1,4 @@
+// src/types/entities/round.ts
 import { AuditBase } from "./auditBase";
 import { Hackathon } from "./hackathon";
 import { Submission } from "./submission";

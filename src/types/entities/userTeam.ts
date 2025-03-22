@@ -1,3 +1,4 @@
+// src/types/entities/userTeam.ts
 import { AuditBase } from "./auditBase";
 import { User } from "./user";
 import { Team } from "./team";

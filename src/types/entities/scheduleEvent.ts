@@ -1,3 +1,4 @@
+// src/types/entities/scheduleEvent.ts
 import { AuditCreatedBase } from "./auditCreatedBase";
 import { Schedule } from "./schedule";
 import { FileUrl } from "./fileUrl";

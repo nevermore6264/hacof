@@ -1,3 +1,4 @@
+// src/types/entities/roundMarkCriterion.ts
 import { AuditCreatedBase } from "./auditCreatedBase";
 import { Round } from "./round";
 import { JudgeSubmissionDetail } from "./judgeSubmissionDetail";
