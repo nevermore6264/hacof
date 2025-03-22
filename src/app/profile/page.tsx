@@ -11,8 +11,8 @@ import AwardTab from "@/app/profile/_components/AwardTab";
 
 const userMock: User = {
   id: "1",
-  firstName: "Pierre",
-  lastName: "Yemmba",
+  firstName: "Phan Thanh Phuc",
+  lastName: "Bui",
   avatarUrl:
     "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
   email: "yemmbakpierre@gmail.com",

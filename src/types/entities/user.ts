@@ -27,6 +27,8 @@ import { ThreadPostReport } from "./threadPostReport";
 import { Feedback } from "./feedback";
 import { Notification } from "./notification";
 import { Team } from "./team";
+import { MentorTeam } from "./mentorTeam";
+import { MentorTeamLimit } from "./mentorTeamLimit";
 
 export type UserRole =
   | "Admin"
@@ -98,4 +100,6 @@ export type User = {
   receivedFeedbacks: Feedback[];
   createdFeedbacks: Feedback[];
   receivedNotifications: Notification[];
+  mentorTeams: MentorTeam[];
+  mentorTeamLimits: MentorTeamLimit[];
 } & AuditCreatedBase;

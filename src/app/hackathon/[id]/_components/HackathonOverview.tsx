@@ -1,10 +1,10 @@
 // src/app/hackathon/[id]/_components/HackathonOverview.tsx
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EnrollmentModal from "./EnrollmentModal";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { getMockUserHackathons } from "@/mocks/userHackathon.mock";
+
 type HackathonOverviewProps = {
   id: string;
   title: string;
@@ -14,6 +14,16 @@ type HackathonOverviewProps = {
   minimumTeamMembers: number;
   maximumTeamMembers: number;
 };
+
+export function getMockMyEnrollment(hackathonId: string) {
+  // Mock example response for /api/hackathons/{hackathonId}/my-enrollment
+  return {
+    hackathonId,
+    enrolled: true, // or false
+    role: "TeamLeader", // or "TeamMember" or null
+    teamId: "team123", // optional
+  };
+}
 
 export default function HackathonOverview({
   id,
@@ -25,25 +35,34 @@ export default function HackathonOverview({
   maximumTeamMembers,
 }: HackathonOverviewProps) {
   const { user } = useAuthStore(); // Get current user
-  console.log("user in HackathonOverview", user);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [enrollment, setEnrollment] = useState<{
+    enrolled: boolean;
+    role: string | null;
+  } | null>(null);
   const router = useRouter();
-  const userHackathons = user ? getMockUserHackathons(user.id) : null;
-  const isEnrolled = userHackathons?.hackathons.some(
-    (h) =>
-      h.hackathon.id === id &&
-      (h.role === "TeamLeader" || h.role === "TeamMember")
-  );
+
+  useEffect(() => {
+    if (user) {
+      // Simulate API call
+      const response = getMockMyEnrollment(id);
+      setEnrollment({
+        enrolled: response.enrolled,
+        role: response.role,
+      });
+    }
+  }, [user, id]);
+
   return (
     <div className="p-4 sm:p-6 bg-white border border-gray-200 rounded-lg shadow">
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
       <p className="text-gray-600 mt-1 text-sm sm:text-base">📅 {date}</p>
       <p className="mt-4 text-gray-700 text-sm sm:text-base">{subtitle}</p>
       <div className="mt-6 flex gap-4">
-        {isEnrolled ? (
+        {enrollment?.enrolled ? (
           <>
             <button className="bg-gray-400 text-white font-bold py-2 px-6 rounded-full cursor-not-allowed">
-              Enrolled
+              Enrolled as {enrollment.role}
             </button>
             <button
               onClick={() => router.push(`/hackathon/${id}/board`)}
@@ -67,7 +86,6 @@ export default function HackathonOverview({
           : `${enrollmentCount} people have registered to participate`}
       </p>
 
-      {/* Enrollment Modal */}
       {isModalOpen && (
         <EnrollmentModal
           hackathonId={id}

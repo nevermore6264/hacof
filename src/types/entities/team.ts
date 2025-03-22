@@ -1,4 +1,5 @@
 // src/types/entities/team.ts
+import { AuditCreatedBase } from "./auditCreatedBase";
 import { User } from "./user";
 import { Hackathon } from "./hackathon";
 import { UserTeam } from "./userTeam";
@@ -8,6 +9,8 @@ import { TeamRound } from "./teamRound";
 import { HackathonResult } from "./hackathonResult";
 import { MentorshipRequest } from "./mentorshipRequest";
 import { Feedback } from "./feedback";
+import { MentorTeam } from "./mentorTeam";
+import { MentorTeamLimit } from "./mentorTeamLimit";
 
 export type Team = {
   id: string;
@@ -27,9 +30,6 @@ export type Team = {
   isDeleted: boolean;
   deletedBy?: User;
   deletedById?: string;
-  // Audit fields inherited from AuditCreatedBase
-  createdAt?: string;
-  createdBy?: User;
-  createdById?: string;
-  updatedAt?: string;
-};
+  mentorTeams?: MentorTeam[];
+  mentorTeamLimits?: MentorTeamLimit[];
+} & AuditCreatedBase;
