@@ -19,4 +19,3 @@ export type Task = {
   comments?: TaskComment[];
   taskLabels?: TaskLabel[];
 } & AuditCreatedBase;
-files: blob[];
