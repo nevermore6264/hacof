@@ -20,7 +20,7 @@ export type Round = {
   hackathonId?: string;
   startTime: string;
   endTime: string;
-  roundNumber: number;
+  roundNumber: number; // Represents the sequential order of a round in the hackathon, starting from 1
   roundTitle: string;
   status: RoundStatus;
   submissions: Submission[];

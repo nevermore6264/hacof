@@ -15,8 +15,6 @@ import { MentorTeamLimit } from "./mentorTeamLimit";
 export type Team = {
   id: string;
   name: string;
-  hackathon?: Hackathon;
-  hackathonId?: string;
   teamLeader?: User;
   teamLeaderId?: string;
   teamMembers?: UserTeam[];
