@@ -99,7 +99,7 @@ const BlogSidebarPage = () => {
                   <div className="mb-5">
                     <a
                       href="#0"
-                      className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
+                      className="inline-flex items-center justify-center rounded-full bg-[#4A6CF7] px-4 py-2 text-sm font-semibold text-white"
                     >
                       Design
                     </a>
@@ -126,7 +126,7 @@ const BlogSidebarPage = () => {
                     do eiusmod tempor incididunt ut labore et dolore magna
                     aliqua. Quis enim lobortis scelerisque fermentum. Neque
                     sodales ut etiam sit amet. Ligula ullamcorper
-                    <strong className="text-primary dark:text-white">
+                    <strong className="text-[#4A6CF7] dark:text-white">
                       {" "}
                       malesuada{" "}
                     </strong>
@@ -136,7 +136,7 @@ const BlogSidebarPage = () => {
                   </p>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     Semper auctor neque vitae tempus quam pellentesque nec.
-                    <span className="text-primary underline dark:text-white">
+                    <span className="text-[#4A6CF7] underline dark:text-white">
                       {" "}
                       Amet dictum sit amet justo{" "}
                     </span>
@@ -166,7 +166,7 @@ const BlogSidebarPage = () => {
                       Ligula ullamcorper malesuada proin
                     </li>
                   </ul>
-                  <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-primary bg-opacity-10 p-8 md:p-9 lg:p-8 xl:p-9">
+                  <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-[#4A6CF7] bg-opacity-10 p-8 md:p-9 lg:p-8 xl:p-9">
                     <p className="text-center text-base font-medium italic text-body-color">
                       Lorem ipsum dolor sit amet, consectetur adipiscing elit,
                       sed do eiusmod incididunt utionals labore et dolore magna
@@ -348,11 +348,11 @@ const BlogSidebarPage = () => {
                   <input
                     type="text"
                     placeholder="Search here..."
-                    className="border-stroke dark:text-body-color-dark dark:shadow-two mr-4 w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
+                    className="border-stroke dark:text-body-color-dark dark:shadow-two mr-4 w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-[#4A6CF7] dark:border-transparent dark:bg-[#2C303B] dark:focus:border-[#4A6CF7] dark:focus:shadow-none"
                   />
                   <button
                     aria-label="search button"
-                    className="flex h-[50px] w-full max-w-[50px] items-center justify-center rounded-sm bg-primary text-white"
+                    className="flex h-[50px] w-full max-w-[50px] items-center justify-center rounded-sm bg-[#4A6CF7] text-white"
                   >
                     <svg
                       width="20"
@@ -408,7 +408,7 @@ const BlogSidebarPage = () => {
                   <li>
                     <a
                       href="#0"
-                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-[#4A6CF7]"
                     >
                       Tailwind Templates
                     </a>
@@ -416,7 +416,7 @@ const BlogSidebarPage = () => {
                   <li>
                     <a
                       href="#0"
-                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-[#4A6CF7]"
                     >
                       Landing page
                     </a>
@@ -424,7 +424,7 @@ const BlogSidebarPage = () => {
                   <li>
                     <a
                       href="#0"
-                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-[#4A6CF7]"
                     >
                       Startup
                     </a>
@@ -432,7 +432,7 @@ const BlogSidebarPage = () => {
                   <li>
                     <a
                       href="#0"
-                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-[#4A6CF7]"
                     >
                       Business
                     </a>
@@ -440,7 +440,7 @@ const BlogSidebarPage = () => {
                   <li>
                     <a
                       href="#0"
-                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-[#4A6CF7]"
                     >
                       Multipurpose
                     </a>

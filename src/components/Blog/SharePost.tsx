@@ -5,7 +5,7 @@ const SharePost = () => {
       <a
         href="#0"
         aria-label="social-share"
-        className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-sm bg-gray-light text-body-color duration-300 hover:bg-primary hover:text-white dark:bg-gray-dark dark:hover:bg-primary sm:ml-3"
+        className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-sm bg-gray-light text-body-color duration-300 hover:bg-[#4A6CF7] hover:text-white dark:bg-gray-dark dark:hover:bg-[#4A6CF7] sm:ml-3"
       >
         <svg
           width="16"
@@ -19,7 +19,7 @@ const SharePost = () => {
       <a
         href="#0"
         aria-label="social-share"
-        className="mb-3 ml-3 inline-flex h-9 w-9 items-center justify-center rounded-sm bg-gray-light text-body-color duration-300 hover:bg-primary hover:text-white dark:bg-gray-dark dark:hover:bg-primary"
+        className="mb-3 ml-3 inline-flex h-9 w-9 items-center justify-center rounded-sm bg-gray-light text-body-color duration-300 hover:bg-[#4A6CF7] hover:text-white dark:bg-gray-dark dark:hover:bg-[#4A6CF7]"
       >
         <svg
           width="18"
@@ -39,7 +39,7 @@ const SharePost = () => {
       <a
         href="#0"
         aria-label="social-share"
-        className="mb-3 ml-3 inline-flex h-9 w-9 items-center justify-center rounded-sm bg-gray-light text-body-color duration-300 hover:bg-primary hover:text-white dark:bg-gray-dark dark:hover:bg-primary"
+        className="mb-3 ml-3 inline-flex h-9 w-9 items-center justify-center rounded-sm bg-gray-light text-body-color duration-300 hover:bg-[#4A6CF7] hover:text-white dark:bg-gray-dark dark:hover:bg-[#4A6CF7]"
       >
         <svg
           width="18"
