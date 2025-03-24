@@ -5,7 +5,7 @@ import { Team } from "./team";
 
 export type UserTeam = {
   id: string;
-  user?: User;
+  user?: Partial<User>;
   userId?: string;
   team?: Team;
   teamId?: string;

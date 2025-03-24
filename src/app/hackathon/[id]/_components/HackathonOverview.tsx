@@ -2,8 +2,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import EnrollmentModal from "./EnrollmentModal";
+import TeamEnrollmentModal from "./TeamEnrollmentModal";
+import TeamRequestModal from "./TeamRequestModal";
+import IndividualEnrollmentModal from "./IndividualEnrollmentModal";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import { Team } from "@/types/entities/team";
+import { TeamRequest } from "@/types/entities/teamRequest";
+import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 
 type HackathonOverviewProps = {
   id: string;
@@ -15,15 +21,166 @@ type HackathonOverviewProps = {
   maximumTeamMembers: number;
 };
 
-export function getMockMyEnrollment(hackathonId: string) {
-  // Mock example response for /api/hackathons/{hackathonId}/my-enrollment
-  return {
-    hackathonId,
-    enrolled: true, // or false
-    role: "TeamLeader", // or "TeamMember" or null
-    teamId: "team123", // optional
-  };
-}
+const mockUserEnrollment = (userId: string, hackathonId: string) => {
+  // Step 1: Mock Teams the user is in that are already enrolled in the hackathon
+  const mockTeams: Team[] = [
+    {
+      id: "team1",
+      name: "Team Alpha",
+      teamLeader: { id: "user123", firstName: "Alice", lastName: "Smith" },
+      teamMembers: [
+        {
+          id: "ut1",
+          user: { id: "user123", firstName: "Alice", lastName: "Smith" },
+          team: undefined,
+        },
+        {
+          id: "ut2",
+          user: { id: "user456", firstName: "Bob", lastName: "Johnson" },
+          team: undefined,
+        },
+      ],
+      teamHackathons: [
+        {
+          id: "th1",
+          team: undefined,
+          hackathon: { id: hackathonId, title: "Hackathon X" },
+          status: "Active",
+        },
+      ],
+      isDeleted: false,
+      mentorTeams: [],
+      mentorTeamLimits: [],
+      mentorshipRequests: [],
+      mentorshipSessionRequests: [],
+      teamRounds: [],
+      hackathonResults: [],
+      feedbacks: [],
+      bio: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "team2",
+      name: "Team Beta",
+      teamLeader: { id: "user789", firstName: "Charlie", lastName: "Brown" },
+      teamMembers: [
+        {
+          id: "ut3",
+          user: { id: "user789", firstName: "Charlie", lastName: "Brown" },
+          team: undefined,
+        },
+        {
+          id: "ut4",
+          user: { id: userId, firstName: "Your", lastName: "Name" },
+          team: undefined,
+        }, // User in Team Beta
+      ],
+      teamHackathons: [
+        {
+          id: "th3",
+          team: undefined,
+          hackathon: { id: hackathonId, title: "Hackathon X" },
+          status: "Active",
+        },
+      ],
+      isDeleted: false,
+      mentorTeams: [],
+      mentorTeamLimits: [],
+      mentorshipRequests: [],
+      mentorshipSessionRequests: [],
+      teamRounds: [],
+      hackathonResults: [],
+      feedbacks: [],
+      bio: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  // Step 2: Mock Team Requests the user is in
+  const mockTeamRequests: TeamRequest[] = [
+    {
+      id: "request1",
+      hackathon: { id: hackathonId, title: "Hackathon X" },
+      status: "pending",
+      confirmationDeadline: new Date().toISOString(),
+      note: "Looking for team members",
+      teamRequestMembers: [
+        {
+          id: "trm1",
+          teamRequest: undefined,
+          user: { id: userId, firstName: "Your", lastName: "Name" },
+          status: "pending",
+          respondedAt: "",
+        },
+        {
+          id: "trm2",
+          teamRequest: undefined,
+          user: { id: "user456", firstName: "Bob", lastName: "Johnson" },
+          status: "approved",
+          respondedAt: new Date().toISOString(),
+        },
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "request2",
+      hackathon: { id: hackathonId, title: "Hackathon X" },
+      status: "under_review",
+      confirmationDeadline: new Date().toISOString(),
+      note: "Need a designer",
+      teamRequestMembers: [
+        {
+          id: "trm3",
+          teamRequest: undefined,
+          user: { id: userId, firstName: "Your", lastName: "Name" },
+          status: "pending",
+          respondedAt: "",
+        },
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  // Step 3: Mock Individual Registration Requests by the user
+  const mockIndividualRegistrations: IndividualRegistrationRequest[] = [
+    {
+      id: "reg1",
+      hackathon: { id: hackathonId, title: "Hackathon X" },
+      status: "PENDING",
+      reviewedBy: undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "reg2",
+      hackathon: { id: hackathonId, title: "Hackathon X" },
+      status: "APPROVED",
+      reviewedBy: { id: "adminUser", firstName: "Admin", lastName: "User" },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  if (hackathonId === "1" && mockTeams.length > 0) {
+    return { type: "Team", data: mockTeams };
+  } else if (hackathonId === "2" && mockTeamRequests.length > 0) {
+    return { type: "TeamRequest", data: mockTeamRequests };
+  } else if (hackathonId === "3" && mockIndividualRegistrations.length > 0) {
+    return {
+      type: "IndividualRegistrationRequest",
+      data: mockIndividualRegistrations,
+    };
+  } else if (hackathonId === "4") {
+    return { type: "none" };
+  }
+
+  // Step 4: No enrollment found
+  return { type: "none" };
+};
 
 export default function HackathonOverview({
   id,
@@ -35,23 +192,43 @@ export default function HackathonOverview({
   maximumTeamMembers,
 }: HackathonOverviewProps) {
   const { user } = useAuthStore(); // Get current user
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [enrollment, setEnrollment] = useState<{
-    enrolled: boolean;
-    role: string | null;
-  } | null>(null);
   const router = useRouter();
+  const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [isTeamRequestModalOpen, setIsTeamRequestModalOpen] = useState(false);
+  const [isIndividualModalOpen, setIsIndividualModalOpen] = useState(false);
+
+  const [enrollmentData, setEnrollmentData] = useState<
+    | { type: "Team"; data: Team[] }
+    | { type: "TeamRequest"; data: TeamRequest[] }
+    | {
+        type: "IndividualRegistrationRequest";
+        data: IndividualRegistrationRequest[];
+      }
+    | { type: "none" }
+  >({ type: "none" });
 
   useEffect(() => {
-    if (user) {
-      // Simulate API call
-      const response = getMockMyEnrollment(id);
-      setEnrollment({
-        enrolled: response.enrolled,
-        role: response.role,
-      });
+    if (user?.id) {
+      const data = mockUserEnrollment(user.id, id);
+      setEnrollmentData(data);
     }
   }, [user, id]);
+
+  const handleOpenModal = () => {
+    if (enrollmentData?.type === "Team") {
+      setIsTeamModalOpen(true);
+    } else if (enrollmentData?.type === "TeamRequest") {
+      setIsTeamRequestModalOpen(true);
+    } else if (enrollmentData?.type === "IndividualRegistrationRequest") {
+      setIsIndividualModalOpen(true);
+    } else {
+      setIsEnrollmentModalOpen(true);
+    }
+  };
+
+  const userHasTeam =
+    enrollmentData.type === "Team" && enrollmentData.data.length > 0;
 
   return (
     <div className="p-4 sm:p-6 bg-white border border-gray-200 rounded-lg shadow">
@@ -59,24 +236,24 @@ export default function HackathonOverview({
       <p className="text-gray-600 mt-1 text-sm sm:text-base">📅 {date}</p>
       <p className="mt-4 text-gray-700 text-sm sm:text-base">{subtitle}</p>
       <div className="mt-6 flex gap-4">
-        {enrollment?.enrolled ? (
-          <>
-            <button className="bg-gray-400 text-white font-bold py-2 px-6 rounded-full cursor-not-allowed">
-              Enrolled as {enrollment.role}
-            </button>
-            <button
-              onClick={() => router.push(`/hackathon/${id}/board`)}
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition"
-            >
-              Go to Board
-            </button>
-          </>
-        ) : (
+        <button
+          onClick={handleOpenModal}
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition"
+        >
+          {enrollmentData.type === "Team"
+            ? "View Team Enrollment"
+            : enrollmentData.type === "TeamRequest"
+            ? "View Team Request"
+            : enrollmentData.type === "IndividualRegistrationRequest"
+            ? "View Individual Enrollment"
+            : "Enroll"}
+        </button>
+        {userHasTeam && (
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition"
+            onClick={() => router.push(`/hackathon/${id}/board`)}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition"
           >
-            Enroll
+            Go to Board
           </button>
         )}
       </div>
@@ -86,10 +263,28 @@ export default function HackathonOverview({
           : `${enrollmentCount} people have registered to participate`}
       </p>
 
-      {isModalOpen && (
+      {isTeamModalOpen && (
+        <TeamEnrollmentModal
+          teams={enrollmentData.data}
+          onClose={() => setIsTeamModalOpen(false)}
+        />
+      )}
+      {isTeamRequestModalOpen && (
+        <TeamRequestModal
+          requests={enrollmentData.data}
+          onClose={() => setIsTeamRequestModalOpen(false)}
+        />
+      )}
+      {isIndividualModalOpen && (
+        <IndividualEnrollmentModal
+          registrations={enrollmentData.data}
+          onClose={() => setIsIndividualModalOpen(false)}
+        />
+      )}
+      {isEnrollmentModalOpen && (
         <EnrollmentModal
           hackathonId={id}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => setIsEnrollmentModalOpen(false)}
           minTeam={minimumTeamMembers}
           maxTeam={maximumTeamMembers}
         />

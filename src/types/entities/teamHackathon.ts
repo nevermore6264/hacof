@@ -13,7 +13,7 @@ export type TeamHackathon = {
   id: string;
   team?: Team;
   teamId?: string;
-  hackathon?: Hackathon;
+  hackathon?: Partial<Hackathon>;
   hackathonId?: string;
   status: TeamHackathonStatus;
 } & AuditBase;

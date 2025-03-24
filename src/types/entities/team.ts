@@ -15,7 +15,7 @@ import { MentorTeamLimit } from "./mentorTeamLimit";
 export type Team = {
   id: string;
   name: string;
-  teamLeader?: User;
+  teamLeader?: Partial<User>;
   teamLeaderId?: string;
   teamMembers?: UserTeam[];
   mentorshipSessionRequests?: MentorshipSessionRequest[];

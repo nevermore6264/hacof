@@ -4,17 +4,16 @@ import { Hackathon } from "./hackathon";
 import { User } from "./user";
 import { TeamRequestMember } from "./teamRequestMember";
 
-export enum TeamRequestStatus {
-  PENDING = "pending",
-  UNDER_REVIEW = "under_review",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  CANCELED = "canceled",
-}
+export type TeamRequestStatus =
+  | "pending"
+  | "under_review"
+  | "approved"
+  | "rejected"
+  | "canceled";
 
 export type TeamRequest = {
   id: string;
-  hackathon?: Hackathon;
+  hackathon?: Partial<Hackathon>;
   hackathonId?: string;
   status: TeamRequestStatus;
   confirmationDeadline: string;

@@ -10,9 +10,9 @@ export type IndividualRegistrationRequestStatus =
 
 export type IndividualRegistrationRequest = {
   id: string;
-  hackathon?: Hackathon;
+  hackathon?: Partial<Hackathon>;
   hackathonId?: string;
   status: IndividualRegistrationRequestStatus;
-  reviewedBy?: User;
+  reviewedBy?: Partial<User>;
   reviewedById?: string;
 } & AuditCreatedBase;
