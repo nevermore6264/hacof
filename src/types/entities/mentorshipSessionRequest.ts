@@ -1,8 +1,7 @@
 // src/types/entities/mentorshipSessionRequest.ts
 import { AuditCreatedBase } from "./auditCreatedBase";
-import { Hackathon } from "./hackathon";
+import { MentorTeam } from "./mentorTeam";
 import { User } from "./user";
-import { Team } from "./team";
 
 export type MentorshipSessionStatus =
   | "pending"
@@ -13,18 +12,14 @@ export type MentorshipSessionStatus =
 
 export type MentorshipSessionRequest = {
   id: string;
-  hackathon?: Hackathon;
-  hackathonId?: string;
-  mentor?: User;
-  mentorId?: string;
-  team?: Team;
-  teamId?: string;
+  mentorTeam?: Partial<MentorTeam>;
+  mentorTeamId: string;
   startTime?: string;
   endTime?: string;
   location?: string;
   description?: string;
   status?: MentorshipSessionStatus;
-  evaluatedBy?: User;
+  evaluatedBy?: Partial<User>;
   evaluatedById?: string;
   evaluatedAt?: string;
 } & AuditCreatedBase;

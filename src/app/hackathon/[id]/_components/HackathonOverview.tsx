@@ -9,7 +9,10 @@ import { fetchMockTeams } from "../_mock/fetchMockTeams";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { Team } from "@/types/entities/team";
+import { MentorTeam } from "@/types/entities/mentorTeam";
+import { MentorshipSessionRequest } from "@/types/entities/mentorshipSessionRequest";
 import EnrollmentModal from "./EnrollmentModal";
+import MentorshipModal from "./MentorshipModal";
 
 type HackathonOverviewProps = {
   id: string;
@@ -38,8 +41,13 @@ export default function HackathonOverview({
   >([]);
   const [teamRequests, setTeamRequests] = useState<TeamRequest[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [mentorTeams, setMentorTeams] = useState<MentorTeam[]>([]);
+  const [mentorshipRequests, setMentorshipRequests] = useState<
+    MentorshipSessionRequest[]
+  >([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMentorshipModalOpen, setIsMentorshipModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -55,8 +63,20 @@ export default function HackathonOverview({
       setIndividualRegistrations(indivRegs);
       setTeamRequests(teamReqs);
       setTeams(userTeams);
-    };
 
+      if (userTeams.length > 0) {
+        const teamId = userTeams[0].id;
+        const [mentorTeamData, mentorshipRequestData] = await Promise.all([
+          fetchMockMentorTeams(id),
+          fetchMockMentorshipSessionRequests(id),
+        ]);
+
+        setMentorTeams(mentorTeamData.filter((mt) => mt.team.id === teamId));
+        setMentorshipRequests(
+          mentorshipRequestData.filter((mr) => mr.team.id === teamId)
+        );
+      }
+    };
     fetchData();
   }, [user, id]);
 
@@ -93,12 +113,20 @@ export default function HackathonOverview({
             {buttonTitle}
           </button>
           {teams.length > 0 && (
-            <button
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition"
-              onClick={handleGoToBoard}
-            >
-              Go to board
-            </button>
+            <>
+              <button
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition"
+                onClick={handleGoToBoard}
+              >
+                Go to board
+              </button>
+              <button
+                className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full transition"
+                onClick={() => setIsMentorshipModalOpen(true)}
+              >
+                Request Mentorship
+              </button>
+            </>
           )}
         </div>
         <p className="mt-2 text-gray-500 text-sm">
@@ -116,6 +144,15 @@ export default function HackathonOverview({
         hackathonId={id}
         minimumTeamMembers={minimumTeamMembers}
         maximumTeamMembers={maximumTeamMembers}
+      />
+      {/* Mentorship Modal */}
+      <MentorshipModal
+        isOpen={isMentorshipModalOpen}
+        onClose={() => setIsMentorshipModalOpen(false)}
+        mentorTeams={mentorTeams}
+        mentorshipRequests={mentorshipRequests}
+        hackathonId={id}
+        teamId={teams.length > 0 ? teams[0].id : ""}
       />
     </>
   );

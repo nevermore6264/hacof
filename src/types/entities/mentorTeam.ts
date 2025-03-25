@@ -3,6 +3,7 @@ import { AuditCreatedBase } from "./auditCreatedBase";
 import { User } from "./user";
 import { Hackathon } from "./hackathon";
 import { Team } from "./team";
+import { MentorshipSessionRequest } from "./mentorshipSessionRequest";
 
 export type MentorTeam = {
   id: string;
@@ -12,4 +13,5 @@ export type MentorTeam = {
   mentorId?: string;
   team?: Partial<Team>;
   teamId?: string;
+  mentorshipSessionRequests?: Partial<MentorshipSessionRequest>[];
 } & AuditCreatedBase;
