@@ -1,3 +1,4 @@
+// src/types/entities/mentorTeamLimit.ts
 import { AuditCreatedBase } from "./auditCreatedBase";
 import { User } from "./user";
 import { Hackathon } from "./hackathon";

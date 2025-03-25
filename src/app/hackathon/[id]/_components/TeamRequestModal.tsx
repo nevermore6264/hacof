@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_components/TeamRequestModal.tsx
 import React from "react";
 import { TeamRequest } from "@/types/entities/teamRequest";
 

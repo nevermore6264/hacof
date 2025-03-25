@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_components/IndividualEnrollmentModal.tsx
 import React from "react";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 

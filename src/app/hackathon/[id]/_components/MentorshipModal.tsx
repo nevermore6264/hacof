@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_components/MentorshipModal.tsx
 const MentorshipModal = ({
   mentorshipData,
   onClose,
