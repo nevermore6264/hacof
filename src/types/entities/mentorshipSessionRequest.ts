@@ -4,13 +4,12 @@ import { Hackathon } from "./hackathon";
 import { User } from "./user";
 import { Team } from "./team";
 
-export enum MentorshipSessionStatus {
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  DELETED = "deleted",
-  COMPLETED = "completed",
-}
+export type MentorshipSessionStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "deleted"
+  | "completed";
 
 export type MentorshipSessionRequest = {
   id: string;

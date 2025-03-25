@@ -10,6 +10,8 @@ import { useAuthStore } from "@/store/authStore";
 import { Team } from "@/types/entities/team";
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
+import { MentorTeam } from "@/types/entities/mentorTeam";
+import { MentorshipRequest } from "@/types/entities/mentorshipRequest";
 
 type HackathonOverviewProps = {
   id: string;
@@ -165,7 +167,7 @@ const mockUserEnrollment = (userId: string, hackathonId: string) => {
     },
   ];
 
-  if (hackathonId === "1" && mockTeams.length > 0) {
+  if (["1", "5", "9"].includes(hackathonId) && mockTeams.length > 0) {
     return { type: "Team", data: mockTeams };
   } else if (hackathonId === "2" && mockTeamRequests.length > 0) {
     return { type: "TeamRequest", data: mockTeamRequests };
@@ -180,6 +182,67 @@ const mockUserEnrollment = (userId: string, hackathonId: string) => {
 
   // Step 4: No enrollment found
   return { type: "none" };
+};
+
+const mockMentorTeams = (teamId: string, hackathonId: string): MentorTeam[] => {
+  return [
+    {
+      id: "mentorTeam1",
+      hackathon: { id: hackathonId, title: "Hackathon X" },
+      mentor: { id: "mentor1", firstName: "John", lastName: "Doe" },
+      team: { id: teamId, name: "Team Alpha" },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "mentorTeam2",
+      hackathon: { id: hackathonId, title: "Hackathon X" },
+      mentor: { id: "mentor2", firstName: "Jane", lastName: "Smith" },
+      team: { id: teamId, name: "Team Beta" },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+};
+
+const mockMentorshipRequests = (
+  teamId: string,
+  hackathonId: string
+): MentorshipRequest[] => {
+  return [
+    {
+      id: "request1",
+      hackathon: { id: hackathonId, title: "Hackathon X" },
+      mentor: undefined, // No mentor assigned yet
+      team: { id: teamId, name: "Team Alpha" },
+      status: "PENDING",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "request2",
+      hackathon: { id: hackathonId, title: "Hackathon X" },
+      mentor: undefined, // No mentor assigned yet
+      team: { id: teamId, name: "Team Beta" },
+      status: "PENDING",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+};
+
+const fetchMentorshipData = (teamId: string, hackathonId: string) => {
+  const mentorTeams = mockMentorTeams(teamId, hackathonId);
+  if (mentorTeams.length > 0 && hackathonId === "1") {
+    return { type: "MentorTeam", data: mentorTeams };
+  }
+
+  const mentorshipRequests = mockMentorshipRequests(teamId, hackathonId);
+  if (mentorshipRequests.length > 0 && hackathonId === "5") {
+    return { type: "MentorshipRequest", data: mentorshipRequests };
+  }
+
+  return { type: "none", data: [] };
 };
 
 export default function HackathonOverview({
@@ -197,6 +260,7 @@ export default function HackathonOverview({
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [isTeamRequestModalOpen, setIsTeamRequestModalOpen] = useState(false);
   const [isIndividualModalOpen, setIsIndividualModalOpen] = useState(false);
+  const [isMentorshipModalOpen, setIsMentorshipModalOpen] = useState(false);
 
   const [enrollmentData, setEnrollmentData] = useState<
     | { type: "Team"; data: Team[] }
@@ -207,6 +271,21 @@ export default function HackathonOverview({
       }
     | { type: "none" }
   >({ type: "none" });
+
+  const [mentorshipData, setMentorshipData] = useState<
+    | { type: "MentorTeam"; data: MentorTeam[] }
+    | { type: "MentorshipRequest"; data: MentorshipRequest[] }
+    | { type: "none"; data: [] }
+  >({ type: "none", data: [] });
+
+  const handleRequestMentorship = () => {
+    if (enrollmentData.type === "Team" && enrollmentData.data.length > 0) {
+      const teamId = enrollmentData.data[0].id; // Assuming first team
+      const data = fetchMentorshipData(teamId, id);
+      setMentorshipData(data);
+      setIsMentorshipModalOpen(true);
+    }
+  };
 
   useEffect(() => {
     if (user?.id) {
@@ -248,6 +327,12 @@ export default function HackathonOverview({
             ? "View Individual Enrollment"
             : "Enroll"}
         </button>
+        <button
+          onClick={handleRequestMentorship}
+          className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full transition"
+        >
+          Request Mentorship
+        </button>
         {userHasTeam && (
           <button
             onClick={() => router.push(`/hackathon/${id}/board`)}
@@ -287,6 +372,12 @@ export default function HackathonOverview({
           onClose={() => setIsEnrollmentModalOpen(false)}
           minTeam={minimumTeamMembers}
           maxTeam={maximumTeamMembers}
+        />
+      )}
+      {isMentorshipModalOpen && (
+        <MentorshipModal
+          mentorshipData={mentorshipData}
+          onClose={() => setIsMentorshipModalOpen(false)}
         />
       )}
     </div>

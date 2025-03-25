@@ -5,10 +5,10 @@ import { Team } from "./team";
 
 export type MentorTeam = {
   id: string;
-  hackathon?: Hackathon;
+  hackathon?: Partial<Hackathon>;
   hackathonId?: string;
-  mentor?: User;
+  mentor?: Partial<User>;
   mentorId?: string;
-  team?: Team;
+  team?: Partial<Team>;
   teamId?: string;
 } & AuditCreatedBase;
