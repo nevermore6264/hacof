@@ -7,9 +7,13 @@ import { fetchMockIndividualRegistrations } from "../_mock/fetchMockIndividualRe
 import { fetchMockTeamRequests } from "../_mock/fetchMockTeamRequests";
 import { fetchMockTeams } from "../_mock/fetchMockTeams";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
+import { fetchMockMentorTeams } from "../_mock/fetchMockMentorTeams";
+import { fetchMockMentorshipRequests } from "../_mock/fetchMockMentorshipRequests";
+import { fetchMockMentorshipSessionRequests } from "../_mock/fetchMockMentorshipSessionRequests";
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { Team } from "@/types/entities/team";
 import { MentorTeam } from "@/types/entities/mentorTeam";
+import { MentorshipRequest } from "@/types/entities/mentorshipRequest";
 import { MentorshipSessionRequest } from "@/types/entities/mentorshipSessionRequest";
 import EnrollmentModal from "./EnrollmentModal";
 import MentorshipModal from "./MentorshipModal";
@@ -43,6 +47,9 @@ export default function HackathonOverview({
   const [teams, setTeams] = useState<Team[]>([]);
   const [mentorTeams, setMentorTeams] = useState<MentorTeam[]>([]);
   const [mentorshipRequests, setMentorshipRequests] = useState<
+    MentorshipRequest[]
+  >([]);
+  const [mentorshipSessionRequests, setMentorshipSessionRequests] = useState<
     MentorshipSessionRequest[]
   >([]);
 
@@ -64,19 +71,38 @@ export default function HackathonOverview({
       setTeamRequests(teamReqs);
       setTeams(userTeams);
 
-      if (userTeams.length > 0) {
-        const teamId = userTeams[0].id;
-        const [mentorTeamData, mentorshipRequestData] = await Promise.all([
-          fetchMockMentorTeams(id),
-          fetchMockMentorshipSessionRequests(id),
-        ]);
+      if (userTeams.length === 0) return;
 
-        setMentorTeams(mentorTeamData.filter((mt) => mt.team.id === teamId));
-        setMentorshipRequests(
-          mentorshipRequestData.filter((mr) => mr.team.id === teamId)
-        );
-      }
+      const mentorTeamPromises = userTeams.map((team) =>
+        fetchMockMentorTeams(id, team.id)
+      );
+      const mentorshipRequestPromises = userTeams.map((team) =>
+        fetchMockMentorshipRequests(id, team.id)
+      );
+
+      const mentorTeamsResults = await Promise.all(mentorTeamPromises);
+      const mentorshipRequestsResults = await Promise.all(
+        mentorshipRequestPromises
+      );
+
+      const allMentorTeams = mentorTeamsResults.flat();
+      const allMentorshipRequests = mentorshipRequestsResults.flat();
+
+      setMentorTeams(allMentorTeams);
+      setMentorshipRequests(allMentorshipRequests);
+
+      if (allMentorTeams.length === 0) return;
+
+      const mentorshipSessionPromises = allMentorTeams.map((mentorTeam) =>
+        fetchMockMentorshipSessionRequests(mentorTeam.id)
+      );
+      const mentorshipSessionResults = await Promise.all(
+        mentorshipSessionPromises
+      );
+
+      setMentorshipSessionRequests(mentorshipSessionResults.flat());
     };
+
     fetchData();
   }, [user, id]);
 
@@ -88,6 +114,14 @@ export default function HackathonOverview({
     buttonTitle = "View Team Request";
   } else if (individualRegistrations.length > 0) {
     buttonTitle = "View Individual Enrollment";
+  }
+
+  // Determine mentorship button title
+  let mentorshipButtonTitle = "Request Mentorship";
+  if (mentorTeams.length > 0) {
+    mentorshipButtonTitle = "View Mentorship";
+  } else if (mentorshipRequests.length > 0) {
+    mentorshipButtonTitle = "View Mentorship Request";
   }
 
   const handleGoToBoard = () => {
@@ -124,7 +158,7 @@ export default function HackathonOverview({
                 className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full transition"
                 onClick={() => setIsMentorshipModalOpen(true)}
               >
-                Request Mentorship
+                {mentorshipButtonTitle}
               </button>
             </>
           )}
@@ -145,14 +179,12 @@ export default function HackathonOverview({
         minimumTeamMembers={minimumTeamMembers}
         maximumTeamMembers={maximumTeamMembers}
       />
-      {/* Mentorship Modal */}
       <MentorshipModal
         isOpen={isMentorshipModalOpen}
         onClose={() => setIsMentorshipModalOpen(false)}
         mentorTeams={mentorTeams}
         mentorshipRequests={mentorshipRequests}
-        hackathonId={id}
-        teamId={teams.length > 0 ? teams[0].id : ""}
+        mentorshipSessionRequests={mentorshipSessionRequests}
       />
     </>
   );

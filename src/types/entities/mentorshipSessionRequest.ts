@@ -13,7 +13,7 @@ export type MentorshipSessionStatus =
 export type MentorshipSessionRequest = {
   id: string;
   mentorTeam?: Partial<MentorTeam>;
-  mentorTeamId: string;
+  mentorTeamId?: string;
   startTime?: string;
   endTime?: string;
   location?: string;
