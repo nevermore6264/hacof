@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import React, { useState } from 'react';
 import { FaPaperclip, FaSmile } from 'react-icons/fa'; // Icon cho tài liệu và emoji

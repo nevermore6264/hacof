@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 // app/_components/CreateChatModal.tsx
 'use client';
 import React, { useState } from 'react';

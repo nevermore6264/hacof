@@ -1,7 +1,14 @@
 // src/app/api/user/route.ts
 import { NextResponse } from "next/server";
-// import { verifyToken } from "@/utils/jwt";
-import { mockUsers } from "@/mocks/auth.mock";
+
+// Định nghĩa kiểu dữ liệu cho user
+interface User {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+    // Các trường khác nếu cần
+}
 
 export async function GET(req: Request) {
     try {
@@ -14,28 +21,46 @@ export async function GET(req: Request) {
             );
         }
 
-        // Xác thực token
-        // const token = authHeader.split(" ")[1];
-        // const payload = verifyToken(token);
-        // if (!payload) {
-        //     return NextResponse.json(
-        //         { error: "Invalid token", errorCode: "INVALID_TOKEN" },
-        //         { status: 401 }
-        //     );
-        // }
+        // Lấy token từ header
+        const token = authHeader.split(" ")[1];
 
-        // Trả về danh sách người dùng (loại bỏ thông tin nhạy cảm như mật khẩu)
-        const users = mockUsers.map((user) => ({
-            id: user?.id,
-            name: user?.firstName + " " + user?.lastName,
-            image: user?.avatarUrl,
+        // Gọi API backend thực
+        const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Kiểm tra response từ backend
+        if (!backendResponse.ok) {
+            const errorData = await backendResponse.json();
+            return NextResponse.json(
+                {
+                    error: errorData
+                },
+                { status: backendResponse.status }
+            );
+        }
+
+        // Parse dữ liệu từ backend
+        const backendUsers: User[] = await backendResponse.json();
+
+        // Format dữ liệu để trả về client (loại bỏ thông tin nhạy cảm)
+        const users = backendUsers.map((user) => ({
+            id: user.id,
+            name: `${user.firstName} ${user.lastName}`,
+            image: user.avatarUrl || null,
         }));
 
         return NextResponse.json(users);
     } catch (error) {
-        console.error("Error fetching users:", error);
         return NextResponse.json(
-            { error: "Something went wrong", errorCode: "SERVER_ERROR" },
+            {
+                error: "Error fetching users: " + error,
+                errorCode: "SERVER_ERROR"
+            },
             { status: 500 }
         );
     }
