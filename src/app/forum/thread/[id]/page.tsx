@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { fetchMockThreadPosts } from "./_mock/fetchMockThreadPosts";
 import { ThreadPost } from "@/types/entities/threadPost";
+import EditForm from "./_components/EditForm";
+import { Button } from "@/components/ui/button";
 
 export default function ThreadPage() {
   const params = useParams();
@@ -13,15 +15,27 @@ export default function ThreadPage() {
 
   const [threadPosts, setThreadPosts] = useState<ThreadPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+
+  // Fetch posts for the thread
+  const fetchPosts = async () => {
+    setLoading(true);
+    const posts = await fetchMockThreadPosts(threadId);
+    setThreadPosts(posts);
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (threadId) {
-      fetchMockThreadPosts(threadId).then((posts) => {
-        setThreadPosts(posts);
-        setLoading(false);
-      });
+      fetchPosts();
     }
   }, [threadId]);
+
+  // Handle post save (refresh list after creating/editing)
+  const handlePostSaved = () => {
+    setEditingPostId(null);
+    fetchPosts();
+  };
 
   if (loading) {
     return <p className="text-center text-gray-500">Loading discussions...</p>;
@@ -32,6 +46,15 @@ export default function ThreadPage() {
       <h1 className="text-3xl font-bold text-gray-900 text-center mb-6">
         Discussion
       </h1>
+      {/* New Post Form */}
+      <div className="max-w-4xl mx-auto bg-white p-6 shadow rounded-lg mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Start a New Discussion
+        </h2>
+        <EditForm onPostSaved={handlePostSaved} />
+      </div>
+
+      {/* Discussion Posts */}
       <div className="max-w-4xl mx-auto space-y-6">
         {threadPosts.length > 0 ? (
           threadPosts.map((post) => (
@@ -58,7 +81,11 @@ export default function ThreadPage() {
                 </p>
 
                 {/* Post Content */}
-                <p className="text-gray-700 mt-2">{post.content}</p>
+                {editingPostId === post.id ? (
+                  <EditForm post={post} onPostSaved={handlePostSaved} />
+                ) : (
+                  <p className="text-gray-700 mt-2">{post.content}</p>
+                )}
 
                 {/* Post Actions */}
                 <div className="flex justify-between mt-3 text-sm text-gray-500">
@@ -72,6 +99,23 @@ export default function ThreadPage() {
                     Deleted by {post.deletedBy?.firstName}{" "}
                     {post.deletedBy?.lastName}
                   </p>
+                )}
+
+                {/* Edit Button (Only for the current user) */}
+                {!post.isDeleted && (
+                  <div className="mt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setEditingPostId(
+                          editingPostId === post.id ? null : post.id
+                        )
+                      }
+                    >
+                      {editingPostId === post.id ? "Cancel" : "Edit"}
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
