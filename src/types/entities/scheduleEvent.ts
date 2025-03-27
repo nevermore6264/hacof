@@ -5,6 +5,8 @@ import { FileUrl } from "./fileUrl";
 import { ScheduleEventAttendee } from "./scheduleEventAttendee";
 import { ScheduleEventReminder } from "./scheduleEventReminder";
 
+export type ScheduleEventLabel = "danger" | "success" | "primary" | "warning";
+
 export type ScheduleEvent = {
   id: string;
   schedule?: Schedule;
@@ -14,6 +16,7 @@ export type ScheduleEvent = {
   location: string;
   startTime: string;
   endTime: string;
+  eventLabel: ScheduleEventLabel;
   isRecurring: boolean;
   recurrenceRule: string;
   fileUrls: FileUrl[];
