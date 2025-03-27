@@ -1,12 +1,14 @@
 // src/app/hackathon/[id]/team/[teamId]/board/page.tsx
 "use client";
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import KanbanBoard from "./_components/KanbanBoard";
 import Calendar from "@/components/calendar/Calendar";
 import SubmissionAndResultTab from "./_components/SubmissionAndResultTab";
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
 export default function HackathonBoardPage() {
+  const { id: hackathonId, teamId } = useParams();
   const [activeTab, setActiveTab] = useState(TABS[0]);
 
   return (
