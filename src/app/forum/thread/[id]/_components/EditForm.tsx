@@ -59,24 +59,6 @@ export default function EditForm({ post, onPostSaved }: EditFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
       <div>
         <label className="inline-block font-medium dark:text-white mb-2">
-          Title
-        </label>
-        <Controller
-          control={control}
-          name="title"
-          render={({ field }) => (
-            <input
-              {...field}
-              type="text"
-              className="w-full px-4 py-2.5 shadow border border-[#d1d9e0] rounded-md bg-white dark:bg-[#0d1017] dark:text-white dark:border-[#3d444d] outline-none"
-              placeholder="Enter post title..."
-            />
-          )}
-        />
-      </div>
-
-      <div>
-        <label className="inline-block font-medium dark:text-white mb-2">
           Content
         </label>
         <Controller
