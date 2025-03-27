@@ -149,16 +149,16 @@ export default function HackathonOverview({
           {teams.length > 0 && (
             <>
               <button
-                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition"
-                onClick={handleGoToBoard}
-              >
-                Go to board
-              </button>
-              <button
                 className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full transition"
                 onClick={() => setIsMentorshipModalOpen(true)}
               >
                 {mentorshipButtonTitle}
+              </button>
+              <button
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition"
+                onClick={handleGoToBoard}
+              >
+                Go to board
               </button>
             </>
           )}
@@ -185,6 +185,7 @@ export default function HackathonOverview({
         mentorTeams={mentorTeams}
         mentorshipRequests={mentorshipRequests}
         mentorshipSessionRequests={mentorshipSessionRequests}
+        hackathonId={id}
       />
     </>
   );
