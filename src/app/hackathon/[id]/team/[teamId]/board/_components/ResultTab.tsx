@@ -1,48 +1,51 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_components/ResultTab.tsx
 "use client";
 import { useState, useEffect } from "react";
-// Mock API function (replace with real API call)
-const fetchResultsForRound = async (round: string) => {
-  // Mock scores per round
-  const mockResults = {
-    "Round 1": [
-      { criteria: "Innovation", score: 9, max: 10 },
-      { criteria: "Feasibility", score: 8, max: 10 },
-      { criteria: "Impact", score: 7, max: 10 },
-    ],
-    "Round 2": [
-      { criteria: "User Experience", score: 8, max: 10 },
-      { criteria: "Technical Complexity", score: 7, max: 10 },
-      { criteria: "Presentation", score: 9, max: 10 },
-    ],
-    "Round 3": [
-      { criteria: "Completeness", score: 8, max: 10 },
-      { criteria: "Scalability", score: 8, max: 10 },
-      { criteria: "Alignment with Theme", score: 7, max: 10 },
-    ],
-  };
+import { Submission } from "@/types/entities/submission";
 
-  return mockResults[round] || [];
-};
+interface ResultTabProps {
+  roundId: string;
+  roundTitle: string;
+  submissions: Submission[];
+}
 
-export default function ResultTab({ round }: { round: string }) {
-  const [results, setResults] = useState<any[]>([]);
+export default function ResultTab({
+  roundId,
+  roundTitle,
+  submissions,
+}: ResultTabProps) {
   const [totalScore, setTotalScore] = useState(0);
+  const [results, setResults] = useState<
+    { criteria: string; score: number; max: number }[]
+  >([]);
 
   useEffect(() => {
-    const loadResults = async () => {
-      const data = await fetchResultsForRound(round);
-      setResults(data);
-      setTotalScore(data.reduce((sum, item) => sum + item.score, 0));
-    };
+    if (!submissions.length) return;
 
-    loadResults();
-  }, [round]);
+    let total = 0;
+    const extractedResults = submissions.flatMap((submission) =>
+      submission.judgeSubmissions.flatMap((judgeSubmission) =>
+        judgeSubmission.judgeSubmissionDetails.map((detail) => {
+          total += detail.score;
+          return {
+            criteria: detail.roundMarkCriterion.name,
+            score: detail.score,
+            max: detail.roundMarkCriterion.maxScore,
+          };
+        })
+      )
+    );
+
+    setTotalScore(total);
+    setResults(extractedResults);
+  }, [submissions]);
+
+  if (!submissions.length)
+    return <p className="text-gray-500">No results available.</p>;
 
   return (
     <div>
-      <h2 className="text-lg font-semibold">Mark Criteria:</h2>
-
+      <h2 className="text-lg font-semibold">Mark Criteria for {roundTitle}:</h2>
       <ul className="mt-3 space-y-2">
         {results.map((result, index) => (
           <li key={index} className="border-b pb-2">
@@ -52,9 +55,7 @@ export default function ResultTab({ round }: { round: string }) {
         ))}
       </ul>
 
-      <p className="mt-4 font-bold text-lg">
-        Total Score for {round}: {totalScore}/30
-      </p>
+      <p className="mt-4 font-bold text-lg">Total Score: {totalScore}</p>
     </div>
   );
 }
