@@ -82,50 +82,35 @@ export default function ChatClient() {
     // Danh sách người dùng có sẵn
     const [users, setUsers] = useState([]); // Danh sách người dùng
 
-    // Hàm tạo cuộc hội thoại mới
-    const handleCreateChat = (selectedUsers: { id: number; name: string; image: string }[]) => {
-        const isGroup = selectedUsers.length > 1; // Nếu nhiều hơn 1 người thì là chat nhóm
-        const chatName = isGroup
-            ? selectedUsers.map((user) => user.name).join(', ') // Tên nhóm là danh sách tên người dùng
-            : selectedUsers[0].name; // Tên chat 1-1 là tên người dùng
-
-        const newChat = {
-            id: chats.length + 1, // Tạo ID mới
-            name: chatName,
-            image: isGroup
-                ? "https://randomuser.me/api/portraits/men/99.jpg" // Ảnh mặc định cho nhóm
-                : selectedUsers[0].image, // Ảnh của người dùng trong chat 1-1
-            lastMessage: "No messages yet",
-            lastMessageTime: new Date().toLocaleTimeString(),
-            messages: [],
-        };
-        setChats([...chats, newChat]); // Thêm chat mới vào danh sách
-    };
-
     // Hàm tạo cuộc hội thoại mới bằng API
-    // const handleCreateChat = async (selectedUsers: { id: number; name: string; image: string }[]) => {
-    //     try {
-    //         const userIds = selectedUsers.map((user) => user.id); // Lấy danh sách ID người dùng
-    //         const response = await fetch('/api/chats', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //                 Authorization: `Bearer ${localStorage.getItem('token')}`, // Giả sử token được lưu trong localStorage
-    //             },
-    //             body: JSON.stringify({ userIds }),
-    //         });
+    const handleCreateChat = async (selectedUsers: { id: number; name: string; image: string }[]) => {
+        const token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOlsiQURNSU4iXSwidXNlcl9pZCI6MSwicGVybWlzc2lvbnMiOlsiR0VUX0JMT0dQT1NUIiwiREVMRVRFX0JMT0dQT1NUIiwiQ1JFQVRFX1JFU09VUkNFIiwiQVNTSUdOX0pVREdFX1RPX1JPVU5EIiwiQ1JFQVRFX0hBQ0tBVEhPTiIsIkNSRUFURV9VU0VSIiwiVVBEQVRFX01ZX0lORk8iLCJHRVRfQkxPR0NPTU1FTlQiLCJHRVRfRk9SVU1DT01NRU5UIiwiR0VUX0NBTVBVU0VTIiwiR0VUX1JPTEVfRlJPTV9UT0tFTiIsIkRFTEVURV9CTE9HQ09NTUVOVCIsIkdFVF9VU0VSIiwiREVMRVRFX1JPVU5EIiwiR0VUX1BST0ZJTEUiLCJVUERBVEVfQ0FNUFVTIiwiQ1JFQVRFX0ZPUlVNQ09NTUVOVCIsIkdFVF9QUk9GSUxFUyIsIlVQREFURV9GT1JVTUNPTU1FTlQiLCJBU1NJR05fSlVER0VTX0FORF9NRU5UT1JTIiwiQ1JFQVRFX1BFUk1JU1NJT04iLCJDUkVBVEVfQ0FNUFVTIiwiREVMRVRFX1RBU0siLCJVUERBVEVfQkxPR0NPTU1FTlQiLCJERUxFVEVfRk9SVU1USFJFQUQiLCJHRVRfQ0FNUFVTIiwiR0VUX1JPTEVTIiwiR0VUX1BFUk1JU1NJT05TIiwiR0VUX0hBQ0tBVEhPTiIsIkNSRUFURV9QUk9GSUxFIiwiR0VUX0JMT0dDT01NRU5UU19CWV9QT1NUIiwiVVBMT0FEX0FWQVRBUiIsIkNSRUFURV9QQVNTV09SRCIsIkRFTEVURV9ST0xFIiwiVkVSSUZZX0VNQUlMIiwiR0VUX1VTRVJTIiwiR0VUX1RBU0tTIiwiR0VUX1BBU1NFRF9URUFNUyIsIkFERF9NRU1CRVJfVE9fVEVBTSIsIk1PVkVfVEFTSyIsIkRFTEVURV9QRVJNSVNTSU9OX0ZST01fUk9MRSIsIkNSRUFURV9GT1JVTVRIUkVBRCIsIkFTU0lHTl9NRU5UT1JfVE9fVEVBTSIsIlJFTU9WRV9NRU1CRVJfRlJPTV9URUFNIiwiQ1JFQVRFX1RBU0siLCJERUxFVEVfUkVTT1VSQ0UiLCJVUERBVEVfRk9SVU1USFJFQUQiLCJDUkVBVEVfSlVER0UiLCJDUkVBVEVfQkxPR1BPU1QiLCJBU1NJR05fVEFTS19UT19NRU1CRVIiLCJBU1NJR05fVEFTSyIsIkRFTEVURV9URUFNIiwiR0VUX0JMT0dQT1NUUyIsIkNSRUFURV9ST1VORCIsIkRFTEVURV9QRVJNSVNTSU9OIiwiVVBEQVRFX1JPTEUiLCJTRUFSQ0hfQ0FNUFVTRVMiLCJHRVRfUkVTT1VSQ0VTX0JZX1JPVU5EIiwiVVBEQVRFX1RBU0siLCJHRVRfUkVTT1VSQ0VTIiwiR0VUX1RBU0siLCJHRVRfUk9VTkQiLCJHRVRfSEFDS0FUSE9OUyIsIkFERF9FTUFJTCIsIlVQREFURV9SRVNPVVJDRSIsIlVQREFURV9IQUNLQVRIT04iLCJHRVRfVEVBTVMiLCJVUERBVEVfUFJPRklMRSIsIkdFVF9ST1VORFMiLCJHRVRfRk9SVU1USFJFQUQiLCJHRVRfTVlfSU5GTyIsIkRFTEVURV9IQUNLQVRIT04iLCJERUxFVEVfUFJPRklMRSIsIkdFVF9GT1JVTUNPTU1FTlRTX0JZX1RIUkVBRCIsIkdFVF9ST0xFIiwiREVMRVRFX1VTRVIiLCJVUERBVEVfUEVSTUlTU0lPTiIsIkdFVF9KVURHRV9OQU1FUyIsIlVQREFURV9CTE9HUE9TVCIsIkNSRUFURV9URUFNIiwiR0VUX0JMT0dDT01NRU5UUyIsIkRFTEVURV9DQU1QVVMiLCJDUkVBVEVfQkxPR0NPTU1FTlQiLCJDUkVBVEVfUk9MRSIsIkdFVF9QRVJNSVNTSU9OIiwiVVBEQVRFX1JPVU5EIiwiR0VUX0ZPUlVNVEhSRUFEUyIsIkdFVF9GT1JVTUNPTU1FTlRTIiwiVVBEQVRFX1RFQU0iLCJERUxFVEVfRk9SVU1DT01NRU5UIl0sImlzcyI6Im5kdGRvYW5oLmNvbSIsImV4cCI6MTc0MzE5MTQ3MCwiaWF0IjoxNzQzMTg3ODcwLCJqdGkiOiI1NDFiZjhhYS1kNDE4LTRkNDYtYjU0NC1jMzFmNTJkM2JiMjEifQ.LeIIR9U_uyrtscIL7FyKZPYYaZ075gJz42mZUOYYjTa2CWFaC63KVHj_-QsvtNWNbEJEyEHgoST3sdlnJKs4Tw";
+        const isGroup = selectedUsers.length > 1;
 
-    //         if (response.ok) {
-    //             const newChat = await response.json();
-    //             setChats([...chats, newChat]); // Thêm chat mới vào danh sách
-    //             setIsCreateChatModalOpen(false); // Đóng modal
-    //         } else {
-    //             console.error("Failed to create chat");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error creating chat:", error);
-    //     }
-    // };
+        try {
+            const userIds = selectedUsers.map((user) => user.id);
+            const endpoint = isGroup ? '/api/chats/group' : '/api/chats/single'; // Phân biệt endpoint
+
+            const response = await fetch(endpoint, { // 👈 Gọi endpoint khác nhau
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ userIds }),
+            });
+
+            if (response.ok) {
+                const newChat = await response.json();
+                setChats([...chats, newChat]);
+                setIsCreateChatModalOpen(false);
+            } else {
+                console.error("Failed to create chat");
+            }
+        } catch (error) {
+            console.error("Error creating chat:", error);
+        }
+    };
 
     // Hàm mở modal
     const handleOpenCreateChatModal = () => {
@@ -140,10 +125,12 @@ export default function ChatClient() {
     // Lấy danh sách người dùng từ API
     useEffect(() => {
         const fetchUsers = async () => {
+            const token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOlsiQURNSU4iXSwidXNlcl9pZCI6MSwicGVybWlzc2lvbnMiOlsiR0VUX0JMT0dQT1NUIiwiREVMRVRFX0JMT0dQT1NUIiwiQ1JFQVRFX1JFU09VUkNFIiwiQVNTSUdOX0pVREdFX1RPX1JPVU5EIiwiQ1JFQVRFX0hBQ0tBVEhPTiIsIkNSRUFURV9VU0VSIiwiVVBEQVRFX01ZX0lORk8iLCJHRVRfQkxPR0NPTU1FTlQiLCJHRVRfRk9SVU1DT01NRU5UIiwiR0VUX0NBTVBVU0VTIiwiR0VUX1JPTEVfRlJPTV9UT0tFTiIsIkRFTEVURV9CTE9HQ09NTUVOVCIsIkdFVF9VU0VSIiwiREVMRVRFX1JPVU5EIiwiR0VUX1BST0ZJTEUiLCJVUERBVEVfQ0FNUFVTIiwiQ1JFQVRFX0ZPUlVNQ09NTUVOVCIsIkdFVF9QUk9GSUxFUyIsIlVQREFURV9GT1JVTUNPTU1FTlQiLCJBU1NJR05fSlVER0VTX0FORF9NRU5UT1JTIiwiQ1JFQVRFX1BFUk1JU1NJT04iLCJDUkVBVEVfQ0FNUFVTIiwiREVMRVRFX1RBU0siLCJVUERBVEVfQkxPR0NPTU1FTlQiLCJERUxFVEVfRk9SVU1USFJFQUQiLCJHRVRfQ0FNUFVTIiwiR0VUX1JPTEVTIiwiR0VUX1BFUk1JU1NJT05TIiwiR0VUX0hBQ0tBVEhPTiIsIkNSRUFURV9QUk9GSUxFIiwiR0VUX0JMT0dDT01NRU5UU19CWV9QT1NUIiwiVVBMT0FEX0FWQVRBUiIsIkNSRUFURV9QQVNTV09SRCIsIkRFTEVURV9ST0xFIiwiVkVSSUZZX0VNQUlMIiwiR0VUX1VTRVJTIiwiR0VUX1RBU0tTIiwiR0VUX1BBU1NFRF9URUFNUyIsIkFERF9NRU1CRVJfVE9fVEVBTSIsIk1PVkVfVEFTSyIsIkRFTEVURV9QRVJNSVNTSU9OX0ZST01fUk9MRSIsIkNSRUFURV9GT1JVTVRIUkVBRCIsIkFTU0lHTl9NRU5UT1JfVE9fVEVBTSIsIlJFTU9WRV9NRU1CRVJfRlJPTV9URUFNIiwiQ1JFQVRFX1RBU0siLCJERUxFVEVfUkVTT1VSQ0UiLCJVUERBVEVfRk9SVU1USFJFQUQiLCJDUkVBVEVfSlVER0UiLCJDUkVBVEVfQkxPR1BPU1QiLCJBU1NJR05fVEFTS19UT19NRU1CRVIiLCJBU1NJR05fVEFTSyIsIkRFTEVURV9URUFNIiwiR0VUX0JMT0dQT1NUUyIsIkNSRUFURV9ST1VORCIsIkRFTEVURV9QRVJNSVNTSU9OIiwiVVBEQVRFX1JPTEUiLCJTRUFSQ0hfQ0FNUFVTRVMiLCJHRVRfUkVTT1VSQ0VTX0JZX1JPVU5EIiwiVVBEQVRFX1RBU0siLCJHRVRfUkVTT1VSQ0VTIiwiR0VUX1RBU0siLCJHRVRfUk9VTkQiLCJHRVRfSEFDS0FUSE9OUyIsIkFERF9FTUFJTCIsIlVQREFURV9SRVNPVVJDRSIsIlVQREFURV9IQUNLQVRIT04iLCJHRVRfVEVBTVMiLCJVUERBVEVfUFJPRklMRSIsIkdFVF9ST1VORFMiLCJHRVRfRk9SVU1USFJFQUQiLCJHRVRfTVlfSU5GTyIsIkRFTEVURV9IQUNLQVRIT04iLCJERUxFVEVfUFJPRklMRSIsIkdFVF9GT1JVTUNPTU1FTlRTX0JZX1RIUkVBRCIsIkdFVF9ST0xFIiwiREVMRVRFX1VTRVIiLCJVUERBVEVfUEVSTUlTU0lPTiIsIkdFVF9KVURHRV9OQU1FUyIsIlVQREFURV9CTE9HUE9TVCIsIkNSRUFURV9URUFNIiwiR0VUX0JMT0dDT01NRU5UUyIsIkRFTEVURV9DQU1QVVMiLCJDUkVBVEVfQkxPR0NPTU1FTlQiLCJDUkVBVEVfUk9MRSIsIkdFVF9QRVJNSVNTSU9OIiwiVVBEQVRFX1JPVU5EIiwiR0VUX0ZPUlVNVEhSRUFEUyIsIkdFVF9GT1JVTUNPTU1FTlRTIiwiVVBEQVRFX1RFQU0iLCJERUxFVEVfRk9SVU1DT01NRU5UIl0sImlzcyI6Im5kdGRvYW5oLmNvbSIsImV4cCI6MTc0MzE5MTQ3MCwiaWF0IjoxNzQzMTg3ODcwLCJqdGkiOiI1NDFiZjhhYS1kNDE4LTRkNDYtYjU0NC1jMzFmNTJkM2JiMjEifQ.LeIIR9U_uyrtscIL7FyKZPYYaZ075gJz42mZUOYYjTa2CWFaC63KVHj_-QsvtNWNbEJEyEHgoST3sdlnJKs4Tw";
             try {
-                const response = await fetch('/api/users', {
+                const response = await fetch('/api/user', {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Giả sử token được lưu trong localStorage
+                        // Authorization: `Bearer ${localStorage.getItem('token')}`, // Giả sử token được lưu trong localStorage
+                        Authorization: `Bearer ${token}`,
                     },
                 });
                 if (response.ok) {

@@ -7,7 +7,12 @@ interface User {
     firstName: string;
     lastName: string;
     avatarUrl?: string;
-    // Các trường khác nếu cần
+}
+
+interface Response {
+    code: number;
+    message: string;
+    result: User[];
 }
 
 export async function GET(req: Request) {
@@ -25,7 +30,7 @@ export async function GET(req: Request) {
         const token = authHeader.split(" ")[1];
 
         // Gọi API backend thực
-        const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users`, {
+        const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/users`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -43,15 +48,15 @@ export async function GET(req: Request) {
                 { status: backendResponse.status }
             );
         }
+        console.log(backendResponse)
 
         // Parse dữ liệu từ backend
-        const backendUsers: User[] = await backendResponse.json();
-
+        const backendUsers: Response[] = await backendResponse.json();
         // Format dữ liệu để trả về client (loại bỏ thông tin nhạy cảm)
-        const users = backendUsers.map((user) => ({
+        const users = backendUsers.result.map((user) => ({
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
-            image: user.avatarUrl || null,
+            image: user.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg",
         }));
 
         return NextResponse.json(users);
