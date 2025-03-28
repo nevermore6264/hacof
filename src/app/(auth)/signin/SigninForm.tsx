@@ -62,7 +62,7 @@ const SigninForm = () => {
             placeholder="Enter your Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary"
+            className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none focus:border-[#4A6CF7] dark:border-transparent dark:bg-[#2C303B] dark:focus:border-[#4A6CF7]"
           />
         </div>
 
@@ -79,7 +79,7 @@ const SigninForm = () => {
             placeholder="Enter your Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary"
+            className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none focus:border-[#4A6CF7] dark:border-transparent dark:bg-[#2C303B] dark:focus:border-[#4A6CF7]"
           />
         </div>
 
@@ -90,7 +90,7 @@ const SigninForm = () => {
           </label>
           <Link
             href="/forgot-password"
-            className="text-sm font-medium text-primary hover:underline"
+            className="text-sm font-medium text-[#4A6CF7] hover:underline"
           >
             Forgot Password?
           </Link>
@@ -99,7 +99,7 @@ const SigninForm = () => {
         <div className="mb-6">
           <button
             type="submit"
-            className="w-full rounded-sm bg-primary px-9 py-4 text-base font-medium text-white hover:bg-primary/90"
+            className="w-full rounded-sm bg-[#4A6CF7] px-9 py-4 text-base font-medium text-white hover:bg-[#4A6CF7]/90"
           >
             Sign in
           </button>
@@ -108,7 +108,7 @@ const SigninForm = () => {
 
       <p className="text-center text-base font-medium text-body-color">
         Don’t have an account?{" "}
-        <Link href="/signup" className="text-primary hover:underline">
+        <Link href="/signup" className="text-[#4A6CF7] hover:underline">
           Sign up
         </Link>
       </p>

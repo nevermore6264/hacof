@@ -1,19 +1,13 @@
 // src/types/entities/userHackathon.ts
-
-import { User } from "./users";
+import { AuditBase } from "./auditBase";
+import { User } from "./user";
 import { Hackathon } from "./hackathon";
 
 export type UserHackathon = {
-  user: User;
-  hackathons: {
-    hackathon: Hackathon;
-    role:
-      | "Participant"
-      | "Organizer"
-      | "Mentor"
-      | "Judge"
-      | "TeamLeader"
-      | "TeamMember"; // User's role in the hackathon
-    joinedAt: string; // Timestamp of when the user joined
-  }[];
-};
+  id: string;
+  user?: User;
+  userId?: string;
+  hackathon?: Partial<Hackathon>;
+  hackathonId?: string;
+  role: string;
+} & AuditBase;

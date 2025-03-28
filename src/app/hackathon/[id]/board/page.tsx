@@ -1,6 +1,8 @@
 // src/app/hackathon/[id]/board/page.tsx
 "use client";
 import { useState } from "react";
+import KanbanBoard from "./_components/KanbanBoard";
+import Calendar from "@/components/calendar/Calendar";
 import SubmissionAndResultTab from "./_components/SubmissionAndResultTab";
 import Kaban from "./_components/Kaban";
 
@@ -32,17 +34,9 @@ export default function HackathonBoardPage() {
 
       {/* Tab Content */}
       <div className="mt-4 p-4 border rounded-lg bg-white shadow">
-        {
-          activeTab === "Task Board" && (
-            <StoreProvider store={store}>
-              <PersistGate persistor={persistor}>
-                <Kaban />
-              </PersistGate>
-            </StoreProvider>
-          )
-        }
+        {activeTab === "Task Board" && <KanbanBoard />}
         {activeTab === "Submission and Result" && <SubmissionAndResultTab />}
-        {activeTab === "Schedule" && <p>Placeholder for schedule.</p>}
+        {activeTab === "Schedule" && <Calendar />}
         {activeTab === "Analytics" && <p>Placeholder for analytics.</p>}
       </div>
     </div>

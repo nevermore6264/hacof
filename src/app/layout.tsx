@@ -8,6 +8,7 @@ import { Inter } from "next/font/google";
 import "../styles/index.css";
 import { useAuth } from "@/hooks/useAuth_v0";
 import { useEffect } from "react";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +37,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           {children}
+          <Toaster position="top-center" richColors />
           <Footer />
           <ScrollToTop />
         </Providers>
