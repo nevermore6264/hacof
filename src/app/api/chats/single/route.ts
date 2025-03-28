@@ -1,49 +1,36 @@
 import { NextResponse } from "next/server";
-import { mockUsers } from "@/mocks/auth.mock";
 
 export async function POST(req: Request) {
     try {
-        // Xác thực token (giữ nguyên như cũ)
+        // 1. Lấy token từ header
         const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        if (!authHeader) {
             return NextResponse.json(
-                { error: "Unauthorized", errorCode: "UNAUTHORIZED" },
+                { error: "Unauthorized" },
                 { status: 401 }
             );
         }
 
-        // Lấy dữ liệu từ body
-        const { userIds } = await req.json();
-        if (!userIds || userIds.length !== 1) { // 👈 Chỉ cho phép 1 user
-            return NextResponse.json(
-                { error: "Single chat requires exactly 1 user", errorCode: "INVALID_INPUT" },
-                { status: 400 }
-            );
-        }
+        // 2. Proxy request đến backend thực
+        const backendResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/conversations/single`, // 👈 Endpoint backend
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: authHeader, // Giữ nguyên token
+                },
+                body: JSON.stringify(await req.json()), // Forward body
+            }
+        );
 
-        // Tạo chat 1-1
-        const user = mockUsers.find((u) => u.id === userIds[0]);
-        if (!user) {
-            return NextResponse.json(
-                { error: "User not found", errorCode: "USER_NOT_FOUND" },
-                { status: 404 }
-            );
-        }
+        // 3. Trả về kết quả từ backend
+        const data = await backendResponse.json();
+        return NextResponse.json(data, { status: backendResponse.status });
 
-        const newChat = {
-            id: Math.floor(Math.random() * 1000),
-            name: user.firstName,
-            image: user.avatarUrl,
-            lastMessage: "No messages yet",
-            lastMessageTime: new Date().toLocaleTimeString(),
-            messages: [],
-            isGroup: false // 👈 Thêm trường isGroup
-        };
-
-        return NextResponse.json(newChat, { status: 201 });
     } catch (error) {
         return NextResponse.json(
-            { error: "Something went wrong", errorCode: "SERVER_ERROR" },
+            { error: "Internal Server Error: " + error },
             { status: 500 }
         );
     }

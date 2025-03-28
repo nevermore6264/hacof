@@ -2,6 +2,11 @@
 import { NextResponse } from "next/server";
 
 // Định nghĩa kiểu dữ liệu cho user
+interface Response {
+    code: number;
+    message: string;
+    result: User[];
+}
 interface User {
     id: string;
     firstName: string;
@@ -9,11 +14,6 @@ interface User {
     avatarUrl?: string;
 }
 
-interface Response {
-    code: number;
-    message: string;
-    result: User[];
-}
 
 export async function GET(req: Request) {
     try {
@@ -53,7 +53,7 @@ export async function GET(req: Request) {
         // Parse dữ liệu từ backend
         const backendUsers: Response[] = await backendResponse.json();
         // Format dữ liệu để trả về client (loại bỏ thông tin nhạy cảm)
-        const users = backendUsers.result.map((user) => ({
+        const users = backendUsers?.result.map((user: User) => ({
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
             image: user.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg",
