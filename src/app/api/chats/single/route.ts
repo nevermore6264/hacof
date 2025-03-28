@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@/utils/jwt";
 import { mockUsers } from "@/mocks/auth.mock";
 
 export async function POST(req: Request) {
