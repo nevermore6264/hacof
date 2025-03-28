@@ -15,7 +15,7 @@ export type TeamRequest = {
   id: string;
   hackathon?: Partial<Hackathon>;
   hackathonId?: string;
-  status: TeamRequestStatus;
+  status?: TeamRequestStatus;
   confirmationDeadline: string;
   note: string;
   reviewedBy?: User;
