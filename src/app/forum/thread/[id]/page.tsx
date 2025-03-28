@@ -8,6 +8,7 @@ import { fetchMockThreadPosts } from "./_mock/fetchMockThreadPosts";
 import { ThreadPost } from "@/types/entities/threadPost";
 import EditForm from "./_components/EditForm";
 import { Button } from "@/components/ui/button";
+import "./style.scss";
 
 export default function ThreadPage() {
   const params = useParams();

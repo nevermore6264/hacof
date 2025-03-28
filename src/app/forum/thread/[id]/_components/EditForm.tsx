@@ -5,6 +5,7 @@ import TiptapEditor, { type TiptapEditorRef } from "@/components/TiptapEditor";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ThreadPost } from "@/types/entities/threadPost";
+import { getPost, savePost } from "@/services/post";
 
 interface PostForm {
   title: string;
