@@ -13,6 +13,7 @@ import { Device } from "./device";
 import { Feedback } from "./feedback";
 import { MentorTeam } from "./mentorTeam";
 import { MentorTeamLimit } from "./mentorTeamLimit";
+import { Schedule } from "./schedule";
 
 export type HackathonStatus = "DRAFT" | "OPEN" | "ONGOING" | "CLOSED"; // Update this enum based on your actual Status enum if different
 
@@ -45,6 +46,7 @@ export type Hackathon = {
   mentorshipRequests: MentorshipRequest[];
   mentorshipSessionRequests: MentorshipSessionRequest[];
   sponsorshipHackathons: SponsorshipHackathon[];
+  schedules: Schedule[];
   devices: Device[];
   feedbacks: Feedback[];
   mentorTeams: MentorTeam[];

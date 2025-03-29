@@ -1,15 +1,31 @@
 // src/app/hackathon/[id]/team/[teamId]/board/page.tsx
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import KanbanBoard from "./_components/KanbanBoard";
 import Calendar from "@/components/calendar/Calendar";
 import SubmissionAndResultTab from "./_components/SubmissionAndResultTab";
+import { Round } from "@/types/entities/round";
+import { fetchMockRounds } from "./_mock/fetchMockRounds";
+
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
 export default function HackathonBoardPage() {
-  const { id: hackathonId, teamId } = useParams();
+  const { id, teamId } = useParams();
+  const hackathonId = Array.isArray(id) ? id[0] : id;
+
+  const [rounds, setRounds] = useState<Round[]>([]);
   const [activeTab, setActiveTab] = useState(TABS[0]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!hackathonId) return;
+
+    setLoading(true);
+    fetchMockRounds(hackathonId)
+      .then((data) => setRounds(data))
+      .finally(() => setLoading(false));
+  }, [hackathonId]);
 
   return (
     <div className="p-6">
@@ -33,7 +49,13 @@ export default function HackathonBoardPage() {
       {/* Tab Content */}
       <div className="mt-4 p-4 border rounded-lg bg-white shadow">
         {activeTab === "Task Board" && <KanbanBoard />}
-        {activeTab === "Submission and Result" && <SubmissionAndResultTab />}
+        {activeTab === "Submission and Result" && (
+          <SubmissionAndResultTab
+            rounds={rounds}
+            loading={loading}
+            hackathonId={hackathonId}
+          />
+        )}
         {activeTab === "Schedule" && <Calendar />}
         {activeTab === "Analytics" && <p>Placeholder for analytics.</p>}
       </div>

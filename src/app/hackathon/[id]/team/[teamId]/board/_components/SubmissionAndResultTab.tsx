@@ -1,21 +1,52 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_components/SubmissionAndResultTab.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SubmissionTab from "./SubmissionTab";
 import ResultTab from "./ResultTab";
 import RewardListTab from "./RewardListTab";
+import { Round } from "@/types/entities/round";
+import { fetchMockSubmissions } from "../_mock/fetchMockSubmissions";
 
-// Mock Data
-const numberOfRounds = 3;
-const roundTabs = Array.from(
-  { length: numberOfRounds },
-  (_, i) => `Round ${i + 1}`
-);
+interface Props {
+  rounds: Round[];
+  loading: boolean;
+  hackathonId: string;
+}
 
-export default function SubmissionAndResultTab() {
-  const [activeRoundTab, setActiveRoundTab] = useState(roundTabs[0]);
+export default function SubmissionAndResultTab({
+  rounds,
+  loading,
+  hackathonId,
+}: Props) {
+  const roundTabs = rounds.map((round) => round.roundTitle);
+  const [activeRoundTab, setActiveRoundTab] = useState(roundTabs[0] || "");
   const [activeSubTab, setActiveSubTab] = useState("Submission");
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [submissionsLoading, setSubmissionsLoading] = useState(false);
+
+  const activeRound = rounds.find(
+    (round) => round.roundTitle === activeRoundTab
+  );
+  const roundId = activeRound?.id;
+  const roundStartTime = activeRound?.startTime || "";
+  const roundEndTime = activeRound?.endTime || "";
+
+  useEffect(() => {
+    const loadSubmissions = async () => {
+      if (!activeRoundTab) return;
+      setSubmissionsLoading(true);
+      const mockData = await fetchMockSubmissions(roundId, "mock-user-id");
+      setSubmissions(mockData);
+      setSubmissionsLoading(false);
+    };
+
+    loadSubmissions();
+  }, [activeRoundTab]);
+
+  if (loading) return <p>Loading rounds...</p>;
+  if (rounds.length === 0)
+    return <p className="text-gray-500">No rounds available.</p>;
 
   return (
     <div>
@@ -75,11 +106,21 @@ export default function SubmissionAndResultTab() {
       {/* Display Content Based on Active Tab */}
       <div className="mt-4 p-4 border rounded-lg bg-white shadow">
         {activeRoundTab === "Reward Recipient List" ? (
-          <RewardListTab />
+          <RewardListTab hackathonId={hackathonId} />
         ) : activeSubTab === "Submission" ? (
-          <SubmissionTab round={activeRoundTab} />
+          <SubmissionTab
+            round={activeRoundTab}
+            submissions={submissions}
+            loading={submissionsLoading}
+            roundStartTime={roundStartTime}
+            roundEndTime={roundEndTime}
+          />
         ) : (
-          <ResultTab round={activeRoundTab} />
+          <ResultTab
+            roundId={roundId!}
+            roundTitle={activeRoundTab}
+            submissions={submissions}
+          />
         )}
       </div>
     </div>

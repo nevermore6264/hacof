@@ -1,23 +1,46 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_components/RewardListTab.tsx
 "use client";
 
-// Mock Data
-const mockFinalScores = [
-  { team: "Team Alpha", score: 85 },
-  { team: "Team Beta", score: 78 },
-  { team: "Team Gamma", score: 72 },
-];
+import { useEffect, useState } from "react";
+import { fetchMockHackathonResults } from "../_mock/fetchMockHackathonResults";
+import { HackathonResult } from "@/types/entities/hackathonResult";
 
-export default function RewardListTab() {
+interface RewardListTabProps {
+  hackathonId: string;
+}
+
+export default function RewardListTab({ hackathonId }: RewardListTabProps) {
+  const [results, setResults] = useState<HackathonResult[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMockHackathonResults(hackathonId)
+      .then((data) => {
+        setResults(data);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [hackathonId]);
+
+  if (loading) {
+    return <p className="text-gray-500">Loading rewards...</p>;
+  }
+
   return (
     <div className="mt-4">
       <h2 className="text-lg font-semibold">Reward Recipient List</h2>
       <ul className="list-disc ml-6">
-        {mockFinalScores.map((team, index) => (
-          <li key={index}>
-            🏆 {team.team}: {team.score} points
-          </li>
-        ))}
+        {results.length > 0 ? (
+          results.map((result, index) => (
+            <li key={index}>
+              🏆 {result.team?.name}: {result.totalScore} points -{" "}
+              {result.award || "No award"}
+            </li>
+          ))
+        ) : (
+          <p className="text-gray-500">No results available.</p>
+        )}
       </ul>
     </div>
   );

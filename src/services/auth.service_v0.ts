@@ -2,38 +2,30 @@
 import { apiService } from "@/services/apiService_v0";
 import { User } from "@/types/entities/user";
 interface AuthResponse {
-  accessToken: string;
-  user: { id: string; email: string };
+  token: string;
+  authenticated: boolean;
 }
 
 class AuthService_v0 {
   async getUser(): Promise<User> {
-    return apiService.auth.get<User>("/auth/me_v0");
+    return apiService.auth.get<User>("/identity-service/api/v1/users/my-info");
   }
 
-  async login(email: string, password: string): Promise<AuthResponse> {
-    return await apiService.public.post<AuthResponse>("/auth/login_v0", {
-      email,
-      password,
+  async login(username: string, password: string): Promise<AuthResponse> {
+    const response = await apiService.public.post<AuthResponse>(
+      "/identity-service/api/v1/auth/token",
+      {
+        username,
+        password,
+      }
+    );
+    return response.result;
+  }
+
+  async logout(token: string): Promise<void> {
+    await apiService.auth.post("/identity-service/api/v1/auth/logout", {
+      token,
     });
-  }
-
-  async refreshToken(accessToken: string): Promise<string | null> {
-    try {
-      const response = await apiService.public.post<{ accessToken: string }>(
-        "/auth/refresh_v0",
-        {
-          accessToken,
-        }
-      );
-      return response.accessToken;
-    } catch {
-      return null;
-    }
-  }
-
-  async logout(accessToken: string): Promise<void> {
-    await apiService.auth.post("/auth/logout_v0", { accessToken });
   }
 }
 

@@ -5,9 +5,9 @@ import { Team } from "./team";
 
 export type HackathonResult = {
   id: string;
-  hackathon?: Hackathon;
+  hackathon?: Partial<Hackathon>;
   hackathonId?: string;
-  team?: Team;
+  team?: Partial<Team>;
   teamId?: string;
   totalScore: number;
   placement: number;
