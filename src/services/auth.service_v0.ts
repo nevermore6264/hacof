@@ -12,13 +12,14 @@ class AuthService_v0 {
   }
 
   async login(username: string, password: string): Promise<AuthResponse> {
-    return await apiService.public.post<AuthResponse>(
+    const response = await apiService.public.post<AuthResponse>(
       "/identity-service/api/v1/auth/token",
       {
         username,
         password,
       }
     );
+    return response.result;
   }
 
   async logout(token: string): Promise<void> {
