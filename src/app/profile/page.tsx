@@ -25,7 +25,15 @@ const userMock: User = {
   skills: ["React", "Next.js", "TypeScript", "Tailwind CSS"],
   experienceLevel: "Intermediate",
   createdUsers: [],
-  userRoles: ["TeamMember"],
+  userRoles: [
+    {
+      id: "ur4",
+      user: {
+        id: "1",
+      },
+      role: { id: "6", name: "TEAM_MEMBER" },
+    },
+  ],
   userHackathons: [
     {
       id: "1",
