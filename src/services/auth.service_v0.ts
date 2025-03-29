@@ -8,7 +8,10 @@ interface AuthResponse {
 
 class AuthService_v0 {
   async getUser(): Promise<User> {
-    return apiService.auth.get<User>("/identity-service/api/v1/users/my-info");
+    const response = await apiService.auth.get<User>(
+      "/identity-service/api/v1/users/my-info"
+    );
+    return response.result;
   }
 
   async login(username: string, password: string): Promise<AuthResponse> {
