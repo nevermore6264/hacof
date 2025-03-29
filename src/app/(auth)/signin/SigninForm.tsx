@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth_v0";
 import SocialLoginButtons from "./SocialLoginButtons";
 
 const SigninForm = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { login } = useAuth(); // Use the latest authentication hook
@@ -19,7 +19,7 @@ const SigninForm = () => {
     setError("");
 
     try {
-      await login(email, password);
+      await login(username, password);
       router.push("/"); // Redirect to dashboard after successful login
     } catch (err: any) {
       setError("Invalid credentials. Please try again.");
@@ -42,7 +42,7 @@ const SigninForm = () => {
       <div className="mb-8 flex items-center justify-center">
         <span className="hidden h-[1px] w-full max-w-[70px] bg-body-color/50 sm:block"></span>
         <p className="w-full px-5 text-center text-base font-medium text-body-color">
-          Or, sign in with your email
+          Or, sign in with your credentials
         </p>
         <span className="hidden h-[1px] w-full max-w-[70px] bg-body-color/50 sm:block"></span>
       </div>
@@ -54,14 +54,14 @@ const SigninForm = () => {
             htmlFor="email"
             className="mb-3 block text-sm text-dark dark:text-white"
           >
-            Your Email
+            Your Username
           </label>
           <input
-            type="email"
-            name="email"
-            placeholder="Enter your Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            name="username"
+            placeholder="Enter your Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none focus:border-[#4A6CF7] dark:border-transparent dark:bg-[#2C303B] dark:focus:border-[#4A6CF7]"
           />
         </div>
