@@ -1,4 +1,4 @@
-// src/app/dashboard/team-invitation/mock/fetchMockTeamRequests.tsx
+// src/app/dashboard/team-invitation/_mock/fetchMockTeamRequests.tsx
 import { TeamRequest } from "@/types/entities/teamRequest";
 
 export const fetchMockTeamRequests = (
