@@ -15,7 +15,6 @@ export const fetchMockTeamRequests = (
           teamRequestMembers: [
             {
               id: "trm1",
-              teamRequest: undefined,
               user: {
                 id: userId,
                 firstName: "Your",
@@ -37,7 +36,6 @@ export const fetchMockTeamRequests = (
             },
             {
               id: "trm2",
-              teamRequest: undefined,
               user: {
                 id: "user456",
                 firstName: "Bob",
@@ -69,7 +67,6 @@ export const fetchMockTeamRequests = (
           teamRequestMembers: [
             {
               id: "trm3",
-              teamRequest: undefined,
               user: {
                 id: userId,
                 firstName: "Your",

@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockHackathonResults.ts
 import { HackathonResult } from "@/types/entities/hackathonResult";
 
 export const fetchMockHackathonResults = (

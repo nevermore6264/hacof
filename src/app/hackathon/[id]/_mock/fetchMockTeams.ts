@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_mock/fetchMockTeams.ts
 import { Team } from "@/types/entities/team";
 
 export const fetchMockTeams = (
