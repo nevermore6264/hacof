@@ -28,13 +28,12 @@ export default function MentorshipModal({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMockMentors(hackathonId)
-      .then((data) => setMentors(data))
-      .finally(() => setLoading(false));
-  }, [hackathonId]);
-
-  // Determine title based on mentorship status
-  const modalTitle = "Mentorship overview";
+    if (isOpen) {
+      fetchMockMentors(hackathonId)
+        .then((data) => setMentors(data))
+        .finally(() => setLoading(false));
+    }
+  }, [hackathonId, isOpen]);
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -43,10 +42,9 @@ export default function MentorshipModal({
         aria-hidden="true"
       />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        {/* Add max height and overflow-y-auto */}
         <Dialog.Panel className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-6 max-h-[80vh] overflow-y-auto">
           <Dialog.Title className="text-xl font-bold">
-            {modalTitle}
+            Mentorship Overview
           </Dialog.Title>
 
           <Tab.Group>
@@ -76,174 +74,363 @@ export default function MentorshipModal({
               {/* Mentor Teams */}
               <Tab.Panel>
                 {mentorTeams.length > 0 ? (
-                  <ul className="space-y-2">
+                  <ul className="space-y-4">
                     {mentorTeams.map((mentorTeam) => (
                       <li
                         key={mentorTeam.id}
-                        className="p-2 border rounded-md bg-gray-100"
+                        className="p-4 border rounded-lg bg-gray-50 shadow-sm"
                       >
-                        {mentorTeam.team.name} - Mentor:{" "}
-                        {mentorTeam.mentor.lastName} +{" "}
-                        {mentorTeam.mentor.firstName}
+                        <div className="flex items-center gap-3 mb-3">
+                          <img
+                            src={
+                              mentorTeam.mentor.avatarUrl ||
+                              "/placeholder-avatar.png"
+                            }
+                            alt={`${mentorTeam.mentor.firstName} ${mentorTeam.mentor.lastName}`}
+                            className="w-12 h-12 rounded-full object-cover bg-gray-200"
+                          />
+                          <div>
+                            <h3 className="font-bold">
+                              {mentorTeam.mentor.firstName}{" "}
+                              {mentorTeam.mentor.lastName}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              {mentorTeam.mentor.email}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-2">
+                          <h4 className="font-semibold text-sm text-gray-700">
+                            Session Requests:
+                          </h4>
+                          {mentorTeam.mentorshipSessionRequests &&
+                          mentorTeam.mentorshipSessionRequests.length > 0 ? (
+                            <ul className="mt-1 space-y-2">
+                              {mentorTeam.mentorshipSessionRequests.map(
+                                (session) => (
+                                  <li
+                                    key={session.id}
+                                    className="text-sm p-2 bg-white rounded border"
+                                  >
+                                    <div className="flex justify-between">
+                                      <div className="font-medium">
+                                        {session.description}
+                                      </div>
+                                      <span
+                                        className={`px-2 py-0.5 text-xs rounded-full ${
+                                          session.status === "approved"
+                                            ? "bg-green-100 text-green-700"
+                                            : session.status === "rejected"
+                                              ? "bg-red-100 text-red-700"
+                                              : "bg-yellow-100 text-yellow-700"
+                                        }`}
+                                      >
+                                        {session.status}
+                                      </span>
+                                    </div>
+                                    <div className="mt-1 text-gray-600">
+                                      📅{" "}
+                                      {new Date(
+                                        session.startTime
+                                      ).toLocaleString()}{" "}
+                                      -{" "}
+                                      {new Date(
+                                        session.endTime
+                                      ).toLocaleString()}
+                                    </div>
+                                    <div className="text-gray-600">
+                                      📍 {session.location}
+                                    </div>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          ) : (
+                            <p className="text-sm text-gray-500 mt-1">
+                              No session requests yet
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="mt-3 flex justify-end">
+                          <button className="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Request Session
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500">No assigned mentors yet.</p>
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No assigned mentors yet.</p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Request a mentor from the "Request a Mentor" tab
+                    </p>
+                  </div>
                 )}
               </Tab.Panel>
 
               {/* Mentorship Requests */}
               <Tab.Panel>
                 {mentorshipRequests.length > 0 ? (
-                  <ul className="space-y-2">
+                  <ul className="space-y-4">
                     {mentorshipRequests.map((request) => (
                       <li
                         key={request.id}
-                        className="p-2 border rounded-md bg-gray-100"
+                        className="p-4 border rounded-lg bg-gray-50 shadow-sm"
                       >
-                        <strong>{request.team.name}</strong> requested
-                        mentorship from {request.mentor.firstName}{" "}
-                        {request.mentor.lastName}. <br />
-                        <span
-                          className={`text-sm ${
-                            request.status === "APPROVED"
-                              ? "text-green-500"
-                              : request.status === "REJECTED"
-                              ? "text-red-500"
-                              : "text-yellow-500"
-                          }`}
-                        >
-                          Status: {request.status}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={
+                              request.mentor.avatarUrl ||
+                              "/placeholder-avatar.png"
+                            }
+                            alt={`${request.mentor.firstName} ${request.mentor.lastName}`}
+                            className="w-12 h-12 rounded-full object-cover bg-gray-200"
+                          />
+                          <div>
+                            <h3 className="font-bold">
+                              {request.mentor.firstName}{" "}
+                              {request.mentor.lastName}
+                            </h3>
+                            <div className="flex items-center mt-1">
+                              <span
+                                className={`px-2 py-0.5 text-xs rounded-full ${
+                                  request.status === "APPROVED"
+                                    ? "bg-green-100 text-green-700"
+                                    : request.status === "REJECTED"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-yellow-100 text-yellow-700"
+                                }`}
+                              >
+                                {request.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 text-sm">
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {request.mentor.skills &&
+                              request.mentor.skills.map((skill, index) => (
+                                <span
+                                  key={index}
+                                  className="px-2 py-0.5 bg-gray-100 rounded text-xs"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                          </div>
+                        </div>
+
                         {request.evaluatedBy && (
-                          <p className="text-xs text-gray-500">
+                          <div className="mt-3 text-xs text-gray-500 border-t pt-2">
                             Evaluated by: {request.evaluatedBy.firstName}{" "}
-                            {request.evaluatedBy.lastName} at{" "}
-                            {new Date(
-                              request.evaluatedAt || ""
-                            ).toLocaleString()}
-                          </p>
+                            {request.evaluatedBy.lastName}
+                            <br />
+                            {request.evaluatedAt &&
+                              `Date: ${new Date(request.evaluatedAt).toLocaleString()}`}
+                          </div>
                         )}
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500">
-                    No pending mentorship requests.
-                  </p>
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">
+                      No pending mentorship requests.
+                    </p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Request a mentor from the "Request a Mentor" tab
+                    </p>
+                  </div>
                 )}
               </Tab.Panel>
 
               {/* Mentorship Session Requests */}
               <Tab.Panel>
                 {mentorshipSessionRequests.length > 0 ? (
-                  <ul className="space-y-2">
+                  <ul className="space-y-4">
                     {mentorshipSessionRequests.map((session) => (
                       <li
                         key={session.id}
-                        className="p-2 border rounded-md bg-gray-100"
+                        className="p-4 border rounded-lg bg-gray-50 shadow-sm"
                       >
-                        <strong>
-                          Session with {session.mentorTeam.mentor?.firstName}{" "}
-                          {session.mentorTeam.mentor?.lastName}
-                        </strong>{" "}
-                        <br />
-                        📅 {new Date(session.startTime).toLocaleString()} -{" "}
-                        {new Date(session.endTime).toLocaleString()} <br />
-                        📍 {session.location} <br />
-                        📝 {session.description} <br />
-                        <span
-                          className={`text-sm ${
-                            session.status === "approved"
-                              ? "text-green-500"
-                              : session.status === "rejected"
-                              ? "text-red-500"
-                              : "text-yellow-500"
-                          }`}
-                        >
-                          Status: {session.status}
-                        </span>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-bold">{session.description}</h3>
+
+                            <div className="mt-2 space-y-1 text-sm">
+                              <p className="flex items-center gap-2">
+                                <span className="text-gray-600">📅</span>
+                                <span>
+                                  {new Date(
+                                    session.startTime
+                                  ).toLocaleDateString()}{" "}
+                                  at{" "}
+                                  {new Date(
+                                    session.startTime
+                                  ).toLocaleTimeString()}{" "}
+                                  -{" "}
+                                  {new Date(
+                                    session.endTime
+                                  ).toLocaleTimeString()}
+                                </span>
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <span className="text-gray-600">📍</span>
+                                <span>{session.location}</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <span
+                            className={`px-2 py-0.5 text-xs rounded-full ${
+                              session.status === "approved"
+                                ? "bg-green-100 text-green-700"
+                                : session.status === "rejected"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {session.status}
+                          </span>
+                        </div>
+
                         {session.evaluatedBy && (
-                          <p className="text-xs text-gray-500">
+                          <div className="mt-3 text-xs text-gray-500 border-t pt-2">
                             Evaluated by: {session.evaluatedBy.firstName}{" "}
-                            {session.evaluatedBy.lastName} at{" "}
-                            {new Date(
-                              session.evaluatedAt || ""
-                            ).toLocaleString()}
-                          </p>
+                            {session.evaluatedBy.lastName}
+                            <br />
+                            {session.evaluatedAt &&
+                              `Date: ${new Date(session.evaluatedAt).toLocaleString()}`}
+                          </div>
                         )}
+
+                        <div className="mt-3 flex justify-end gap-2">
+                          {session.status === "pending" && (
+                            <>
+                              <button className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                                Cancel
+                              </button>
+                              <button className="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                Edit
+                              </button>
+                            </>
+                          )}
+                          {session.status === "approved" && (
+                            <button className="text-sm px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
+                              Join Session
+                            </button>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500">No session requests yet.</p>
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No session requests yet.</p>
+                  </div>
                 )}
               </Tab.Panel>
 
               {/* Request a Mentor */}
               <Tab.Panel>
                 {loading ? (
-                  <p className="text-center text-gray-500">
-                    Loading mentors...
-                  </p>
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {mentors.map((mentor) => {
-                      const currentTeamCount = mentor.mentorTeams.length;
-                      const maxTeamLimit = mentor.mentorTeamLimits.length || 5;
+                      const currentTeamCount = mentor.mentorTeams?.length || 0;
+                      const maxTeamLimit = mentor.mentorTeamLimits?.length || 5;
                       const full = currentTeamCount >= maxTeamLimit;
 
                       return (
                         <div
                           key={mentor.id}
-                          className={`border rounded-lg p-4 shadow ${
-                            full ? "opacity-50 cursor-not-allowed" : ""
+                          className={`border rounded-lg p-4 shadow-sm ${
+                            full ? "opacity-60" : ""
                           }`}
                         >
                           <div className="flex items-center gap-3">
                             <img
-                              src={mentor.avatarUrl}
+                              src={
+                                mentor.avatarUrl || "/placeholder-avatar.png"
+                              }
                               alt={`${mentor.firstName} ${mentor.lastName}`}
-                              className="w-12 h-12 rounded-full object-cover"
+                              className="w-12 h-12 rounded-full object-cover bg-gray-200"
                             />
                             <div>
-                              <h3 className="font-bold text-lg">
+                              <h3 className="font-bold">
                                 {mentor.firstName} {mentor.lastName}
                               </h3>
-                              <p className="text-gray-600 text-sm">
-                                {mentor.university}
-                              </p>
+                              {mentor.university && (
+                                <p className="text-gray-600 text-sm">
+                                  {mentor.university}
+                                </p>
+                              )}
                             </div>
                           </div>
-                          <p className="text-gray-700 mt-3 text-sm">
-                            {mentor.bio}
-                          </p>
-                          <div className="mt-2 text-xs text-gray-500 flex gap-2">
-                            {mentor.linkedinUrl && (
-                              <a
-                                href={mentor.linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-500 hover:underline"
+
+                          {mentor.bio && (
+                            <p className="text-gray-700 mt-3 text-sm line-clamp-3">
+                              {mentor.bio}
+                            </p>
+                          )}
+
+                          {mentor.skills && mentor.skills.length > 0 && (
+                            <div className="mt-2">
+                              <div className="flex flex-wrap gap-1">
+                                {mentor.skills.map((skill, index) => (
+                                  <span
+                                    key={index}
+                                    className="px-2 py-0.5 bg-gray-100 rounded text-xs"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="text-sm flex gap-2">
+                              {mentor.linkedinUrl && (
+                                <a
+                                  href={mentor.linkedinUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 hover:underline"
+                                >
+                                  LinkedIn
+                                </a>
+                              )}
+                              {mentor.githubUrl && (
+                                <a
+                                  href={mentor.githubUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-gray-700 hover:underline"
+                                >
+                                  GitHub
+                                </a>
+                              )}
+                            </div>
+                            <div className="text-sm">
+                              <span
+                                className={
+                                  full ? "text-red-500" : "text-green-600"
+                                }
                               >
-                                LinkedIn
-                              </a>
-                            )}
-                            {mentor.githubUrl && (
-                              <a
-                                href={mentor.githubUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-700 hover:underline"
-                              >
-                                GitHub
-                              </a>
-                            )}
+                                {currentTeamCount}/{maxTeamLimit}
+                              </span>{" "}
+                              teams
+                            </div>
                           </div>
-                          <p className="mt-3 text-sm">
-                            {currentTeamCount} / {maxTeamLimit} teams
-                          </p>
+
                           <button
                             disabled={full}
                             onClick={() => {
@@ -253,13 +440,13 @@ export default function MentorshipModal({
                                   : `Requested mentorship from ${mentor.firstName}`
                               );
                             }}
-                            className={`mt-3 w-full py-2 rounded ${
+                            className={`mt-3 w-full py-2 rounded text-sm font-medium ${
                               full
                                 ? "bg-gray-300 cursor-not-allowed"
                                 : "bg-blue-500 hover:bg-blue-600 text-white"
                             }`}
                           >
-                            {full ? "Full" : "Request Mentorship"}
+                            {full ? "Mentor at capacity" : "Request Mentorship"}
                           </button>
                         </div>
                       );
@@ -272,7 +459,7 @@ export default function MentorshipModal({
 
           <div className="mt-6 text-right">
             <button
-              className="px-4 py-2 bg-gray-500 text-white rounded-md"
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition"
               onClick={onClose}
             >
               Close

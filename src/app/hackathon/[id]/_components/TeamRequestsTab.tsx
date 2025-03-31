@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_components/TeamRequestsTab.tsx
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { useState, useEffect } from "react";
 import { Trash2, X, Plus } from "lucide-react";

@@ -179,14 +179,14 @@ export default function HackathonOverview({
         minimumTeamMembers={minimumTeamMembers}
         maximumTeamMembers={maximumTeamMembers}
       />
-      {/* <MentorshipModal
+      <MentorshipModal
         isOpen={isMentorshipModalOpen}
         onClose={() => setIsMentorshipModalOpen(false)}
         mentorTeams={mentorTeams}
         mentorshipRequests={mentorshipRequests}
         mentorshipSessionRequests={mentorshipSessionRequests}
         hackathonId={id}
-      /> */}
+      />
     </>
   );
 }

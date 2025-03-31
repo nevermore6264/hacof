@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_components/IndividualRegistrationsTab.tsx
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { useState } from "react";
 import { Trash2, Plus } from "lucide-react";

@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_components/TeamsTab.tsx
 import { Team } from "@/types/entities/team";
 
 type TeamsTabProps = {
