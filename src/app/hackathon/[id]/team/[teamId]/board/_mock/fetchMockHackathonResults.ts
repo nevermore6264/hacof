@@ -1,4 +1,3 @@
-// src/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockHackathonResults.ts
 import { HackathonResult } from "@/types/entities/hackathonResult";
 
 export const fetchMockHackathonResults = (
@@ -9,10 +8,6 @@ export const fetchMockHackathonResults = (
       const mockResults: HackathonResult[] = [
         {
           id: "result1",
-          hackathon: {
-            id: hackathonId,
-            title: "Hackathon X",
-          },
           team: {
             id: "team1",
             name: "Team Alpha",
@@ -20,17 +15,56 @@ export const fetchMockHackathonResults = (
               id: "user123",
               firstName: "Alice",
               lastName: "Smith",
+              email: "alice.smith@example.com",
+              username: "alicesmith",
+              avatarUrl: "https://example.com/alice-avatar.png",
+              status: "Active",
+              userRoles: [
+                {
+                  id: "ur1",
+                  user: { id: "user123" },
+                  role: { id: "5", name: "MENTOR" },
+                },
+              ],
             },
             teamMembers: [
               {
                 id: "ut1",
-                user: { id: "user123", firstName: "Alice", lastName: "Smith" },
-                team: undefined,
+                user: {
+                  id: "user123",
+                  firstName: "Alice",
+                  lastName: "Smith",
+                  email: "alice.smith@example.com",
+                  username: "alicesmith",
+                  avatarUrl: "https://example.com/alice-avatar.png",
+                  status: "Active",
+                  userRoles: [
+                    {
+                      id: "ur1",
+                      user: { id: "user123" },
+                      role: { id: "2", name: "PARTICIPANT" },
+                    },
+                  ],
+                },
               },
               {
                 id: "ut2",
-                user: { id: "user456", firstName: "Bob", lastName: "Johnson" },
-                team: undefined,
+                user: {
+                  id: "user456",
+                  firstName: "Bob",
+                  lastName: "Johnson",
+                  email: "bob.johnson@example.com",
+                  username: "bobjohnson",
+                  avatarUrl: "https://example.com/bob-avatar.png",
+                  status: "Active",
+                  userRoles: [
+                    {
+                      id: "ur2",
+                      user: { id: "user456" },
+                      role: { id: "2", name: "PARTICIPANT" },
+                    },
+                  ],
+                },
               },
             ],
             teamHackathons: [
@@ -42,13 +76,6 @@ export const fetchMockHackathonResults = (
               },
             ],
             isDeleted: false,
-            mentorTeams: [],
-            mentorTeamLimits: [],
-            mentorshipRequests: [],
-            mentorshipSessionRequests: [],
-            teamRounds: [],
-            hackathonResults: [],
-            feedbacks: [],
             bio: "",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -61,10 +88,6 @@ export const fetchMockHackathonResults = (
         },
         {
           id: "result2",
-          hackathon: {
-            id: hackathonId,
-            title: "Hackathon X",
-          },
           team: {
             id: "team2",
             name: "Team Beta",
@@ -72,6 +95,17 @@ export const fetchMockHackathonResults = (
               id: "user789",
               firstName: "Charlie",
               lastName: "Brown",
+              email: "charlie.brown@example.com",
+              username: "charliebrown",
+              avatarUrl: "https://example.com/charlie-avatar.png",
+              status: "Active",
+              userRoles: [
+                {
+                  id: "ur3",
+                  user: { id: "user789" },
+                  role: { id: "2", name: "PARTICIPANT" },
+                },
+              ],
             },
             teamMembers: [
               {
@@ -80,13 +114,37 @@ export const fetchMockHackathonResults = (
                   id: "user789",
                   firstName: "Charlie",
                   lastName: "Brown",
+                  email: "charlie.brown@example.com",
+                  username: "charliebrown",
+                  avatarUrl: "https://example.com/charlie-avatar.png",
+                  status: "Active",
+                  userRoles: [
+                    {
+                      id: "ur3",
+                      user: { id: "user789" },
+                      role: { id: "2", name: "PARTICIPANT" },
+                    },
+                  ],
                 },
-                team: undefined,
               },
               {
                 id: "ut4",
-                user: { id: "user567", firstName: "Eve", lastName: "Adams" },
-                team: undefined,
+                user: {
+                  id: "user567",
+                  firstName: "Eve",
+                  lastName: "Adams",
+                  email: "eve.adams@example.com",
+                  username: "eveadams",
+                  avatarUrl: "https://example.com/eve-avatar.png",
+                  status: "Active",
+                  userRoles: [
+                    {
+                      id: "ur4",
+                      user: { id: "user567" },
+                      role: { id: "2", name: "PARTICIPANT" },
+                    },
+                  ],
+                },
               },
             ],
             teamHackathons: [
@@ -98,13 +156,6 @@ export const fetchMockHackathonResults = (
               },
             ],
             isDeleted: false,
-            mentorTeams: [],
-            mentorTeamLimits: [],
-            mentorshipRequests: [],
-            mentorshipSessionRequests: [],
-            teamRounds: [],
-            hackathonResults: [],
-            feedbacks: [],
             bio: "",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -117,10 +168,6 @@ export const fetchMockHackathonResults = (
         },
         {
           id: "result3",
-          hackathon: {
-            id: hackathonId,
-            title: "Hackathon X",
-          },
           team: {
             id: "team3",
             name: "Team Gamma",
@@ -128,11 +175,37 @@ export const fetchMockHackathonResults = (
               id: "user999",
               firstName: "Dave",
               lastName: "Miller",
+              email: "dave.miller@example.com",
+              username: "davemiller",
+              avatarUrl: "https://example.com/dave-avatar.png",
+              status: "Active",
+              userRoles: [
+                {
+                  id: "ur5",
+                  user: { id: "user999" },
+                  role: { id: "2", name: "PARTICIPANT" },
+                },
+              ],
             },
             teamMembers: [
               {
                 id: "ut5",
-                user: { id: "user999", firstName: "Dave", lastName: "Miller" },
+                user: {
+                  id: "user999",
+                  firstName: "Dave",
+                  lastName: "Miller",
+                  email: "dave.miller@example.com",
+                  username: "davemiller",
+                  avatarUrl: "https://example.com/dave-avatar.png",
+                  status: "Active",
+                  userRoles: [
+                    {
+                      id: "ur5",
+                      user: { id: "user999" },
+                      role: { id: "2", name: "PARTICIPANT" },
+                    },
+                  ],
+                },
                 team: undefined,
               },
               {
@@ -141,6 +214,17 @@ export const fetchMockHackathonResults = (
                   id: "user777",
                   firstName: "Olivia",
                   lastName: "Taylor",
+                  email: "olivia.taylor@example.com",
+                  username: "oliviataylor",
+                  avatarUrl: "https://example.com/olivia-avatar.png",
+                  status: "Active",
+                  userRoles: [
+                    {
+                      id: "ur6",
+                      user: { id: "user777" },
+                      role: { id: "2", name: "PARTICIPANT" },
+                    },
+                  ],
                 },
                 team: undefined,
               },
@@ -154,13 +238,6 @@ export const fetchMockHackathonResults = (
               },
             ],
             isDeleted: false,
-            mentorTeams: [],
-            mentorTeamLimits: [],
-            mentorshipRequests: [],
-            mentorshipSessionRequests: [],
-            teamRounds: [],
-            hackathonResults: [],
-            feedbacks: [],
             bio: "",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),

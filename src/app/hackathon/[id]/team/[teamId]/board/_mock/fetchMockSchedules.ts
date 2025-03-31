@@ -11,10 +11,48 @@ export const fetchMockSchedules = (
       const mockSchedules: Schedule[] = [
         {
           id: "schedule1",
-          team: {
-            id: "team1",
-            name: "Team Alpha",
-          },
+          team: teamId
+            ? {
+                id: teamId,
+                name: `Mock Team ${teamId}`,
+                teamLeader: {
+                  id: "leader1",
+                  firstName: "John",
+                  lastName: "Doe",
+                  email: "john.doe@example.com",
+                  avatarUrl: "https://example.com/avatars/john.png",
+                  experienceLevel: "Advanced",
+                },
+                teamMembers: [
+                  {
+                    id: "member1",
+                    user: {
+                      id: "user123",
+                      firstName: "Alice",
+                      lastName: "Smith",
+                      email: "alice.smith@example.com",
+                      avatarUrl: "https://example.com/avatars/alice.png",
+                      skills: ["JavaScript", "React"],
+                      experienceLevel: "Intermediate",
+                    },
+                  },
+                  {
+                    id: "member2",
+                    user: {
+                      id: "user456",
+                      firstName: "Bob",
+                      lastName: "Johnson",
+                      email: "bob.johnson@example.com",
+                      avatarUrl: "https://example.com/avatars/bob.png",
+                      skills: ["Python", "Django"],
+                      experienceLevel: "Advanced",
+                    },
+                  },
+                ],
+                bio: "A passionate development team.",
+                isDeleted: false,
+              }
+            : undefined,
           hackathon: {
             id: "hackathon1",
             title: "Hackathon X",
@@ -42,6 +80,19 @@ export const fetchMockSchedules = (
                     lastName: "Smith",
                     email: "alice.smith@example.com",
                     avatarUrl: "https://example.com/avatars/alice.png",
+                    bio: "Passionate software engineer",
+                    country: "USA",
+                    city: "San Francisco",
+                    birthdate: "1990-05-15",
+                    phone: "+123456789",
+                    studentId: "S12345",
+                    university: "FPT University",
+                    linkedinUrl: "https://linkedin.com/in/alicesmith",
+                    githubUrl: "https://github.com/alicesmith",
+                    skills: ["JavaScript", "React", "Node.js"],
+                    experienceLevel: "Advanced",
+                    status: "Active",
+                    userRoles: [],
                   },
                   status: "CONFIRMED",
                 },
@@ -55,6 +106,19 @@ export const fetchMockSchedules = (
                     lastName: "Smith",
                     email: "alice.smith@example.com",
                     avatarUrl: "https://example.com/avatars/alice.png",
+                    bio: "Passionate software engineer",
+                    country: "USA",
+                    city: "San Francisco",
+                    birthdate: "1990-05-15",
+                    phone: "+123456789",
+                    studentId: "S12345",
+                    university: "FPT University",
+                    linkedinUrl: "https://linkedin.com/in/alicesmith",
+                    githubUrl: "https://github.com/alicesmith",
+                    skills: ["JavaScript", "React", "Node.js"],
+                    experienceLevel: "Advanced",
+                    status: "Active",
+                    userRoles: [],
                   },
                   remindAt: new Date(
                     new Date().getTime() - 600000

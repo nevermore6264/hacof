@@ -4,41 +4,92 @@ import { Round, RoundStatus } from "@/types/entities/round";
 export const fetchMockRounds = (hackathonId: string): Promise<Round[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const now = Date.now();
       const mockRounds: Round[] = [
         {
-          id: "round1",
-          hackathon: { id: hackathonId, title: "Hackathon X" },
-          startTime: new Date().toISOString(),
-          endTime: new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString(), // 2 hours later
+          id: "r1",
+          startTime: new Date("2024-06-02T10:00:00Z").toISOString(),
+          endTime: new Date("2024-06-02T18:00:00Z").toISOString(),
           roundNumber: 1,
-          roundTitle: "Idea Submission",
-          status: now < now + 1000 * 60 * 60 ? "ONGOING" : "COMPLETED",
-          submissions: [],
-          roundMarkCriteria: [],
-          judgeRounds: [],
-          teamRounds: [],
-          roundLocations: [],
+          roundTitle: "Preliminary Round",
+          status: "UPCOMING",
+          roundLocations: [
+            {
+              id: "rl1",
+              round: undefined, // Avoid circular dependency
+              location: {
+                id: "loc1",
+                name: "Tech Hub Arena",
+                address: "123 Innovation Street, Silicon Valley, CA",
+                latitude: 37.7749,
+                longitude: -122.4194,
+                roundLocations: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              type: "OFFLINE",
+              createdAt: new Date().toISOString(),
+            },
+          ],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
         {
-          id: "round2",
-          hackathon: { id: hackathonId, title: "Hackathon X" },
-          startTime: new Date(Date.now() + 1000 * 60 * 60 * 3).toISOString(), // 3 hours later
-          endTime: new Date(Date.now() + 1000 * 60 * 60 * 6).toISOString(), // 6 hours later
+          id: "r2",
+          startTime: new Date("2024-06-03T10:00:00Z").toISOString(),
+          endTime: new Date("2024-06-03T18:00:00Z").toISOString(),
           roundNumber: 2,
-          roundTitle: "Prototype Development",
+          roundTitle: "Final Round",
           status: "UPCOMING",
-          submissions: [],
-          roundMarkCriteria: [],
-          judgeRounds: [],
-          teamRounds: [],
-          roundLocations: [],
+          roundLocations: [
+            {
+              id: "rl2",
+              round: undefined,
+              location: {
+                id: "loc2",
+                name: "Virtual Zoom Room",
+                address: "Online",
+                latitude: 0,
+                longitude: 0,
+                roundLocations: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              type: "ONLINE",
+              createdAt: new Date().toISOString(),
+            },
+          ],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: "round3",
+          roundNumber: 3,
+          roundTitle: "Finals",
+          startTime: new Date("2024-06-03T10:00:00Z").toISOString(),
+          endTime: new Date("2024-06-03T18:00:00Z").toISOString(),
+          status: "UPCOMING",
+          roundLocations: [
+            {
+              id: "rl3",
+              location: {
+                id: "loc3",
+                name: "Startup Co-Working Space",
+                address: "456 Startup Blvd, New York, NY",
+                latitude: 40.7128,
+                longitude: -74.006,
+                roundLocations: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              type: "HYBRID",
+              createdAt: new Date().toISOString(),
+            },
+          ],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
       ];
+
       resolve(mockRounds);
     }, 500);
   });

@@ -1,4 +1,3 @@
-// src/app/hackathon/[id]/_mock/fetchMockMentorTeams.ts
 import { MentorTeam } from "@/types/entities/mentorTeam";
 
 export const fetchMockMentorTeams = (
@@ -10,9 +9,22 @@ export const fetchMockMentorTeams = (
       const mockMentorTeams: MentorTeam[] = [
         {
           id: "mentorTeam1",
-          mentor: { id: "mentor123", firstName: "John", lastName: "Doe" },
-          team: { id: teamId, name: "Team Alpha" },
-          hackathon: { id: hackathonId, title: "Hackathon X" },
+          mentor: {
+            id: "mentor123",
+            firstName: "John",
+            lastName: "Doe",
+            email: "john.doe@example.com",
+            username: "johndoe",
+            avatarUrl: "https://example.com/john-avatar.png",
+            status: "Active",
+            userRoles: [
+              {
+                id: "ur1",
+                user: { id: "mentor123" },
+                role: { id: "5", name: "MENTOR" },
+              },
+            ],
+          },
           mentorshipSessionRequests: [
             {
               id: "session1",
@@ -42,9 +54,22 @@ export const fetchMockMentorTeams = (
         },
         {
           id: "mentorTeam2",
-          mentor: { id: "mentor456", firstName: "Jane", lastName: "Smith" },
-          team: { id: teamId, name: "Team Beta" },
-          hackathon: { id: hackathonId, title: "Hackathon X" },
+          mentor: {
+            id: "mentor456",
+            firstName: "Jane",
+            lastName: "Smith",
+            email: "jane.smith@example.com",
+            username: "janesmith",
+            avatarUrl: "https://example.com/jane-avatar.png",
+            status: "Active",
+            userRoles: [
+              {
+                id: "ur2",
+                user: { id: "mentor456" },
+                role: { id: "5", name: "MENTOR" },
+              },
+            ],
+          },
           mentorshipSessionRequests: [
             {
               id: "session3",
