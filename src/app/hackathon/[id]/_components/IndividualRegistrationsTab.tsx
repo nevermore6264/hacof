@@ -15,10 +15,7 @@ export default function IndividualRegistrationsTab({
   const createIndividualRegistration = async () => {
     // Check if user already has an individual registration that's not rejected
     const activeRegistration = individualRegistrations.find(
-      (reg) =>
-        reg.status === "PENDING" ||
-        reg.status === "UNDER_REVIEW" ||
-        reg.status === "APPROVED"
+      (reg) => reg.status === "PENDING" || reg.status === "APPROVED"
     );
 
     if (activeRegistration) {
