@@ -5,6 +5,7 @@ import React from "react";
 import Link from "next/link";
 import {
   Home,
+  User,
   Users,
   Settings,
   BarChart2,
@@ -17,6 +18,11 @@ const menuItems = [
     href: "/dashboard/team-invitation",
     icon: Users,
     label: "Team invitations",
+  },
+  {
+    href: "/dashboard/individual-registration",
+    icon: User,
+    label: "Individual registrations",
   },
   {
     href: "/dashboard/analytics",
