@@ -1,7 +1,7 @@
 // src/app/hackathon/[id]/_components/MentorTeamsTab.tsx
 import { useState } from "react";
 import { MentorTeam } from "@/types/entities/mentorTeam";
-import SessionRequestForm from "../SessionRequestForm";
+import SessionRequestForm from "./SessionRequestForm";
 
 type MentorTeamsTabProps = {
   mentorTeams: MentorTeam[];

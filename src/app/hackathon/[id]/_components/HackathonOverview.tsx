@@ -186,6 +186,44 @@ export default function HackathonOverview({
         mentorshipRequests={mentorshipRequests}
         mentorshipSessionRequests={mentorshipSessionRequests}
         hackathonId={id}
+        teamId={teams.length > 0 ? teams[0].id : ""}
+        onDataUpdate={() => {
+          // Fetch updated data when changes are made
+          const fetchUpdatedData = async () => {
+            if (!user || teams.length === 0) return;
+
+            const mentorTeamPromises = teams.map((team) =>
+              fetchMockMentorTeams(id, team.id)
+            );
+            const mentorshipRequestPromises = teams.map((team) =>
+              fetchMockMentorshipRequests(id, team.id)
+            );
+
+            const mentorTeamsResults = await Promise.all(mentorTeamPromises);
+            const mentorshipRequestsResults = await Promise.all(
+              mentorshipRequestPromises
+            );
+
+            const allMentorTeams = mentorTeamsResults.flat();
+            const allMentorshipRequests = mentorshipRequestsResults.flat();
+
+            setMentorTeams(allMentorTeams);
+            setMentorshipRequests(allMentorshipRequests);
+
+            if (allMentorTeams.length === 0) return;
+
+            const mentorshipSessionPromises = allMentorTeams.map((mentorTeam) =>
+              fetchMockMentorshipSessionRequests(mentorTeam.id)
+            );
+            const mentorshipSessionResults = await Promise.all(
+              mentorshipSessionPromises
+            );
+
+            setMentorshipSessionRequests(mentorshipSessionResults.flat());
+          };
+
+          fetchUpdatedData();
+        }}
       />
     </>
   );

@@ -1,7 +1,7 @@
 // src/app/hackathon/[id]/_components/SessionRequestsTab.tsx
 import { useState } from "react";
 import { MentorshipSessionRequest } from "@/types/entities/mentorshipSessionRequest";
-import SessionRequestForm from "../SessionRequestForm";
+import SessionRequestForm from "./SessionRequestForm";
 
 type SessionRequestsTabProps = {
   sessionRequests: MentorshipSessionRequest[];
