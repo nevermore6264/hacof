@@ -1,5 +1,6 @@
 // src/app/hackathon/[id]/team/[teamId]/board/page.tsx
 "use client";
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import KanbanBoard from "./_components/KanbanBoard";
@@ -13,6 +14,7 @@ const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 export default function HackathonBoardPage() {
   const { id, teamId } = useParams();
   const hackathonId = Array.isArray(id) ? id[0] : id;
+  const teamIdValue = Array.isArray(teamId) ? teamId[0] : teamId;
 
   const [rounds, setRounds] = useState<Round[]>([]);
   const [activeTab, setActiveTab] = useState(TABS[0]);
@@ -54,6 +56,7 @@ export default function HackathonBoardPage() {
             rounds={rounds}
             loading={loading}
             hackathonId={hackathonId}
+            teamId={teamIdValue}
           />
         )}
         {activeTab === "Schedule" && <Calendar />}
