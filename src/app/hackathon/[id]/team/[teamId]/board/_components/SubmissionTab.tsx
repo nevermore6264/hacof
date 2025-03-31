@@ -77,7 +77,7 @@ export default function SubmissionTab({
           </h2>
           <p className="mt-2 font-semibold">
             Your submission:{" "}
-            <span className="font-bold">{`${submission?.createdBy.firstName} ${submission?.createdBy.lastName}`}</span>
+            <span className="font-bold">{submission?.createdByUserName}</span>
           </p>
 
           {/* Submission Files */}

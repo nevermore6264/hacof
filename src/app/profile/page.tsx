@@ -127,7 +127,7 @@ const userMock: User = {
   createdFeedbacks: [],
   receivedNotifications: [],
   createdAt: new Date().toISOString(),
-  createdBy: undefined,
+  createdByUserName: undefined,
 };
 
 export default function ProfilePage() {

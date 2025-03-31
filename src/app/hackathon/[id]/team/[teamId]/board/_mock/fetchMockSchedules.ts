@@ -3,7 +3,7 @@ import { Schedule } from "@/types/entities/schedule";
 
 export const fetchMockSchedules = (
   teamId?: string | null,
-  createdById?: string,
+  createdByUserName?: string,
   hackathonId?: string
 ): Promise<Schedule[]> => {
   return new Promise((resolve) => {
@@ -81,15 +81,7 @@ export const fetchMockSchedules = (
               updatedAt: new Date().toISOString(),
             },
           ],
-          createdBy: createdById
-            ? {
-                id: createdById,
-                firstName: "Your",
-                lastName: "Name",
-                email: "your.name@example.com",
-                avatarUrl: "https://example.com/avatars/your.png",
-              }
-            : undefined,
+          createdByUserName: createdByUserName ?? "your_username",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -121,9 +113,7 @@ export const fetchMockSchedules = (
               updatedAt: new Date().toISOString(),
             },
           ],
-          createdBy: createdById
-            ? { id: createdById, firstName: "Your", lastName: "Name" }
-            : undefined,
+          createdByUserName: createdByUserName ?? "your_username",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -136,7 +126,8 @@ export const fetchMockSchedules = (
       } else {
         filteredSchedules = mockSchedules.filter(
           (s) =>
-            s.createdBy?.id === createdById && s.hackathon?.id === hackathonId
+            s.createdByUserName === createdByUserName &&
+            s.hackathon?.id === hackathonId
         );
       }
 

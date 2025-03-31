@@ -66,7 +66,7 @@ export default function ThreadPage() {
               {/* Avatar (mocked image for now) */}
               <Image
                 src="/default-avatar.png"
-                alt={post.createdBy.firstName}
+                alt={post.createdByUserName}
                 width={50}
                 height={50}
                 className="rounded-full"
@@ -75,7 +75,7 @@ export default function ThreadPage() {
               <div className="flex-1">
                 {/* Author Name & Timestamp */}
                 <p className="text-gray-900 font-semibold">
-                  {post.createdBy.firstName} {post.createdBy.lastName}{" "}
+                  {post.createdByUserName}{" "}
                   <span className="text-sm text-gray-500">
                     {new Date(post.createdAt).toLocaleString()}
                   </span>

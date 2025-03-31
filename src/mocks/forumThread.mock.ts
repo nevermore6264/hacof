@@ -10,7 +10,7 @@ export const mockForumThreads: ForumThread[] = [
     threadPosts: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    createdBy: { id: "user1", firstName: "Admin", lastName: "User" },
+    createdByUserName: "AdminUser",
   },
   {
     id: "thread2",
@@ -20,7 +20,7 @@ export const mockForumThreads: ForumThread[] = [
     threadPosts: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    createdBy: { id: "user2", firstName: "Alice", lastName: "Smith" },
+    createdByUserName: "AliceSmith",
   },
   {
     id: "thread3",
@@ -30,7 +30,7 @@ export const mockForumThreads: ForumThread[] = [
     threadPosts: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    createdBy: { id: "user3", firstName: "Bob", lastName: "Johnson" },
+    createdByUserName: "BobJohnson",
   },
   {
     id: "thread4",
@@ -40,6 +40,6 @@ export const mockForumThreads: ForumThread[] = [
     threadPosts: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    createdBy: { id: "user4", firstName: "Charlie", lastName: "Brown" },
+    createdByUserName: "CharlieBrown",
   },
 ];

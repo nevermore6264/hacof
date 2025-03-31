@@ -42,8 +42,7 @@ export default async function CategoryPage({
                 </h2>
               </Link>
               <p className="text-gray-500 text-sm mt-1">
-                Created by {thread.createdBy?.firstName}{" "}
-                {thread.createdBy?.lastName} •{" "}
+                Created by {thread.createdByUserName} •{" "}
                 {new Date(thread.createdAt ?? "").toLocaleDateString()}
               </p>
             </div>

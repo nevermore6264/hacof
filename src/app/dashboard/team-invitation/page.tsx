@@ -82,9 +82,7 @@ export default function TeamInvitationPage() {
                         ).toLocaleString()}
                       </p>
                       <p className="text-gray-600">
-                        <strong>Created By:</strong>{" "}
-                        {request.createdBy?.firstName}{" "}
-                        {request.createdBy?.lastName}
+                        <strong>Created By:</strong> {request.createdByUserName}
                       </p>
                       <div className="mt-2">
                         <strong>Team Members:</strong>

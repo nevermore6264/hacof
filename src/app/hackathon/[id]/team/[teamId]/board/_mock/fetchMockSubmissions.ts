@@ -3,7 +3,7 @@ import { Submission, SubmissionStatus } from "@/types/entities/submission";
 
 export const fetchMockSubmissions = (
   roundId: string,
-  createdById: string
+  createdByUserName: string
 ): Promise<Submission[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -59,11 +59,7 @@ export const fetchMockSubmissions = (
           status: "SUBMITTED",
           submittedAt: new Date().toISOString(),
           finalScore: 85,
-          createdBy: {
-            id: createdById,
-            firstName: "User X",
-            lastName: "User Y",
-          },
+          createdByUserName,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -87,11 +83,7 @@ export const fetchMockSubmissions = (
           judgeSubmissions: [],
           status: "DRAFT",
           submittedAt: "",
-          createdBy: {
-            id: createdById,
-            firstName: "User X",
-            lastName: "User Y",
-          },
+          createdByUserName,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },

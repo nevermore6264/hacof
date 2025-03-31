@@ -47,7 +47,7 @@ const Calendar: React.FC = () => {
   useEffect(() => {
     const loadSchedules = async () => {
       try {
-        // You might want to pass actual teamId, createdById, and hackathonId
+        // You might want to pass actual teamId, createdByUserName, and hackathonId
         const fetchedSchedules = await fetchMockSchedules();
         setSchedules(fetchedSchedules);
 

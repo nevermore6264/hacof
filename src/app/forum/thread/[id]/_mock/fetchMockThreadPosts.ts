@@ -18,17 +18,13 @@ export const fetchMockThreadPosts = (
               id: "like1",
               threadPost: undefined,
               createdAt: new Date().toISOString(),
-              createdBy: { id: "user2", firstName: "Bob", lastName: "Johnson" },
+              createdByUserName: "Bob Johnson",
             },
             {
               id: "like2",
               threadPost: undefined,
               createdAt: new Date().toISOString(),
-              createdBy: {
-                id: "user3",
-                firstName: "Charlie",
-                lastName: "Brown",
-              },
+              createdByUserName: "Bob Johnson",
             },
           ],
           threadPostReports: [
@@ -38,15 +34,11 @@ export const fetchMockThreadPosts = (
               reason: "Inappropriate content",
               status: "PENDING",
               createdAt: new Date().toISOString(),
-              createdBy: {
-                id: "user4",
-                firstName: "David",
-                lastName: "Miller",
-              },
+              createdByUserName: "Bob Johnson",
             },
           ],
           createdAt: new Date().toISOString(),
-          createdBy: { id: "user1", firstName: "Alice", lastName: "Smith" },
+          createdByUserName: "Bob Johnson",
         },
         {
           id: "post2",
@@ -59,12 +51,12 @@ export const fetchMockThreadPosts = (
               id: "like3",
               threadPost: undefined,
               createdAt: new Date().toISOString(),
-              createdBy: { id: "user1", firstName: "Alice", lastName: "Smith" },
+              createdByUserName: "Bob Johnson",
             },
           ],
           threadPostReports: [],
           createdAt: new Date().toISOString(),
-          createdBy: { id: "user2", firstName: "Bob", lastName: "Johnson" },
+          createdByUserName: "Bob Johnson",
         },
         {
           id: "post3",
@@ -80,7 +72,7 @@ export const fetchMockThreadPosts = (
               reason: "Spam",
               status: "REVIEWED",
               createdAt: new Date().toISOString(),
-              createdBy: { id: "user5", firstName: "Emily", lastName: "Davis" },
+              createdByUserName: "Bob Johnson",
               reviewedBy: {
                 id: "admin1",
                 firstName: "Admin",
@@ -89,7 +81,7 @@ export const fetchMockThreadPosts = (
             },
           ],
           createdAt: new Date().toISOString(),
-          createdBy: { id: "user3", firstName: "Charlie", lastName: "Brown" },
+          createdByUserName: "Bob Johnson",
         },
       ];
       resolve(mockThreadPosts);

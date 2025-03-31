@@ -29,7 +29,7 @@ export const hackathonsMock: Hackathon[] = [
     minimumTeamMembers: 4,
     maximumTeamMembers: 6,
     numberOfRounds: 3,
-    createdByUserId: "2",
+    createdByUserName: "CharlieBrown",
     rounds: [
       {
         id: "1",
@@ -77,7 +77,7 @@ export const hackathonsMock: Hackathon[] = [
     minimumTeamMembers: 4,
     maximumTeamMembers: 6,
     numberOfRounds: 2,
-    createdByUserId: "2",
+    createdByUserName: "CharlieBrown",
     rounds: [
       {
         id: "3",
@@ -122,7 +122,7 @@ export const hackathonsMock: Hackathon[] = [
     minimumTeamMembers: 4,
     maximumTeamMembers: 6,
     numberOfRounds: 3,
-    createdByUserId: "2",
+    createdByUserName: "CharlieBrown",
     rounds: [
       {
         id: "5",
@@ -171,7 +171,7 @@ export const hackathonsMock: Hackathon[] = [
     minimumTeamMembers: 2,
     maximumTeamMembers: 4,
     numberOfRounds: 3,
-    createdByUserId: "2",
+    createdByUserName: "CharlieBrown",
     rounds: [
       {
         id: "5",
@@ -220,7 +220,7 @@ export const hackathonsMock: Hackathon[] = [
     minimumTeamMembers: 3,
     maximumTeamMembers: 6,
     numberOfRounds: 2,
-    createdByUserId: "2",
+    createdByUserName: "CharlieBrown",
     rounds: [
       {
         id: "6",
@@ -260,7 +260,7 @@ export const hackathonsMock: Hackathon[] = [
     minimumTeamMembers: 3,
     maximumTeamMembers: 6,
     numberOfRounds: 2,
-    createdByUserId: "2",
+    createdByUserName: "CharlieBrown",
     rounds: [
       {
         id: "7",
@@ -309,7 +309,7 @@ export const hackathonsMock: Hackathon[] = [
     minimumTeamMembers: 3,
     maximumTeamMembers: 6,
     numberOfRounds: 2,
-    createdByUserId: "2",
+    createdByUserName: "CharlieBrown",
     rounds: [
       {
         id: "8",
@@ -359,7 +359,7 @@ export const hackathonsMock: Hackathon[] = [
     minimumTeamMembers: 2,
     maximumTeamMembers: 5,
     numberOfRounds: 2,
-    createdByUserId: "2",
+    createdByUserName: "CharlieBrown",
     rounds: [
       {
         id: "9",
