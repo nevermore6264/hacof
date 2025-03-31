@@ -2,7 +2,7 @@
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 
 export const fetchMockIndividualRegistrations = (
-  userId: string,
+  createdByUserName: string,
   hackathonId: string
 ): Promise<IndividualRegistrationRequest[]> => {
   return new Promise((resolve) => {
@@ -13,6 +13,7 @@ export const fetchMockIndividualRegistrations = (
           hackathon: { id: hackathonId, title: "Hackathon X" },
           status: "PENDING",
           reviewedBy: undefined,
+          createdByUserName: createdByUserName,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -21,6 +22,7 @@ export const fetchMockIndividualRegistrations = (
           hackathon: { id: hackathonId, title: "Hackathon X" },
           status: "APPROVED",
           reviewedBy: { id: "adminUser", firstName: "Admin", lastName: "User" },
+          createdByUserName: createdByUserName,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },

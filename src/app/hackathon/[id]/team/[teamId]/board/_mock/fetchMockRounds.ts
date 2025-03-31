@@ -4,6 +4,7 @@ import { Round, RoundStatus } from "@/types/entities/round";
 export const fetchMockRounds = (hackathonId: string): Promise<Round[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
+      const now = Date.now();
       const mockRounds: Round[] = [
         {
           id: "round1",
@@ -12,7 +13,7 @@ export const fetchMockRounds = (hackathonId: string): Promise<Round[]> => {
           endTime: new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString(), // 2 hours later
           roundNumber: 1,
           roundTitle: "Idea Submission",
-          status: RoundStatus.UPCOMING,
+          status: now < now + 1000 * 60 * 60 ? "ONGOING" : "COMPLETED",
           submissions: [],
           roundMarkCriteria: [],
           judgeRounds: [],
@@ -28,7 +29,7 @@ export const fetchMockRounds = (hackathonId: string): Promise<Round[]> => {
           endTime: new Date(Date.now() + 1000 * 60 * 60 * 6).toISOString(), // 6 hours later
           roundNumber: 2,
           roundTitle: "Prototype Development",
-          status: RoundStatus.UPCOMING,
+          status: "UPCOMING",
           submissions: [],
           roundMarkCriteria: [],
           judgeRounds: [],
