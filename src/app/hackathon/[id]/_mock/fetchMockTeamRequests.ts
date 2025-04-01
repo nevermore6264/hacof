@@ -28,7 +28,7 @@ export const fetchMockTeamRequests = (
                   {
                     id: "ur1",
                     user: { id: userId },
-                    role: { id: "2", name: "PARTICIPANT" },
+                    role: { id: "2", name: "TEAM_MEMBER" },
                   },
                 ],
               },
@@ -49,7 +49,7 @@ export const fetchMockTeamRequests = (
                   {
                     id: "ur2",
                     user: { id: "user456" },
-                    role: { id: "2", name: "PARTICIPANT" },
+                    role: { id: "2", name: "TEAM_MEMBER" },
                   },
                 ],
               },
@@ -57,6 +57,7 @@ export const fetchMockTeamRequests = (
               respondedAt: new Date().toISOString(),
             },
           ],
+          createdByUserName: "alice_smith",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -80,7 +81,7 @@ export const fetchMockTeamRequests = (
                   {
                     id: "ur3",
                     user: { id: userId },
-                    role: { id: "2", name: "PARTICIPANT" },
+                    role: { id: "2", name: "TEAM_MEMBER" },
                   },
                 ],
               },
@@ -88,6 +89,7 @@ export const fetchMockTeamRequests = (
               respondedAt: "",
             },
           ],
+          createdByUserName: "alice_smith",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },

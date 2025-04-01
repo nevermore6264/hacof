@@ -43,7 +43,7 @@ export const fetchMockHackathonResults = (
                     {
                       id: "ur1",
                       user: { id: "user123" },
-                      role: { id: "2", name: "PARTICIPANT" },
+                      role: { id: "2", name: "TEAM_MEMBER" },
                     },
                   ],
                 },
@@ -62,7 +62,7 @@ export const fetchMockHackathonResults = (
                     {
                       id: "ur2",
                       user: { id: "user456" },
-                      role: { id: "2", name: "PARTICIPANT" },
+                      role: { id: "2", name: "TEAM_MEMBER" },
                     },
                   ],
                 },
@@ -104,7 +104,7 @@ export const fetchMockHackathonResults = (
                 {
                   id: "ur3",
                   user: { id: "user789" },
-                  role: { id: "2", name: "PARTICIPANT" },
+                  role: { id: "2", name: "TEAM_MEMBER" },
                 },
               ],
             },
@@ -123,7 +123,7 @@ export const fetchMockHackathonResults = (
                     {
                       id: "ur3",
                       user: { id: "user789" },
-                      role: { id: "2", name: "PARTICIPANT" },
+                      role: { id: "2", name: "TEAM_MEMBER" },
                     },
                   ],
                 },
@@ -142,7 +142,7 @@ export const fetchMockHackathonResults = (
                     {
                       id: "ur4",
                       user: { id: "user567" },
-                      role: { id: "2", name: "PARTICIPANT" },
+                      role: { id: "2", name: "TEAM_MEMBER" },
                     },
                   ],
                 },
@@ -184,7 +184,7 @@ export const fetchMockHackathonResults = (
                 {
                   id: "ur5",
                   user: { id: "user999" },
-                  role: { id: "2", name: "PARTICIPANT" },
+                  role: { id: "2", name: "TEAM_MEMBER" },
                 },
               ],
             },
@@ -203,7 +203,7 @@ export const fetchMockHackathonResults = (
                     {
                       id: "ur5",
                       user: { id: "user999" },
-                      role: { id: "2", name: "PARTICIPANT" },
+                      role: { id: "2", name: "TEAM_MEMBER" },
                     },
                   ],
                 },
@@ -223,7 +223,7 @@ export const fetchMockHackathonResults = (
                     {
                       id: "ur6",
                       user: { id: "user777" },
-                      role: { id: "2", name: "PARTICIPANT" },
+                      role: { id: "2", name: "TEAM_MEMBER" },
                     },
                   ],
                 },

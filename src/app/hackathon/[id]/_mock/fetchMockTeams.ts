@@ -23,7 +23,7 @@ export const fetchMockTeams = (
               {
                 id: "ur1",
                 user: { id: "user123" },
-                role: { id: "2", name: "PARTICIPANT" },
+                role: { id: "2", name: "TEAM_MEMBER" },
               },
             ],
           },
@@ -42,7 +42,7 @@ export const fetchMockTeams = (
                   {
                     id: "ur1",
                     user: { id: "user123" },
-                    role: { id: "2", name: "PARTICIPANT" },
+                    role: { id: "2", name: "TEAM_MEMBER" },
                   },
                 ],
               },
@@ -61,7 +61,7 @@ export const fetchMockTeams = (
                   {
                     id: "ur2",
                     user: { id: "user456" },
-                    role: { id: "2", name: "PARTICIPANT" },
+                    role: { id: "2", name: "TEAM_MEMBER" },
                   },
                 ],
               },
@@ -95,7 +95,7 @@ export const fetchMockTeams = (
               {
                 id: "ur3",
                 user: { id: "user789" },
-                role: { id: "2", name: "PARTICIPANT" },
+                role: { id: "2", name: "TEAM_MEMBER" },
               },
             ],
           },
@@ -114,7 +114,7 @@ export const fetchMockTeams = (
                   {
                     id: "ur3",
                     user: { id: "user789" },
-                    role: { id: "2", name: "PARTICIPANT" },
+                    role: { id: "2", name: "TEAM_MEMBER" },
                   },
                 ],
               },
@@ -133,7 +133,7 @@ export const fetchMockTeams = (
                   {
                     id: "ur4",
                     user: { id: userId },
-                    role: { id: "2", name: "PARTICIPANT" },
+                    role: { id: "2", name: "TEAM_MEMBER" },
                   },
                 ],
               },
