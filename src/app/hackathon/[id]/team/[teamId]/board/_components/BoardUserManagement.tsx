@@ -13,6 +13,7 @@ interface BoardUserManagementProps {
   team: Team | null;
   isOpen: boolean;
   onClose: () => void;
+  isOwner: boolean; // New prop to determine if user is owner
 }
 
 export default function BoardUserManagement({
@@ -20,6 +21,7 @@ export default function BoardUserManagement({
   team,
   isOpen,
   onClose,
+  isOwner,
 }: BoardUserManagementProps) {
   const { user } = useAuth();
   const [boardUsers, setBoardUsers] = useState<BoardUser[]>([]);
@@ -38,7 +40,7 @@ export default function BoardUserManagement({
     ) || [];
 
   const handleAddUser = async () => {
-    if (!selectedTeamMember) return;
+    if (!selectedTeamMember || !isOwner) return;
 
     try {
       // Simulated API call to add user to board
@@ -77,6 +79,8 @@ export default function BoardUserManagement({
     boardUser: BoardUser,
     newRole: BoardUserRole
   ) => {
+    if (!isOwner) return;
+
     try {
       // Simulated API call to update user role
       console.log("Updating user role:", {
@@ -96,8 +100,9 @@ export default function BoardUserManagement({
   };
 
   const handleRemoveUser = async (boardUser: BoardUser) => {
-    // Don't allow removing the owner/yourself
+    // Don't allow removing the owner/yourself or if not owner
     if (
+      !isOwner ||
       boardUser.user?.id === board.owner?.id ||
       boardUser.user?.id === user?.id
     ) {
@@ -125,8 +130,15 @@ export default function BoardUserManagement({
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
           <Dialog.Panel className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
             <Dialog.Title className="text-lg font-semibold">
-              Manage Board Users
+              {isOwner ? "Manage Board Users" : "Board Users"}
             </Dialog.Title>
+
+            {!isOwner && (
+              <p className="mt-2 text-gray-500 italic">
+                You are in view-only mode. Only the board owner can manage
+                users.
+              </p>
+            )}
 
             <div className="mt-4 space-y-6">
               {/* Current board users */}
@@ -153,39 +165,43 @@ export default function BoardUserManagement({
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {boardUser.user?.id !== board.owner?.id && (
-                          <select
-                            value={boardUser.role}
-                            onChange={(e) =>
-                              handleUpdateRole(
-                                boardUser,
-                                e.target.value as BoardUserRole
-                              )
-                            }
-                            className="border rounded px-2 py-1 text-sm"
-                          >
-                            <option value="ADMIN">Admin</option>
-                            <option value="MEMBER">Member</option>
-                          </select>
-                        )}
-
-                        {boardUser.user?.id !== board.owner?.id &&
-                          boardUser.user?.id !== user?.id && (
-                            <button
-                              onClick={() => handleRemoveUser(boardUser)}
-                              className="px-2 py-1 text-red-600 hover:underline"
+                        {boardUser.user?.id !== board.owner?.id && isOwner ? (
+                          <>
+                            <select
+                              value={boardUser.role}
+                              onChange={(e) =>
+                                handleUpdateRole(
+                                  boardUser,
+                                  e.target.value as BoardUserRole
+                                )
+                              }
+                              className="border rounded px-2 py-1 text-sm"
                             >
-                              Remove
-                            </button>
-                          )}
+                              <option value="ADMIN">Admin</option>
+                              <option value="MEMBER">Member</option>
+                            </select>
+                            {boardUser.user?.id !== user?.id && (
+                              <button
+                                onClick={() => handleRemoveUser(boardUser)}
+                                className="px-2 py-1 text-red-600 hover:underline"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-sm text-gray-500">
+                            {boardUser.role}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Add new user */}
-              {availableTeamMembers.length > 0 && (
+              {/* Add new user - Only shown to owner */}
+              {isOwner && availableTeamMembers.length > 0 && (
                 <div>
                   <h3 className="font-medium mb-2">Add Team Member</h3>
                   <div className="flex space-x-2">

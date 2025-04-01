@@ -13,7 +13,7 @@ export const fetchMockBoardsByTeamId = (
           name: "Project Alpha",
           description: "Main board for Project Alpha planning and tracking",
           owner: {
-            id: "user123",
+            id: "5",
             firstName: "John",
             lastName: "Smith",
             email: "john.smith@example.com",
@@ -23,7 +23,7 @@ export const fetchMockBoardsByTeamId = (
           },
           boardUsers: [
             {
-              id: "bu1",
+              id: "5",
               user: {
                 id: "user123",
                 firstName: "John",
@@ -212,7 +212,7 @@ export const fetchMockBoardsByTeamId = (
           name: "Project Beta",
           description: "Planning board for upcoming Project Beta",
           owner: {
-            id: "user456",
+            id: "5",
             firstName: "Jane",
             lastName: "Doe",
             email: "jane.doe@example.com",
@@ -224,7 +224,7 @@ export const fetchMockBoardsByTeamId = (
             {
               id: "bu3",
               user: {
-                id: "user456",
+                id: "5",
                 firstName: "Jane",
                 lastName: "Doe",
                 email: "jane.doe@example.com",

@@ -21,7 +21,7 @@ export default function KanbanBoard({ board, team }: KanbanBoardProps) {
   const { setColumns, moveTask } = useKanbanStore();
 
   // Check if current user is board owner
-  const isOwner = board?.owner?.id === user?.id;
+  const isOwner = board?.owner?.id == user?.id;
 
   // Transform board data to kanban format when board data changes
   useEffect(() => {
@@ -108,15 +108,13 @@ export default function KanbanBoard({ board, team }: KanbanBoardProps) {
             )}
           </div>
 
-          {/* Invite Button - Only shown to owner */}
-          {isOwner && (
-            <button
-              onClick={() => setInviteModalOpen(true)}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium"
-            >
-              Manage Users
-            </button>
-          )}
+          {/* Manage Users Button - Now shown to all users */}
+          <button
+            onClick={() => setInviteModalOpen(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            Manage Users
+          </button>
         </div>
       </div>
 
@@ -136,6 +134,7 @@ export default function KanbanBoard({ board, team }: KanbanBoardProps) {
           team={team}
           isOpen={isInviteModalOpen}
           onClose={() => setInviteModalOpen(false)}
+          isOwner={isOwner}
         />
       )}
     </div>
