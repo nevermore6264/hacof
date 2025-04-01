@@ -30,17 +30,23 @@ export default function HackathonBoardPage() {
     if (!hackathonId || !teamIdValue) return;
 
     setLoading(true);
-    Promise.all([
-      fetchMockRounds(hackathonId),
-      fetchMockTeams(teamIdValue).then((teams) => teams[0]),
-      fetchMockBoardsByTeamId(teamIdValue, hackathonId),
-    ])
-      .then(([roundsData, teamData, boardsData]) => {
-        setRounds(roundsData);
-        setTeam(teamData);
-        setBoards(boardsData);
-      })
+
+    // Fetch rounds data
+    fetchMockRounds(hackathonId)
+      .then((data) => setRounds(data))
       .finally(() => setLoading(false));
+
+    // Fetch team data
+    fetchMockTeams(teamIdValue).then((teams) => {
+      if (teams.length > 0) {
+        setTeam(teams[0]);
+      }
+    });
+
+    // Fetch board data
+    fetchMockBoardsByTeamId(teamIdValue, hackathonId).then((boards) => {
+      setBoards(boards);
+    });
   }, [hackathonId, teamIdValue]);
 
   return (
@@ -66,10 +72,8 @@ export default function HackathonBoardPage() {
       <div className="mt-4 p-4 border rounded-lg bg-white shadow">
         {activeTab === "Task Board" && (
           <KanbanBoard
-            board={boards[0]}
+            board={boards.length > 0 ? boards[0] : null}
             team={team}
-            loading={loading}
-            hackathonId={hackathonId}
           />
         )}
         {activeTab === "Submission and Result" && (
