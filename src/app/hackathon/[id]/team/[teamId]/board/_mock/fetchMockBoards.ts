@@ -1,7 +1,10 @@
 // src/app/_mock/fetchMockBoards.ts
 import { Board } from "@/types/entities/board";
 
-export const fetchMockBoardsByTeamId = (teamId: string): Promise<Board[]> => {
+export const fetchMockBoardsByTeamId = (
+  teamId: string,
+  hackathonId: string
+): Promise<Board[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const mockBoards: Board[] = [
@@ -216,11 +219,6 @@ export const fetchMockBoardsByTeamId = (teamId: string): Promise<Board[]> => {
             username: "janedoe",
             avatarUrl: "https://example.com/jane-avatar.png",
             status: "Active",
-          },
-          team: {
-            id: teamId,
-            name: "Engineering Team",
-            description: "Core engineering team",
           },
           boardUsers: [
             {
