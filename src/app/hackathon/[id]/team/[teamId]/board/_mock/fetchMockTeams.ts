@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockTeams.ts
 import { Team } from "@/types/entities/team";
 
 export const fetchMockTeams = (teamId?: string): Promise<Team[]> => {

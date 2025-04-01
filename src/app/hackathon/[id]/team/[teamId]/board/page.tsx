@@ -8,6 +8,10 @@ import Calendar from "@/components/calendar/Calendar";
 import SubmissionAndResultTab from "./_components/SubmissionAndResultTab";
 import { Round } from "@/types/entities/round";
 import { fetchMockRounds } from "./_mock/fetchMockRounds";
+import { fetchMockTeams } from "./_mock/fetchMockTeams";
+import { Team } from "@/types/entities/team";
+import { Board } from "@/types/entities/board";
+import { fetchMockBoardsByTeamId } from "./_mock/fetchMockBoards";
 
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
@@ -17,17 +21,27 @@ export default function HackathonBoardPage() {
   const teamIdValue = Array.isArray(teamId) ? teamId[0] : teamId;
 
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [team, setTeam] = useState<Team | null>(null);
+  const [boards, setBoards] = useState<Board[]>([]);
   const [activeTab, setActiveTab] = useState(TABS[0]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!hackathonId) return;
+    if (!hackathonId || !teamIdValue) return;
 
     setLoading(true);
-    fetchMockRounds(hackathonId)
-      .then((data) => setRounds(data))
+    Promise.all([
+      fetchMockRounds(hackathonId),
+      fetchMockTeams(teamIdValue).then((teams) => teams[0]),
+      fetchMockBoardsByTeamId(teamIdValue, hackathonId),
+    ])
+      .then(([roundsData, teamData, boardsData]) => {
+        setRounds(roundsData);
+        setTeam(teamData);
+        setBoards(boardsData);
+      })
       .finally(() => setLoading(false));
-  }, [hackathonId]);
+  }, [hackathonId, teamIdValue]);
 
   return (
     <div className="p-6">
@@ -50,7 +64,14 @@ export default function HackathonBoardPage() {
 
       {/* Tab Content */}
       <div className="mt-4 p-4 border rounded-lg bg-white shadow">
-        {activeTab === "Task Board" && <KanbanBoard />}
+        {activeTab === "Task Board" && (
+          <KanbanBoard
+            board={boards[0]}
+            team={team}
+            loading={loading}
+            hackathonId={hackathonId}
+          />
+        )}
         {activeTab === "Submission and Result" && (
           <SubmissionAndResultTab
             rounds={rounds}
