@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/team/[teamId]/board/_components/KanbanColumn.tsx
 "use client";
 
 import { useState } from "react";
