@@ -28,6 +28,18 @@ class MentorshipSessionRequestService {
       throw error;
     }
   }
+
+  async getMentorshipSessionRequestsByMentorTeamId(mentorTeamId: string): Promise<MentorshipSessionRequest[]> {
+    try {
+      const response = await apiService.auth.get<MentorshipSessionRequest[]>(
+        `/hackathon-service/api/v1/mentorship/sessions/filter-by-mentor-team?mentorTeamId=${mentorTeamId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching mentorship session requests by mentorTeamId:", error);
+      throw error;
+    }
+  }
 }
 
 export const mentorshipSessionRequestService =
