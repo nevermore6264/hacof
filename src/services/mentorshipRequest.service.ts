@@ -41,6 +41,32 @@ class MentorshipRequestService {
       throw error;
     }
   }
+
+  async getMentorshipRequestsByTeamAndHackathon(teamId: string, hackathonId: string): Promise<MentorshipRequest[]> {
+    try {
+      const response = await apiService.auth.get<MentorshipRequest[]>(
+        `/hackathon-service/api/v1/mentorship/filter-by-team-and-hackathon?teamId=${teamId}&hackathonId=${hackathonId}`
+
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching mentorship requests by teamId and hackathonId:", error);
+      throw error;
+    }
+  }
+
+  async getMentorshipRequestsByMentorId(mentorId: string): Promise<MentorshipRequest[]> {
+    try {
+      const response = await apiService.auth.get<MentorshipRequest[]>(
+        `/hackathon-service/api/v1/mentorship/filter-by-mentor?mentorId=${mentorId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching mentorship requests by mentorId:", error);
+      throw error;
+    }
+  }
+  
 }
 
 export const mentorshipRequestService = new MentorshipRequestService();
