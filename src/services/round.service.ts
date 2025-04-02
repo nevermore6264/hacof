@@ -39,6 +39,18 @@ class RoundService {
       throw error;
     }
   }
+
+  async getRoundsByHackathonId(hackathonId: string): Promise<Round[]> {
+    try {
+      const response = await apiService.auth.get<Round[]>(
+        `/hackathon-service/api/v1/rounds?hackathonId=${hackathonId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching rounds by hackathonId:", error);
+      throw error;
+    }
+  }
 }
 
 export const roundService = new RoundService();
