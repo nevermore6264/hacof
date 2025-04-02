@@ -10,13 +10,6 @@ export const fetchMockTaskLabelsByTaskId = (
         {
           id: "taskLabel1",
           taskId,
-          boardLabel: {
-            id: "label1",
-            name: "High Priority",
-            color: "#FF0000",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
           boardLabelId: "label1",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -24,13 +17,6 @@ export const fetchMockTaskLabelsByTaskId = (
         {
           id: "taskLabel2",
           taskId,
-          boardLabel: {
-            id: "label2",
-            name: "Bug",
-            color: "#FFAA00",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
           boardLabelId: "label2",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
