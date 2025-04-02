@@ -40,6 +40,31 @@ class IndividualRegistrationRequestService {
       throw error;
     }
   }
+
+  async getIndividualRegistrationRequestsByUserAndHackathon(createdByUsername: string, hackathonId: string): Promise<IndividualRegistrationRequest[]> {
+    try {
+      const response = await apiService.auth.get<IndividualRegistrationRequest[]>(
+        `/hackathon-service/api/v1/individuals/filter-by-username-and-hackathon?createdByUsername=${createdByUsername}&hackathonId=${hackathonId}`
+
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching individual registration requests by createdByUsername and hackathonId:", error);
+      throw error;
+    }
+  }
+
+  async getIndividualRegistrationRequestsByUser(createdByUsername: string): Promise<IndividualRegistrationRequest[]> {
+    try {
+      const response = await apiService.auth.get<IndividualRegistrationRequest[]>(
+        `/hackathon-service/api/v1/individuals/filter-by-username?createdByUsername=${createdByUsername}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching individual registration requests by createdByUsername:", error);
+      throw error;
+    }
+  }
 }
 
 export const individualRegistrationRequestService =
