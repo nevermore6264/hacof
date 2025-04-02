@@ -9,7 +9,7 @@ const controllers = new Map<string, AbortController>();
  * Generic function to handle API requests.
  */
 async function request<T>(
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
   endpoint: string,
   payload?: Record<string, any>,
   customHeaders: HeadersInit = {},
@@ -152,6 +152,12 @@ export const apiService = {
       headers?: HeadersInit,
       timeoutMs?: number
     ) => request<T>("PATCH", endpoint, payload, headers, true, timeoutMs),
+    put: <T>(
+      endpoint: string,
+      payload: Record<string, any>,
+      headers?: HeadersInit,
+      timeoutMs?: number
+    ) => request<T>("PUT", endpoint, payload, headers, true, timeoutMs),
     delete: <T>(endpoint: string, headers?: HeadersInit, timeoutMs?: number) =>
       request<T>("DELETE", endpoint, undefined, headers, true, timeoutMs),
   },
@@ -170,6 +176,12 @@ export const apiService = {
       headers?: HeadersInit,
       timeoutMs?: number
     ) => request<T>("PATCH", endpoint, payload, headers, false, timeoutMs),
+    put: <T>(
+      endpoint: string,
+      payload: Record<string, any>,
+      headers?: HeadersInit,
+      timeoutMs?: number
+    ) => request<T>("PUT", endpoint, payload, headers, false, timeoutMs),
     delete: <T>(endpoint: string, headers?: HeadersInit, timeoutMs?: number) =>
       request<T>("DELETE", endpoint, undefined, headers, false, timeoutMs),
   },
