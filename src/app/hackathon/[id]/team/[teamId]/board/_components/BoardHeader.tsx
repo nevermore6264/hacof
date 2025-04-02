@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/team/[teamId]/board/_components/BoardHeader.tsx
 "use client";
 
 import { Board } from "@/types/entities/board";
