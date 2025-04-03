@@ -1,5 +1,5 @@
 // src/app/page.tsx
-import ScrollUp from "@/components/Common/ScrollUp";
+import ScrollUp from "@/components/common/ScrollUp";
 import Hero from "@/components/Hero";
 import { Metadata } from "next";
 import Services from "./_components/Services";
