@@ -19,6 +19,7 @@ import { fetchMockTaskFilesByTaskId } from "./_mock/fetchMockTaskFilesByTaskId";
 import { fetchMockTaskLabelsByTaskId } from "./_mock/fetchMockTaskLabels";
 import { fetchMockTaskCommentsByTaskId } from "./_mock/fetchMockTaskComments";
 import { fetchMockTaskAssigneesByTaskId } from "./_mock/fetchMockTaskAssignees";
+import { BoardLabel } from "@/types/entities/boardLabel";
 
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
@@ -61,6 +62,15 @@ export default function HackathonBoardPage() {
             // Fetch board labels
             const boardLabels = await fetchMockBoardLabelsByBoardId(board.id);
 
+            // Create a map of board labels for quick lookup
+            const boardLabelsMap = boardLabels.reduce(
+              (map, label) => {
+                map[label.id] = label;
+                return map;
+              },
+              {} as Record<string, BoardLabel>
+            );
+
             // Fetch board lists
             const boardLists = await fetchMockBoardListsByBoardId(board.id);
 
@@ -81,11 +91,19 @@ export default function HackathonBoardPage() {
                         fetchMockTaskAssigneesByTaskId(task.id),
                       ]);
 
+                    // Enhance taskLabels with their associated boardLabel information
+                    const enhancedTaskLabels = taskLabels.map((taskLabel) => ({
+                      ...taskLabel,
+                      boardLabel: taskLabel.boardLabelId
+                        ? boardLabelsMap[taskLabel.boardLabelId]
+                        : undefined,
+                    }));
+
                     // Combine task with its detailed information
                     return {
                       ...task,
                       fileUrls,
-                      taskLabels,
+                      taskLabels: enhancedTaskLabels,
                       comments,
                       assignees,
                     };
