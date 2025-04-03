@@ -14,6 +14,18 @@ class TeamService {
       throw error;
     }
   }
+
+  async getTeamsByUserAndHackathon(userId: string, hackathonId: string): Promise<Team[]> {
+    try {
+      const response = await apiService.auth.get<Team[]>(
+        `/api/v1/teams/by-user-and-hackathon?userId=${userId}&hackathonId=${hackathonId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching teams by userId and hackathonId:", error);
+      throw error;
+    }
+  }
 }
 
 export const teamService = new TeamService();
