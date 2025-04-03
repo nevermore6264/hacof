@@ -15,9 +15,9 @@ import { useState, useEffect } from "react";
 // TODO: [Lv1] check if memoization is enabled by default, without the need of enable force-cache
 
 // This function should be memoized to avoid fetching the same data multiple times
-async function getHackathon(id: string): Promise<Hackathon> {
+async function getHackathon(id: string): Promise<Hackathon[]> {
   const response = await hackathonService.getHackathonById(id);
-  return response.data;
+  return response.data.length > 0 ? response.data[0] : null;
 }
 
 export default function HackathonDetail() {
