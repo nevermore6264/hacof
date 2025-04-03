@@ -1,6 +1,7 @@
 // src/services/mentorshipRequest.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { MentorshipRequest } from "@/types/entities/mentorshipRequest";
+import { handleApiError } from "@/utils/errorHandler";
 
 class MentorshipRequestService {
   async createMentorshipRequest(data: {
@@ -9,7 +10,7 @@ class MentorshipRequestService {
     teamId?: string;
     status: "PENDING" | "APPROVED" | "REJECTED" | "DELETED" | "COMPLETED";
     evaluatedById?: string;
-  }): Promise<MentorshipRequest> {
+  }): Promise<{ data: MentorshipRequest; message?: string }> {
     try {
       const response = await apiService.auth.post<MentorshipRequest>(
         "hackathon-service/api/v1/mentors/request",
@@ -22,13 +23,16 @@ class MentorshipRequestService {
         );
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message || "Mentorship request created successfully",
+      };
     } catch (error: any) {
-      console.error(
-        "[Mentorship Service] Error creating mentorship request:",
-        error.message
+      return handleApiError<MentorshipRequest>(
+        error,
+        {} as MentorshipRequest,
+        "[Mentorship Service] Error creating mentorship request:"
       );
-      throw error;
     }
   }
 
@@ -39,7 +43,7 @@ class MentorshipRequestService {
     teamId?: string;
     status: "PENDING" | "APPROVED" | "REJECTED" | "DELETED" | "COMPLETED";
     evaluatedById?: string;
-  }): Promise<MentorshipRequest> {
+  }): Promise<{ data: MentorshipRequest; message?: string }> {
     try {
       const response = await apiService.auth.put<MentorshipRequest>(
         "hackathon-service/api/v1/mentors/request",
@@ -52,20 +56,23 @@ class MentorshipRequestService {
         );
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message || "Mentorship request updated successfully",
+      };
     } catch (error: any) {
-      console.error(
-        "[Mentorship Service] Error updating mentorship request:",
-        error.message
+      return handleApiError<MentorshipRequest>(
+        error,
+        {} as MentorshipRequest,
+        "[Mentorship Service] Error updating mentorship request:"
       );
-      throw error;
     }
   }
 
   async getMentorshipRequestsByTeamAndHackathon(
     teamId: string,
     hackathonId: string
-  ): Promise<MentorshipRequest[]> {
+  ): Promise<{ data: MentorshipRequest[]; message?: string }> {
     try {
       const response = await apiService.auth.get<MentorshipRequest[]>(
         `/hackathon-service/api/v1/mentorship/filter-by-team-and-hackathon?teamId=${teamId}&hackathonId=${hackathonId}`
@@ -75,25 +82,22 @@ class MentorshipRequestService {
         throw new Error("Failed to retrieve mentorship requests");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message,
+      };
     } catch (error: any) {
-      console.error(
-        "[Mentorship Service] Error fetching mentorship requests:",
-        error.message
+      return handleApiError<MentorshipRequest[]>(
+        error,
+        [],
+        "[Mentorship Service] Error fetching mentorship requests:"
       );
-      if (
-        error.name === "AbortError" &&
-        error.message?.includes("component unmounted")
-      ) {
-        return [] as MentorshipRequest[];
-      }
-      throw error;
     }
   }
 
   async getMentorshipRequestsByMentorId(
     mentorId: string
-  ): Promise<MentorshipRequest[]> {
+  ): Promise<{ data: MentorshipRequest[]; message?: string }> {
     try {
       const response = await apiService.auth.get<MentorshipRequest[]>(
         `/hackathon-service/api/v1/mentorship/filter-by-mentor?mentorId=${mentorId}`
@@ -103,19 +107,16 @@ class MentorshipRequestService {
         throw new Error("Failed to retrieve mentorship requests");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message,
+      };
     } catch (error: any) {
-      console.error(
-        "[Mentorship Service] Error fetching mentorship requests:",
-        error.message
+      return handleApiError<MentorshipRequest[]>(
+        error,
+        [],
+        "[Mentorship Service] Error fetching mentorship requests:"
       );
-      if (
-        error.name === "AbortError" &&
-        error.message?.includes("component unmounted")
-      ) {
-        return [] as MentorshipRequest[];
-      }
-      throw error;
     }
   }
 

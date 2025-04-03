@@ -1,30 +1,58 @@
-// src/services/submission.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { Submission } from "@/types/entities/submission";
 import { tokenService_v0 } from "@/services/token.service_v0";
+import { handleApiError } from "@/utils/errorHandler";
 
 class SubmissionService {
-  async getSubmissionsByRoundAndCreator(roundId: string, createdByUsername: string): Promise<Partial<Submission>[]> {
+  async getSubmissionsByRoundAndCreator(
+    roundId: string,
+    createdByUsername: string
+  ): Promise<{ data: Submission[]; message?: string }> {
     try {
-      const response = await apiService.auth.get<Partial<Submission>[]>(
+      const response = await apiService.auth.get<Submission[]>(
         `/submission-service/api/v1/submissions/by-round-created?roundId=${roundId}&createdByUsername=${createdByUsername}`
       );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching submissions by round and creator:", error);
-      throw error;
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve submissions");
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "Submissions retrieved successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<Submission[]>(
+        error,
+        [],
+        "[Submission Service] Error fetching submissions by round and creator:"
+      );
     }
   }
 
-  async getSubmissionsByTeamAndRound(teamId: string, roundId: string): Promise<Partial<Submission>[]> {
+  async getSubmissionsByTeamAndRound(
+    teamId: string,
+    roundId: string
+  ): Promise<{ data: Submission[]; message?: string }> {
     try {
-      const response = await apiService.auth.get<Partial<Submission>[]>(
+      const response = await apiService.auth.get<Submission[]>(
         `/submission-service/api/v1/submissions/by-team-round?teamId=${teamId}&roundId=${roundId}`
       );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching submissions by team and round:", error);
-      throw error;
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve submissions");
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "Submissions retrieved successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<Submission[]>(
+        error,
+        [],
+        "[Submission Service] Error fetching submissions by team and round:"
+      );
     }
   }
 
@@ -33,7 +61,7 @@ class SubmissionService {
     roundId: string,
     teamId: string,
     status: "DRAFT" | "SUBMITTED" | "REVIEWED"
-  ): Promise<Submission> {
+  ): Promise<{ data: Submission; message?: string }> {
     try {
       const formData = new FormData();
 
@@ -59,9 +87,15 @@ class SubmissionService {
       }
 
       const data = (await response.json()) as Submission;
-      return data;
-    } catch (error) {
-      console.error("Error uploading submission:", error);
+      return {
+        data,
+        message: "Submission created successfully",
+      };
+    } catch (error: any) {
+      console.error(
+        "[Submission Service] Error uploading submission:",
+        error.message
+      );
       throw error;
     }
   }
@@ -72,7 +106,7 @@ class SubmissionService {
     roundId: string,
     teamId: string,
     status: "DRAFT" | "SUBMITTED" | "REVIEWED"
-  ): Promise<Submission> {
+  ): Promise<{ data: Submission; message?: string }> {
     try {
       const formData = new FormData();
 
@@ -101,9 +135,15 @@ class SubmissionService {
       }
 
       const data = (await response.json()) as Submission;
-      return data;
-    } catch (error) {
-      console.error("Error updating submission:", error);
+      return {
+        data,
+        message: "Submission updated successfully",
+      };
+    } catch (error: any) {
+      console.error(
+        "[Submission Service] Error updating submission:",
+        error.message
+      );
       throw error;
     }
   }

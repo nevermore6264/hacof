@@ -1,6 +1,6 @@
-// src/services/round.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { Round } from "@/types/entities/round";
+import { handleApiError } from "@/utils/errorHandler";
 
 class RoundService {
   async createRound(data: {
@@ -11,7 +11,7 @@ class RoundService {
     roundTitle: string;
     status: "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
     roundLocations?: string[];
-  }): Promise<Round> {
+  }): Promise<{ data: Round; message?: string }> {
     try {
       const response = await apiService.auth.post<Round>(
         "/hackathon-service/api/v1/rounds",
@@ -22,10 +22,16 @@ class RoundService {
         throw new Error(response?.message || "Failed to create round");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message || "Round created successfully",
+      };
     } catch (error: any) {
-      console.error("[Round Service] Error creating round:", error.message);
-      throw error;
+      return handleApiError<Round>(
+        error,
+        {} as Round,
+        "[Round Service] Error creating round:"
+      );
     }
   }
 
@@ -38,7 +44,7 @@ class RoundService {
     roundTitle: string;
     status: "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
     roundLocations?: string[];
-  }): Promise<Round> {
+  }): Promise<{ data: Round; message?: string }> {
     try {
       const response = await apiService.auth.put<Round>(
         `/hackathon-service/api/v1/rounds`,
@@ -49,14 +55,22 @@ class RoundService {
         throw new Error(response?.message || "Failed to update round");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message || "Round updated successfully",
+      };
     } catch (error: any) {
-      console.error("[Round Service] Error updating round:", error.message);
-      throw error;
+      return handleApiError<Round>(
+        error,
+        {} as Round,
+        "[Round Service] Error updating round:"
+      );
     }
   }
 
-  async getRoundsByHackathonId(hackathonId: string): Promise<Round[]> {
+  async getRoundsByHackathonId(
+    hackathonId: string
+  ): Promise<{ data: Round[]; message?: string }> {
     try {
       const response = await apiService.auth.get<Round[]>(
         `/hackathon-service/api/v1/rounds?hackathonId=${hackathonId}`
@@ -66,16 +80,16 @@ class RoundService {
         throw new Error("Failed to retrieve rounds");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message || "Rounds retrieved successfully",
+      };
     } catch (error: any) {
-      console.error("[Round Service] Error fetching rounds:", error.message);
-      if (
-        error.name === "AbortError" &&
-        error.message?.includes("component unmounted")
-      ) {
-        return [] as Round[];
-      }
-      throw error;
+      return handleApiError<Round[]>(
+        error,
+        [],
+        "[Round Service] Error fetching rounds:"
+      );
     }
   }
 }

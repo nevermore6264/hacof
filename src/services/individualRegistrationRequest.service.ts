@@ -1,13 +1,14 @@
 // src/services/individualRegistrationRequest.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
+import { handleApiError } from "@/utils/errorHandler";
 
 class IndividualRegistrationRequestService {
   async createIndividualRegistrationRequest(data: {
     hackathonId: string;
     status: "PENDING" | "APPROVED" | "REJECTED";
     reviewedById?: string;
-  }): Promise<IndividualRegistrationRequest> {
+  }): Promise<{ data: IndividualRegistrationRequest; message?: string }> {
     try {
       const response =
         await apiService.auth.post<IndividualRegistrationRequest>(
@@ -21,13 +22,17 @@ class IndividualRegistrationRequestService {
         );
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message:
+          response.message || "Registration request created successfully",
+      };
     } catch (error: any) {
-      console.error(
-        "[Individual Registration Service] Error creating registration request:",
-        error.message
+      return handleApiError<IndividualRegistrationRequest>(
+        error,
+        {} as IndividualRegistrationRequest,
+        "[Individual Registration Service] Error creating registration request:"
       );
-      throw error;
     }
   }
 
@@ -36,7 +41,7 @@ class IndividualRegistrationRequestService {
     hackathonId: string;
     status: "PENDING" | "APPROVED" | "REJECTED";
     reviewedById?: string;
-  }): Promise<IndividualRegistrationRequest> {
+  }): Promise<{ data: IndividualRegistrationRequest; message?: string }> {
     try {
       const response = await apiService.auth.put<IndividualRegistrationRequest>(
         `/hackathon-service/api/v1/individuals`,
@@ -49,20 +54,24 @@ class IndividualRegistrationRequestService {
         );
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message:
+          response.message || "Registration request updated successfully",
+      };
     } catch (error: any) {
-      console.error(
-        "[Individual Registration Service] Error updating registration request:",
-        error.message
+      return handleApiError<IndividualRegistrationRequest>(
+        error,
+        {} as IndividualRegistrationRequest,
+        "[Individual Registration Service] Error updating registration request:"
       );
-      throw error;
     }
   }
 
   async getIndividualRegistrationRequestsByUserAndHackathon(
     createdByUsername: string,
     hackathonId: string
-  ): Promise<IndividualRegistrationRequest[]> {
+  ): Promise<{ data: IndividualRegistrationRequest[]; message?: string }> {
     try {
       const response = await apiService.auth.get<
         IndividualRegistrationRequest[]
@@ -74,25 +83,22 @@ class IndividualRegistrationRequestService {
         throw new Error("Failed to retrieve registration requests");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message,
+      };
     } catch (error: any) {
-      console.error(
-        "[Individual Registration Service] Error fetching registration requests:",
-        error.message
+      return handleApiError<IndividualRegistrationRequest[]>(
+        error,
+        [],
+        "[Individual Registration Service] Error fetching registration requests:"
       );
-      if (
-        error.name === "AbortError" &&
-        error.message?.includes("component unmounted")
-      ) {
-        return [] as IndividualRegistrationRequest[];
-      }
-      throw error;
     }
   }
 
   async getIndividualRegistrationRequestsByUser(
     createdByUsername: string
-  ): Promise<IndividualRegistrationRequest[]> {
+  ): Promise<{ data: IndividualRegistrationRequest[]; message?: string }> {
     try {
       const response = await apiService.auth.get<
         IndividualRegistrationRequest[]
@@ -104,19 +110,16 @@ class IndividualRegistrationRequestService {
         throw new Error("Failed to retrieve registration requests");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message,
+      };
     } catch (error: any) {
-      console.error(
-        "[Individual Registration Service] Error fetching registration requests:",
-        error.message
+      return handleApiError<IndividualRegistrationRequest[]>(
+        error,
+        [],
+        "[Individual Registration Service] Error fetching registration requests:"
       );
-      if (
-        error.name === "AbortError" &&
-        error.message?.includes("component unmounted")
-      ) {
-        return [] as IndividualRegistrationRequest[];
-      }
-      throw error;
     }
   }
 
