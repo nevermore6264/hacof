@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 
     // Gọi API backend thực
     const backendResponse = await fetch(
-      `${process.env.IDENTIFY_API_URL}/v1/users`,
+      `${process.env.API_URL}/identity/api/v1/users`,
       {
         method: "GET",
         headers: {
