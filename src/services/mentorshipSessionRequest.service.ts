@@ -3,6 +3,7 @@ import { apiService } from "@/services/apiService_v0";
 import { MentorshipSessionRequest } from "@/types/entities/mentorshipSessionRequest";
 
 type MentorshipSessionRequestPayload = {
+  id?: string;
   mentorTeamId: string;
   startTime: string;
   endTime: string;
@@ -19,7 +20,7 @@ class MentorshipSessionRequestService {
   ): Promise<MentorshipSessionRequest> {
     try {
       const response = await apiService.auth.post<MentorshipSessionRequest>(
-        "/hackathon-service/api/v1/mentors/sessions/request",
+        "/hackathon-service/api/v1/mentors/sessions",
         data
       );
       return response.data;
@@ -29,14 +30,66 @@ class MentorshipSessionRequestService {
     }
   }
 
-  async getMentorshipSessionRequestsByMentorTeamId(mentorTeamId: string): Promise<MentorshipSessionRequest[]> {
+  async updateMentorshipSessionRequest(
+    data: MentorshipSessionRequestPayload
+  ): Promise<MentorshipSessionRequest> {
+    try {
+      const response = await apiService.auth.put<MentorshipSessionRequest>(
+        `/hackathon-service/api/v1/mentorship/sessions`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating Mentorship Session Request:", error);
+      throw error;
+    }
+  }
+
+  async getMentorshipSessionRequestsByMentorTeamId(
+    mentorTeamId: string
+  ): Promise<MentorshipSessionRequest[]> {
     try {
       const response = await apiService.auth.get<MentorshipSessionRequest[]>(
         `/hackathon-service/api/v1/mentorship/sessions/filter-by-mentor-team?mentorTeamId=${mentorTeamId}`
       );
       return response.data;
     } catch (error) {
-      console.error("Error fetching mentorship session requests by mentorTeamId:", error);
+      console.error(
+        "Error fetching mentorship session requests by mentorTeamId:",
+        error
+      );
+      throw error;
+    }
+  }
+
+  async deleteMentorshipRequestSession(
+    id: string
+  ): Promise<MentorshipSessionRequest> {
+    try {
+      const requestData = {
+        data: id,
+      };
+
+      const response = await fetch(
+        "/hackathon-service/api/v1/mentorship/sessions",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to delete mentorship session: ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error deleting mentorship session:", error);
       throw error;
     }
   }

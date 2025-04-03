@@ -41,27 +41,63 @@ class IndividualRegistrationRequestService {
     }
   }
 
-  async getIndividualRegistrationRequestsByUserAndHackathon(createdByUsername: string, hackathonId: string): Promise<IndividualRegistrationRequest[]> {
+  async getIndividualRegistrationRequestsByUserAndHackathon(
+    createdByUsername: string,
+    hackathonId: string
+  ): Promise<IndividualRegistrationRequest[]> {
     try {
-      const response = await apiService.auth.get<IndividualRegistrationRequest[]>(
+      const response = await apiService.auth.get<
+        IndividualRegistrationRequest[]
+      >(
         `/hackathon-service/api/v1/individuals/filter-by-username-and-hackathon?createdByUsername=${createdByUsername}&hackathonId=${hackathonId}`
-
       );
       return response.data;
     } catch (error) {
-      console.error("Error fetching individual registration requests by createdByUsername and hackathonId:", error);
+      console.error(
+        "Error fetching individual registration requests by createdByUsername and hackathonId:",
+        error
+      );
       throw error;
     }
   }
 
-  async getIndividualRegistrationRequestsByUser(createdByUsername: string): Promise<IndividualRegistrationRequest[]> {
+  async getIndividualRegistrationRequestsByUser(
+    createdByUsername: string
+  ): Promise<IndividualRegistrationRequest[]> {
     try {
-      const response = await apiService.auth.get<IndividualRegistrationRequest[]>(
+      const response = await apiService.auth.get<
+        IndividualRegistrationRequest[]
+      >(
         `/hackathon-service/api/v1/individuals/filter-by-username?createdByUsername=${createdByUsername}`
       );
       return response.data;
     } catch (error) {
-      console.error("Error fetching individual registration requests by createdByUsername:", error);
+      console.error(
+        "Error fetching individual registration requests by createdByUsername:",
+        error
+      );
+      throw error;
+    }
+  }
+
+  async deleteIndividualRegistration(
+    id: string
+  ): Promise<IndividualRegistrationRequest> {
+    try {
+      const response = await fetch("/api/v1/individuals", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data: { id } }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error deleting individual registration:", error);
       throw error;
     }
   }

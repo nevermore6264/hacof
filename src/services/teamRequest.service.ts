@@ -11,6 +11,12 @@ type TeamRequestPayload = {
   }[];
 };
 
+type TeamRequestReviewPayload = {
+  requestId: string;
+  status: "APPROVED" | "REJECTED";
+  note: string;
+};
+
 class TeamRequestService {
   async getTeamRequestsByHackathonAndUser(
     hackathonId: string,
@@ -70,6 +76,32 @@ class TeamRequestService {
       throw error;
     }
   }
+
+  async reviewTeamRequest(data: TeamRequestReviewPayload): Promise<TeamRequest> {
+    try {
+      const response = await apiService.auth.post<TeamRequest>(
+        "/hackathon-service/api/v1/teams/requests/review",
+        { data }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error reviewing TeamRequest:", error);
+      throw error;
+    }
+  }
+
+  async deleteTeamRequest(id: string): Promise<void> {
+    try {
+      const response = await apiService.auth.delete<TeamRequest>(
+        `/hackathon-service/api/v1/teams/requests/${id}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete team request.");
+      }
+
+    } catch (error) {
+      throw error;
+    }
 }
 
 export const teamRequestService = new TeamRequestService();

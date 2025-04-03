@@ -1,4 +1,4 @@
-// src/services/hackathon.service_v0.ts
+// src/services/hackathon.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { Hackathon } from "@/types/entities/hackathon";
 
