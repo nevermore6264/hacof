@@ -2,41 +2,59 @@
 import { apiService } from "@/services/apiService_v0";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 
-type IndividualRegistrationRequestPayload = {
-  id?: string;
-  hackathonId: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  reviewedById?: string;
-};
-
 class IndividualRegistrationRequestService {
-  async createIndividualRegistrationRequest(
-    data: IndividualRegistrationRequestPayload
-  ): Promise<IndividualRegistrationRequest> {
+  async createIndividualRegistrationRequest(data: {
+    hackathonId: string;
+    status: "PENDING" | "APPROVED" | "REJECTED";
+    reviewedById?: string;
+  }): Promise<IndividualRegistrationRequest> {
     try {
       const response =
         await apiService.auth.post<IndividualRegistrationRequest>(
           "/hackathon-service/api/v1/individuals",
           data
         );
+
+      if (!response || !response.data) {
+        throw new Error(
+          response?.message || "Failed to create registration request"
+        );
+      }
+
       return response.data;
-    } catch (error) {
-      console.error("Error creating Individual Registration Request:", error);
+    } catch (error: any) {
+      console.error(
+        "[Individual Registration Service] Error creating registration request:",
+        error.message
+      );
       throw error;
     }
   }
 
-  async updateIndividualRegistrationRequest(
-    data: IndividualRegistrationRequestPayload
-  ): Promise<IndividualRegistrationRequest> {
+  async updateIndividualRegistrationRequest(data: {
+    id?: string;
+    hackathonId: string;
+    status: "PENDING" | "APPROVED" | "REJECTED";
+    reviewedById?: string;
+  }): Promise<IndividualRegistrationRequest> {
     try {
       const response = await apiService.auth.put<IndividualRegistrationRequest>(
         `/hackathon-service/api/v1/individuals`,
         data
       );
+
+      if (!response || !response.data) {
+        throw new Error(
+          response?.message || "Failed to update registration request"
+        );
+      }
+
       return response.data;
-    } catch (error) {
-      console.error("Error updating Individual Registration Request:", error);
+    } catch (error: any) {
+      console.error(
+        "[Individual Registration Service] Error updating registration request:",
+        error.message
+      );
       throw error;
     }
   }
@@ -51,12 +69,23 @@ class IndividualRegistrationRequestService {
       >(
         `/hackathon-service/api/v1/individuals/filter-by-username-and-hackathon?createdByUsername=${createdByUsername}&hackathonId=${hackathonId}`
       );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve registration requests");
+      }
+
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error(
-        "Error fetching individual registration requests by createdByUsername and hackathonId:",
-        error
+        "[Individual Registration Service] Error fetching registration requests:",
+        error.message
       );
+      if (
+        error.name === "AbortError" &&
+        error.message?.includes("component unmounted")
+      ) {
+        return [] as IndividualRegistrationRequest[];
+      }
       throw error;
     }
   }
@@ -70,34 +99,43 @@ class IndividualRegistrationRequestService {
       >(
         `/hackathon-service/api/v1/individuals/filter-by-username?createdByUsername=${createdByUsername}`
       );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve registration requests");
+      }
+
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error(
-        "Error fetching individual registration requests by createdByUsername:",
-        error
+        "[Individual Registration Service] Error fetching registration requests:",
+        error.message
       );
+      if (
+        error.name === "AbortError" &&
+        error.message?.includes("component unmounted")
+      ) {
+        return [] as IndividualRegistrationRequest[];
+      }
       throw error;
     }
   }
 
   async deleteIndividualRegistration(
     id: string
-  ): Promise<IndividualRegistrationRequest> {
+  ): Promise<{ message?: string }> {
     try {
-      const response = await fetch("/api/v1/individuals", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ data: { id } }),
-      });
+      const response = await apiService.auth.delete(
+        `/hackathon-service/api/v1/individuals/${id}`
+      );
 
-      if (!response.ok) {
-        throw new Error(`Failed to delete: ${response.statusText}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error deleting individual registration:", error);
+      return {
+        message: response.message || "Successfully deleted registration",
+      };
+    } catch (error: any) {
+      console.error(
+        "[Individual Registration Service] Error deleting registration:",
+        error.message
+      );
       throw error;
     }
   }
