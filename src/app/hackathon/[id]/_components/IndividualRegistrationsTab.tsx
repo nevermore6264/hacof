@@ -28,10 +28,26 @@ export default function IndividualRegistrationsTab({
       (reg) => reg.status === "PENDING" || reg.status === "APPROVED"
     );
 
+    // Check if user has an active team request
+    const activeTeamRequest = teamRequests.find(
+      (req) =>
+        req.status.toLowerCase() === "pending" ||
+        req.status.toLowerCase() === "under_review" ||
+        req.status.toLowerCase() === "approved"
+    );
+
     if (activeRegistration) {
       showError(
         "Registration Error",
         `You already have an individual registration for this hackathon with status: ${activeRegistration.status}.`
+      );
+      return;
+    }
+
+    if (activeTeamRequest) {
+      showError(
+        "Team Request Exists",
+        `You already have a team request for this hackathon with status: ${activeTeamRequest.status}. Please cancel it first to register as an individual.`
       );
       return;
     }
