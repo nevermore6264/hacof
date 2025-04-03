@@ -1,7 +1,7 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockBoard.ts
 import { Board } from "@/types/entities/board";
 
-export const fetchMockBoardsByTeamId = (
+export const fetchMockBoard = (
   teamId: string,
   hackathonId: string
 ): Promise<Board[]> => {
