@@ -14,7 +14,7 @@ export type Task = {
   boardList?: BoardList;
   boardListId?: string;
   dueDate?: string;
-  fileUrls: FileUrl[];
+  fileUrls?: FileUrl[];
   assignees?: TaskAssignee[];
   comments?: TaskComment[];
   taskLabels?: TaskLabel[];

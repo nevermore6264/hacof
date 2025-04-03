@@ -1,4 +1,3 @@
-// src/app/hackathon/[id]/team/[teamId]/board/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -16,6 +15,10 @@ import { fetchMockBoardLabelsByBoardId } from "./_mock/fetchMockBoardLabels";
 import { fetchMockBoardListsByBoardId } from "./_mock/fetchMockBoardLists";
 import { fetchMockBoardUsers } from "./_mock/fetchMockBoardUsers";
 import { fetchMockTasksByBoardListId } from "./_mock/fetchMockTasks";
+import { fetchMockTaskFilesByTaskId } from "./_mock/fetchMockTaskFilesByTaskId";
+import { fetchMockTaskLabelsByTaskId } from "./_mock/fetchMockTaskLabels";
+import { fetchMockTaskCommentsByTaskId } from "./_mock/fetchMockTaskComments";
+import { fetchMockTaskAssigneesByTaskId } from "./_mock/fetchMockTaskAssignees";
 
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
@@ -61,13 +64,37 @@ export default function HackathonBoardPage() {
             // Fetch board lists
             const boardLists = await fetchMockBoardListsByBoardId(board.id);
 
-            // Fetch tasks for each board list
+            // Fetch tasks for each board list with detailed information
             const enhancedBoardLists = await Promise.all(
               boardLists.map(async (list) => {
-                const tasks = await fetchMockTasksByBoardListId(list.id);
+                const baseTasks = await fetchMockTasksByBoardListId(list.id);
+
+                // Fetch detailed information for each task
+                const enhancedTasks = await Promise.all(
+                  baseTasks.map(async (task) => {
+                    // Fetch files, labels, comments, and assignees for each task
+                    const [fileUrls, taskLabels, comments, assignees] =
+                      await Promise.all([
+                        fetchMockTaskFilesByTaskId(task.id),
+                        fetchMockTaskLabelsByTaskId(task.id),
+                        fetchMockTaskCommentsByTaskId(task.id),
+                        fetchMockTaskAssigneesByTaskId(task.id),
+                      ]);
+
+                    // Combine task with its detailed information
+                    return {
+                      ...task,
+                      fileUrls,
+                      taskLabels,
+                      comments,
+                      assignees,
+                    };
+                  })
+                );
+
                 return {
                   ...list,
-                  tasks,
+                  tasks: enhancedTasks,
                 };
               })
             );
