@@ -1,6 +1,7 @@
 // src/services/mentorshipSessionRequest.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { MentorshipSessionRequest } from "@/types/entities/mentorshipSessionRequest";
+import { handleApiError } from "@/utils/errorHandler";
 
 class MentorshipSessionRequestService {
   async createMentorshipSessionRequest(data: {
@@ -12,7 +13,7 @@ class MentorshipSessionRequestService {
     status: "PENDING" | "APPROVED" | "REJECTED" | "DELETED" | "COMPLETED";
     evaluatedById?: string;
     evaluatedAt?: string;
-  }): Promise<MentorshipSessionRequest> {
+  }): Promise<{ data: MentorshipSessionRequest; message?: string }> {
     try {
       const response = await apiService.auth.post<MentorshipSessionRequest>(
         "/hackathon-service/api/v1/mentors/sessions",
@@ -25,13 +26,17 @@ class MentorshipSessionRequestService {
         );
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message:
+          response.message || "Mentorship session request created successfully",
+      };
     } catch (error: any) {
-      console.error(
-        "[Mentorship Session Service] Error creating mentorship session:",
-        error.message
+      return handleApiError<MentorshipSessionRequest>(
+        error,
+        {} as MentorshipSessionRequest,
+        "[Mentorship Session Service] Error creating mentorship session:"
       );
-      throw error;
     }
   }
 
@@ -45,7 +50,7 @@ class MentorshipSessionRequestService {
     status: "PENDING" | "APPROVED" | "REJECTED" | "DELETED" | "COMPLETED";
     evaluatedById?: string;
     evaluatedAt?: string;
-  }): Promise<MentorshipSessionRequest> {
+  }): Promise<{ data: MentorshipSessionRequest; message?: string }> {
     try {
       const response = await apiService.auth.put<MentorshipSessionRequest>(
         `/hackathon-service/api/v1/mentorship/sessions`,
@@ -58,19 +63,23 @@ class MentorshipSessionRequestService {
         );
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message:
+          response.message || "Mentorship session request updated successfully",
+      };
     } catch (error: any) {
-      console.error(
-        "[Mentorship Session Service] Error updating mentorship session:",
-        error.message
+      return handleApiError<MentorshipSessionRequest>(
+        error,
+        {} as MentorshipSessionRequest,
+        "[Mentorship Session Service] Error updating mentorship session:"
       );
-      throw error;
     }
   }
 
   async getMentorshipSessionRequestsByMentorTeamId(
     mentorTeamId: string
-  ): Promise<MentorshipSessionRequest[]> {
+  ): Promise<{ data: MentorshipSessionRequest[]; message?: string }> {
     try {
       const response = await apiService.auth.get<MentorshipSessionRequest[]>(
         `/hackathon-service/api/v1/mentorship/sessions/filter-by-mentor-team?mentorTeamId=${mentorTeamId}`
@@ -80,19 +89,16 @@ class MentorshipSessionRequestService {
         throw new Error("Failed to retrieve mentorship session requests");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message,
+      };
     } catch (error: any) {
-      console.error(
-        "[Mentorship Session Service] Error fetching mentorship sessions:",
-        error.message
+      return handleApiError<MentorshipSessionRequest[]>(
+        error,
+        [],
+        "[Mentorship Session Service] Error fetching mentorship sessions:"
       );
-      if (
-        error.name === "AbortError" &&
-        error.message?.includes("component unmounted")
-      ) {
-        return [] as MentorshipSessionRequest[];
-      }
-      throw error;
     }
   }
 

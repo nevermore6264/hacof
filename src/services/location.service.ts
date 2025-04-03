@@ -1,9 +1,10 @@
 // src/services/location.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { Location } from "@/types/entities/location";
+import { handleApiError } from "@/utils/errorHandler";
 
 class LocationService {
-  async getAllLocations(): Promise<Location[]> {
+  async getAllLocations(): Promise<{ data: Location[]; message?: string }> {
     try {
       const response = await apiService.auth.get<Location[]>(
         "/hackathon-service/api/v1/locations"
@@ -13,19 +14,16 @@ class LocationService {
         throw new Error("Failed to retrieve locations");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message,
+      };
     } catch (error: any) {
-      console.error(
-        "[Location Service] Error getting locations:",
-        error.message
+      return handleApiError<Location[]>(
+        error,
+        [],
+        "[Location Service] Error getting locations:"
       );
-      if (
-        error.name === "AbortError" &&
-        error.message?.includes("component unmounted")
-      ) {
-        return [] as Location[];
-      }
-      throw error;
     }
   }
 
@@ -34,7 +32,7 @@ class LocationService {
     address: string;
     latitude: number;
     longitude: number;
-  }): Promise<Location> {
+  }): Promise<{ data: Location; message?: string }> {
     try {
       const response = await apiService.auth.post<Location>(
         "/hackathon-service/api/v1/locations",
@@ -45,13 +43,16 @@ class LocationService {
         throw new Error(response?.message || "Failed to create location");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message || "Location created successfully",
+      };
     } catch (error: any) {
-      console.error(
-        "[Location Service] Error creating location:",
-        error.message
+      return handleApiError<Location>(
+        error,
+        {} as Location,
+        "[Location Service] Error creating location:"
       );
-      throw error;
     }
   }
 
@@ -61,7 +62,7 @@ class LocationService {
     address: string;
     latitude: number;
     longitude: number;
-  }): Promise<Location> {
+  }): Promise<{ data: Location; message?: string }> {
     try {
       const response = await apiService.auth.put<Location>(
         `/hackathon-service/api/v1/locations`,
@@ -72,10 +73,31 @@ class LocationService {
         throw new Error(response?.message || "Failed to update location");
       }
 
-      return response.data;
+      return {
+        data: response.data,
+        message: response.message || "Location updated successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<Location>(
+        error,
+        {} as Location,
+        "[Location Service] Error updating location:"
+      );
+    }
+  }
+
+  async deleteLocation(id: string): Promise<{ message?: string }> {
+    try {
+      const response = await apiService.auth.delete(
+        `/hackathon-service/api/v1/locations/${id}`
+      );
+
+      return {
+        message: response.message || "Location deleted successfully",
+      };
     } catch (error: any) {
       console.error(
-        "[Location Service] Error updating location:",
+        "[Location Service] Error deleting location:",
         error.message
       );
       throw error;
