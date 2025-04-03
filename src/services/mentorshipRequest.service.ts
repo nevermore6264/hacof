@@ -1,135 +1,101 @@
 // src/services/mentorshipRequest.service.ts
 import { apiService } from "@/services/apiService_v0";
-import { ApiResponse } from "@/services/apiService_v0"; // Import the updated interface
-import { User } from "@/types/entities/user";
+import { MentorshipRequest } from "@/types/entities/mentorshipRequest";
 
-interface AuthResponseData {
-  token: string;
-  authenticated: boolean;
-}
+type MentorshipRequestPayload = {
+  id?: string;
+  hackathonId: string;
+  mentorId: string;
+  teamId?: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "DELETED" | "COMPLETED";
+  evaluatedById?: string;
+};
 
-class AuthService_v0 {
-  /**
-   * Get current user information
-   * @returns User information and message
-   */
-  async getUser(): Promise<{ data: User; message?: string }> {
+class MentorshipRequestService {
+  async createMentorshipRequest(
+    data: MentorshipRequestPayload
+  ): Promise<MentorshipRequest> {
     try {
-      const response = await apiService.auth.get<User>(
-        "/identity-service/api/v1/users/my-info"
+      const response = await apiService.auth.post<MentorshipRequest>(
+        "hackathon-service/api/v1/mentors/request",
+        data
       );
-
-      if (!response || !response.data) {
-        throw new Error("Failed to retrieve user information");
-      }
-
-      return {
-        data: response.data,
-        message: response.message,
-      };
-    } catch (error: any) {
-      console.error("[Auth Service] Error getting user info:", error.message);
-      // If the error is due to component unmount, don't rethrow
-      if (
-        error.name === "AbortError" &&
-        error.message?.includes("component unmounted")
-      ) {
-        return { data: {} as User, message: "Request aborted" };
-      }
+      return response.data;
+    } catch (error) {
+      console.error("Error creating Mentorship Request:", error);
       throw error;
     }
   }
 
-  /**
-   * Login user
-   * @param username
-   * @param password
-   * @returns Authentication response with token and message
-   */
-  async login(
-    username: string,
-    password: string
-  ): Promise<{
-    data: { token: string; authenticated: boolean };
-    message?: string;
-  }> {
+  async updateMentorshipRequest(
+    data: MentorshipRequestPayload
+  ): Promise<MentorshipRequest> {
     try {
-      const response = await apiService.public.post<AuthResponseData>(
-        "/identity-service/api/v1/auth/token",
-        {
-          username,
-          password,
-        }
+      const response = await apiService.auth.put<MentorshipRequest>(
+        "hackathon-service/api/v1/mentors/request",
+        data
       );
-
-      if (!response || !response.data) {
-        throw new Error(response?.message || "Login failed");
-      }
-
-      return {
-        data: response.data,
-        message: response.message,
-      };
-    } catch (error: any) {
-      console.error("[Auth Service] Login error:", error.message);
-
-      // Extract error message if available
-      let errorMessage = "Login failed";
-      if (error.message && error.message.includes("Response:")) {
-        try {
-          const jsonMatch = error.message.match(/Response:(.+)/);
-          if (jsonMatch) {
-            const errorJson = JSON.parse(jsonMatch[1].trim());
-            errorMessage = errorJson.message || errorMessage;
-          }
-        } catch (e) {
-          // If parsing fails, use the original error message
-        }
-      }
-
-      throw new Error(errorMessage);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating Mentorship Request:", error);
+      throw error;
     }
   }
 
-  /**
-   * Logout user
-   * @param token Current user token
-   * @returns Message from the logout response
-   */
-  async logout(token: string): Promise<{ message?: string }> {
+  async getMentorshipRequestsByTeamAndHackathon(
+    teamId: string,
+    hackathonId: string
+  ): Promise<MentorshipRequest[]> {
     try {
-      const response = await apiService.auth.post(
-        "/identity-service/api/v1/auth/logout",
-        { token },
-        undefined,
-        5000, // Use shorter timeout for logout
-        false // Don't abort previous requests
+      const response = await apiService.auth.get<MentorshipRequest[]>(
+        `/hackathon-service/api/v1/mentorship/filter-by-team-and-hackathon?teamId=${teamId}&hackathonId=${hackathonId}`
       );
-
-      // Clear all in-flight requests when logging out
-      apiService.cancelAllRequests("User logged out");
-
-      console.log("[Auth Service] User successfully logged out");
-      return { message: response.message || "Successfully logged out" };
-    } catch (error: any) {
-      console.error("[Auth Service] Logout error:", error.message);
-      // Even if logout fails, we consider the user logged out on the client side
-      console.log(
-        "[Auth Service] Continuing with client-side logout despite API error"
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error fetching mentorship requests by teamId and hackathonId:",
+        error
       );
-      return { message: "Client-side logout completed with API error" };
+      throw error;
     }
   }
 
-  /**
-   * Check if user is authenticated (token exists and not expired)
-   * @returns boolean indicating authentication status
-   */
-  isAuthenticated(): boolean {
-    // This is a placeholder - you'd need to implement actual token validation logic
-    const token = localStorage.getItem("accessToken");
-    return !!token; // Simple check if token exists
+  async getMentorshipRequestsByMentorId(
+    mentorId: string
+  ): Promise<MentorshipRequest[]> {
+    try {
+      const response = await apiService.auth.get<MentorshipRequest[]>(
+        `/hackathon-service/api/v1/mentorship/filter-by-mentor?mentorId=${mentorId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching mentorship requests by mentorId:", error);
+      throw error;
+    }
+  }
+
+  async deleteMentorshipRequest(id: string): Promise<MentorshipRequest> {
+    try {
+      const response = await fetch("/hackathon-service/api/v1/mentorship", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: { id: id },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete mentorship: ${response.statusText}`);
+      }
+
+      return await response.json(); // Trả về kết quả từ API
+    } catch (error) {
+      console.error("Error deleting mentorship:", error);
+      throw error;
+    }
   }
 }
 
-export const authService_v0 = new AuthService_v0();
+export const mentorshipRequestService = new MentorshipRequestService();
