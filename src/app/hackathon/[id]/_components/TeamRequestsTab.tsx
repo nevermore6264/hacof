@@ -1,5 +1,5 @@
-// src/app/hackathon/[id]/_components/TeamRequestsTab.tsx
 import { TeamRequest } from "@/types/entities/teamRequest";
+import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { useState, useEffect } from "react";
 import { Trash2, X, Plus } from "lucide-react";
 import { useApiModal } from "@/hooks/useApiModal";
@@ -7,6 +7,7 @@ import { teamRequestService } from "@/services/teamRequest.service";
 
 type TeamRequestsTabProps = {
   teamRequests: TeamRequest[];
+  individualRegistrations: IndividualRegistrationRequest[]; // Added this prop
   hackathonId: string;
   minimumTeamMembers: number;
   maximumTeamMembers: number;
@@ -16,6 +17,7 @@ type TeamRequestsTabProps = {
 
 export default function TeamRequestsTab({
   teamRequests,
+  individualRegistrations, // Added this prop
   hackathonId,
   minimumTeamMembers,
   maximumTeamMembers,

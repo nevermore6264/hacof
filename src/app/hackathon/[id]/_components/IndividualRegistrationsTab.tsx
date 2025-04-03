@@ -1,5 +1,5 @@
-// src/app/hackathon/[id]/_components/IndividualRegistrationsTab.tsx
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
+import { TeamRequest } from "@/types/entities/teamRequest";
 import { useState } from "react";
 import { Trash2, Plus } from "lucide-react";
 import { individualRegistrationRequestService } from "@/services/individualRegistrationRequest.service";
@@ -8,12 +8,14 @@ import { useAuthStore } from "@/store/authStore";
 
 type IndividualRegistrationsTabProps = {
   individualRegistrations: IndividualRegistrationRequest[];
+  teamRequests: TeamRequest[]; // Added this prop
   hackathonId: string;
   onDataUpdate: () => void;
 };
 
 export default function IndividualRegistrationsTab({
   individualRegistrations,
+  teamRequests, // Added this prop
   hackathonId,
   onDataUpdate,
 }: IndividualRegistrationsTabProps) {

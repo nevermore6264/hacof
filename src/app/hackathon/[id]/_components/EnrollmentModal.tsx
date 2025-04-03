@@ -109,6 +109,7 @@ export default function EnrollmentModal({
               {activeTab === "teamRequests" && (
                 <TeamRequestsTab
                   teamRequests={teamRequests}
+                  individualRegistrations={individualRegistrations} // Pass this prop
                   hackathonId={hackathonId}
                   minimumTeamMembers={minimumTeamMembers}
                   maximumTeamMembers={maximumTeamMembers}
@@ -120,6 +121,7 @@ export default function EnrollmentModal({
               {activeTab === "individual" && (
                 <IndividualRegistrationsTab
                   individualRegistrations={individualRegistrations}
+                  teamRequests={teamRequests} // Pass this prop
                   hackathonId={hackathonId}
                   onDataUpdate={onDataUpdate}
                 />
