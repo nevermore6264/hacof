@@ -1,3 +1,4 @@
+// src/services/submission.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { Submission } from "@/types/entities/submission";
 import { tokenService_v0 } from "@/services/token.service_v0";
@@ -73,30 +74,25 @@ class SubmissionService {
       formData.append("teamId", teamId);
       formData.append("status", status);
 
-      const response = await fetch("/submission-service/api/v1/submissions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${tokenService_v0.getAccessToken()}`,
-        },
-        body: formData,
-      });
+      const response = await apiService.auth.post<Submission>(
+        "/submission-service/api/v1/submissions",
+        formData
+      );
 
-      if (!response.ok) {
-        const errMsg = await response.text();
-        throw new Error(`Upload failed: ${errMsg}`);
+      if (!response || !response.data) {
+        throw new Error(response?.message || "Failed to create submission");
       }
 
-      const data = (await response.json()) as Submission;
       return {
-        data,
-        message: "Submission created successfully",
+        data: response.data,
+        message: response.message || "Submission created successfully",
       };
     } catch (error: any) {
-      console.error(
-        "[Submission Service] Error uploading submission:",
-        error.message
+      return handleApiError<Submission>(
+        error,
+        {} as Submission,
+        "[Submission Service] Error uploading submission:"
       );
-      throw error;
     }
   }
 
@@ -118,33 +114,25 @@ class SubmissionService {
       formData.append("teamId", teamId);
       formData.append("status", status);
 
-      const response = await fetch(
+      const response = await apiService.auth.put<Submission>(
         `/submission-service/api/v1/submissions/${submissionId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${tokenService_v0.getAccessToken()}`,
-          },
-          body: formData,
-        }
+        formData
       );
 
-      if (!response.ok) {
-        const errMsg = await response.text();
-        throw new Error(`Update failed: ${errMsg}`);
+      if (!response || !response.data) {
+        throw new Error(response?.message || "Failed to update submission");
       }
 
-      const data = (await response.json()) as Submission;
       return {
-        data,
-        message: "Submission updated successfully",
+        data: response.data,
+        message: response.message || "Submission updated successfully",
       };
     } catch (error: any) {
-      console.error(
-        "[Submission Service] Error updating submission:",
-        error.message
+      return handleApiError<Submission>(
+        error,
+        {} as Submission,
+        "[Submission Service] Error updating submission:"
       );
-      throw error;
     }
   }
 }

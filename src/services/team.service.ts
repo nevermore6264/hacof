@@ -1,3 +1,4 @@
+// src/services/team.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { Team } from "@/types/entities/team";
 import { handleApiError } from "@/utils/errorHandler";

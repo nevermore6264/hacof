@@ -1,3 +1,4 @@
+// src/services/round.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { Round } from "@/types/entities/round";
 import { handleApiError } from "@/utils/errorHandler";
@@ -89,6 +90,24 @@ class RoundService {
         error,
         [],
         "[Round Service] Error fetching rounds:"
+      );
+    }
+  }
+
+  async deleteRound(id: string): Promise<{ message?: string }> {
+    try {
+      const response = await apiService.auth.delete<void>(
+        `/hackathon-service/api/v1/rounds/${id}`
+      );
+
+      return {
+        message: response.message || "Round deleted successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<void>(
+        error,
+        undefined,
+        "[Round Service] Error deleting round:"
       );
     }
   }
