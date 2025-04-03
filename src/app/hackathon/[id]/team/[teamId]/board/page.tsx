@@ -11,7 +11,11 @@ import { fetchMockRounds } from "./_mock/fetchMockRounds";
 import { fetchMockTeams } from "./_mock/fetchMockTeams";
 import { Team } from "@/types/entities/team";
 import { Board } from "@/types/entities/board";
-import { fetchMockBoardsByTeamId } from "./_mock/fetchMockBoards";
+import { fetchMockBoard } from "./_mock/fetchMockBoard";
+import { fetchMockBoardLabelsByBoardId } from "./_mock/fetchMockBoardLabels";
+import { fetchMockBoardListsByBoardId } from "./_mock/fetchMockBoardLists";
+import { fetchMockBoardUsers } from "./_mock/fetchMockBoardUsers";
+import { fetchMockTasksByBoardListId } from "./_mock/fetchMockTasks";
 
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
@@ -43,9 +47,43 @@ export default function HackathonBoardPage() {
       }
     });
 
-    // Fetch board data
-    fetchMockBoardsByTeamId(teamIdValue, hackathonId).then((boards) => {
-      setBoards(boards);
+    // Fetch board data using separate mock files
+    fetchMockBoard(teamIdValue, hackathonId).then(async (boardsData) => {
+      if (boardsData.length > 0) {
+        const enhancedBoards = await Promise.all(
+          boardsData.map(async (board) => {
+            // Fetch board users
+            const boardUsers = await fetchMockBoardUsers(board.id);
+
+            // Fetch board labels
+            const boardLabels = await fetchMockBoardLabelsByBoardId(board.id);
+
+            // Fetch board lists
+            const boardLists = await fetchMockBoardListsByBoardId(board.id);
+
+            // Fetch tasks for each board list
+            const enhancedBoardLists = await Promise.all(
+              boardLists.map(async (list) => {
+                const tasks = await fetchMockTasksByBoardListId(list.id);
+                return {
+                  ...list,
+                  tasks,
+                };
+              })
+            );
+
+            // Combine all data into a complete board
+            return {
+              ...board,
+              boardUsers,
+              boardLabels,
+              boardLists: enhancedBoardLists,
+            };
+          })
+        );
+
+        setBoards(enhancedBoards);
+      }
     });
   }, [hackathonId, teamIdValue]);
 
