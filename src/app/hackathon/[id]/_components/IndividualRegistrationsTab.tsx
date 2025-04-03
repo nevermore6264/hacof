@@ -2,16 +2,25 @@
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { useState } from "react";
 import { Trash2, Plus } from "lucide-react";
+import { individualRegistrationRequestService } from "@/services/individualRegistrationRequest.service";
+import { useApiModal } from "@/hooks/useApiModal";
+import { useAuthStore } from "@/store/authStore";
 
 type IndividualRegistrationsTabProps = {
   individualRegistrations: IndividualRegistrationRequest[];
   hackathonId: string;
+  onDataUpdate: () => void;
 };
 
 export default function IndividualRegistrationsTab({
   individualRegistrations,
   hackathonId,
+  onDataUpdate,
 }: IndividualRegistrationsTabProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const { showError, showSuccess } = useApiModal();
+  const { user } = useAuthStore();
+
   // Create individual registration
   const createIndividualRegistration = async () => {
     // Check if user already has an individual registration that's not rejected
@@ -20,32 +29,46 @@ export default function IndividualRegistrationsTab({
     );
 
     if (activeRegistration) {
-      alert(
+      showError(
+        "Registration Error",
         `You already have an individual registration for this hackathon with status: ${activeRegistration.status}.`
       );
       return;
     }
 
     try {
-      console.log(
-        `Creating individual registration for hackathon: ${hackathonId}`
-      );
+      setIsLoading(true);
 
       const requestBody = {
         hackathonId,
         status: "PENDING",
       };
 
-      console.log("Request body:", requestBody);
+      const response =
+        await individualRegistrationRequestService.createIndividualRegistrationRequest(
+          requestBody
+        );
 
-      // Simulate successful creation
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      alert("Individual registration created successfully!");
-      // In a real implementation, you would refresh the data here
+      if (response.data && response.data.id) {
+        showSuccess(
+          "Registration Successful",
+          "Your individual registration has been submitted successfully."
+        );
+        onDataUpdate(); // Refresh data
+      } else {
+        showError(
+          "Registration Error",
+          "Failed to create individual registration. Please try again."
+        );
+      }
     } catch (error) {
       console.error("Error creating individual registration:", error);
-      alert("Failed to create individual registration");
+      showError(
+        "Registration Error",
+        "An unexpected error occurred while creating your registration."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,19 +78,33 @@ export default function IndividualRegistrationsTab({
   ) => {
     // Only allow deletion of PENDING registrations
     if (status !== "PENDING") {
-      alert(
+      showError(
+        "Deletion Error",
         `You can only delete registrations with PENDING status. Current status: ${status}`
       );
       return;
     }
 
     try {
-      console.log(`Deleting individual registration: ${registrationId}`);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      alert(`Individual registration ${registrationId} deleted successfully`);
+      setIsLoading(true);
+      const response =
+        await individualRegistrationRequestService.deleteIndividualRegistration(
+          registrationId
+        );
+
+      showSuccess(
+        "Registration Deleted",
+        "Your individual registration has been deleted successfully."
+      );
+      onDataUpdate(); // Refresh data
     } catch (error) {
       console.error("Error deleting individual registration:", error);
-      alert("Failed to delete individual registration");
+      showError(
+        "Deletion Error",
+        "Failed to delete individual registration. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,9 +115,15 @@ export default function IndividualRegistrationsTab({
         {/* Always show the register button */}
         <button
           onClick={createIndividualRegistration}
-          className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+          className={`flex items-center gap-1 ${
+            isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600"
+          } text-white px-3 py-1 rounded`}
+          disabled={isLoading}
         >
-          <Plus size={16} /> Register as Individual
+          <Plus size={16} />{" "}
+          {isLoading ? "Processing..." : "Register as Individual"}
         </button>
       </div>
 
@@ -134,8 +177,13 @@ export default function IndividualRegistrationsTab({
                     onClick={() =>
                       deleteIndividualRegistration(reg.id, reg.status)
                     }
-                    className="text-red-500 hover:text-red-700 transition-colors"
+                    className={`${
+                      isLoading
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-red-500 hover:text-red-700"
+                    } transition-colors`}
                     title="Delete registration"
+                    disabled={isLoading}
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>

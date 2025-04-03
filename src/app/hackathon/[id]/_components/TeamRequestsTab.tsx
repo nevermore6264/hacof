@@ -2,7 +2,8 @@
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { useState, useEffect } from "react";
 import { Trash2, X, Plus } from "lucide-react";
-import { fetchMockUsers } from "../_mock/fetchMockUsers";
+import { useApiModal } from "@/hooks/useApiModal";
+import { teamRequestService } from "@/services/teamRequest.service";
 
 type TeamRequestsTabProps = {
   teamRequests: TeamRequest[];
@@ -10,6 +11,7 @@ type TeamRequestsTabProps = {
   minimumTeamMembers: number;
   maximumTeamMembers: number;
   user: any;
+  onDataUpdate?: () => void;
 };
 
 export default function TeamRequestsTab({
@@ -18,9 +20,11 @@ export default function TeamRequestsTab({
   minimumTeamMembers,
   maximumTeamMembers,
   user,
+  onDataUpdate,
 }: TeamRequestsTabProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [teamName, setTeamName] = useState("");
+  const [teamNote, setTeamNote] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<
     Array<{ userId: string; email: string }>
   >([]);
@@ -28,45 +32,88 @@ export default function TeamRequestsTab({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Use our API modal hook for error and success handling
+  const { showError, showSuccess, showInfo } = useApiModal();
+
   // Search users when typing in the member field
   useEffect(() => {
     if (searchTerm.length > 2) {
       setIsSearching(true);
-      // Simulate API call to search users
-      fetchMockUsers().then((users) => {
-        const filteredUsers = users.filter(
-          (u) =>
-            u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            `${u.firstName} ${u.lastName}`
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())
-        );
-        setSearchResults(filteredUsers);
-        setIsSearching(false);
-      });
+      // Replace mock implementation with real user search API call
+      // This is a placeholder - you'll need to implement the actual user search service
+      const searchUsers = async () => {
+        try {
+          // Replace with your actual user search service
+          // const users = await userService.searchUsers(searchTerm);
+          // setSearchResults(users);
+
+          // For now, we'll keep a simplified version:
+          const mockUsers = [
+            {
+              id: "1",
+              email: "user1@example.com",
+              firstName: "User",
+              lastName: "One",
+            },
+            {
+              id: "2",
+              email: "user2@example.com",
+              firstName: "User",
+              lastName: "Two",
+            },
+            {
+              id: "3",
+              email: "user3@example.com",
+              firstName: "User",
+              lastName: "Three",
+            },
+          ].filter(
+            (u) =>
+              u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              `${u.firstName} ${u.lastName}`
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+          );
+          setSearchResults(mockUsers);
+        } catch (error) {
+          showError("Search Error", "Failed to search for users");
+          console.error("Error searching for users:", error);
+        } finally {
+          setIsSearching(false);
+        }
+      };
+
+      searchUsers();
     } else {
       setSearchResults([]);
     }
-  }, [searchTerm]);
+  }, [searchTerm, showError]);
 
   // Delete team request
   const deleteTeamRequest = async (requestId: string, status: string) => {
     // Only allow deletion of pending or under_review statuses
-    if (status !== "pending" && status !== "under_review") {
-      alert(
+    if (
+      status.toLowerCase() !== "pending" &&
+      status.toLowerCase() !== "under_review"
+    ) {
+      showInfo(
+        "Cannot Delete Request",
         `You can only delete team requests with pending or under review status. Current status: ${status}`
       );
       return;
     }
 
     try {
-      // Simulated API call
-      console.log(`Deleting team request: ${requestId}`);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      alert(`Team request ${requestId} deleted successfully`);
+      await teamRequestService.deleteTeamRequest(requestId);
+      showSuccess("Request Deleted", "Team request deleted successfully");
+
+      // Refresh the data
+      if (onDataUpdate) {
+        onDataUpdate();
+      }
     } catch (error) {
       console.error("Error deleting team request:", error);
-      alert("Failed to delete team request");
+      showError("Delete Failed", "Failed to delete team request");
     }
   };
 
@@ -75,13 +122,14 @@ export default function TeamRequestsTab({
     // Check if user already has a non-rejected team request
     const activeRequest = teamRequests.find(
       (req) =>
-        req.status === "pending" ||
-        req.status === "under_review" ||
-        req.status === "approved"
+        req.status.toLowerCase() === "pending" ||
+        req.status.toLowerCase() === "under_review" ||
+        req.status.toLowerCase() === "approved"
     );
 
     if (activeRequest) {
-      alert(
+      showInfo(
+        "Request Already Exists",
         `You already have a team request for this hackathon with status: ${activeRequest.status}.`
       );
       return;
@@ -89,54 +137,50 @@ export default function TeamRequestsTab({
 
     // Validate form
     if (!teamName.trim()) {
-      alert("Please enter a team name");
+      showInfo("Invalid Input", "Please enter a team name");
       return;
     }
 
     if (selectedMembers.length < minimumTeamMembers - 1) {
-      alert(
+      showInfo(
+        "Not Enough Members",
         `You need at least ${minimumTeamMembers} team members (including yourself)`
       );
       return;
     }
 
     try {
-      // Calculate confirmation deadline (current date + 1 day)
-      const confirmationDeadline = new Date();
-      confirmationDeadline.setDate(confirmationDeadline.getDate() + 1);
-
       // Prepare request body
       const requestBody = {
         hackathonId,
         name: teamName,
-        status: "pending",
-        confirmationDeadline: confirmationDeadline.toISOString(),
+        note: teamNote,
         teamRequestMembers: [
-          // Add current user as team leader
-          { userId: user?.id, status: "approved" },
           // Add selected members
           ...selectedMembers.map((member) => ({
             userId: member.userId,
-            status: "pending",
           })),
         ],
       };
 
-      console.log("Creating team request with data:", requestBody);
+      // Call the real service
+      const response = await teamRequestService.createTeamRequest(requestBody);
 
-      // Simulate successful creation
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      showSuccess("Team Request Created", "Team request created successfully!");
 
-      alert("Team request created successfully!");
       // Reset form
       setTeamName("");
+      setTeamNote("");
       setSelectedMembers([]);
       setIsCreating(false);
 
-      // In a real implementation, you would refresh the data here
+      // Refresh the data
+      if (onDataUpdate) {
+        onDataUpdate();
+      }
     } catch (error) {
       console.error("Error creating team request:", error);
-      alert("Failed to create team request");
+      showError("Creation Failed", "Failed to create team request");
     }
   };
 
@@ -149,7 +193,10 @@ export default function TeamRequestsTab({
 
     // Check if max team size is reached
     if (selectedMembers.length >= maximumTeamMembers - 1) {
-      alert(`Maximum team size is ${maximumTeamMembers}`);
+      showInfo(
+        "Maximum Size Reached",
+        `Maximum team size is ${maximumTeamMembers}`
+      );
       return;
     }
 
@@ -202,11 +249,12 @@ export default function TeamRequestsTab({
                       <p className="text-sm text-gray-600 mt-1">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            request.status === "approved"
+                            request.status.toLowerCase() === "approved"
                               ? "bg-green-100 text-green-800"
-                              : request.status === "rejected"
+                              : request.status.toLowerCase() === "rejected"
                                 ? "bg-red-100 text-red-800"
-                                : request.status === "under_review"
+                                : request.status.toLowerCase() ===
+                                    "under_review"
                                   ? "bg-blue-100 text-blue-800"
                                   : "bg-yellow-100 text-yellow-800"
                           }`}
@@ -216,8 +264,8 @@ export default function TeamRequestsTab({
                       </p>
                     </div>
                     {/* Only show delete for pending or under_review status */}
-                    {(request.status === "pending" ||
-                      request.status === "under_review") && (
+                    {(request.status.toLowerCase() === "pending" ||
+                      request.status.toLowerCase() === "under_review") && (
                       <button
                         onClick={() =>
                           deleteTeamRequest(request.id, request.status)
@@ -235,6 +283,11 @@ export default function TeamRequestsTab({
                       request.confirmationDeadline
                     ).toLocaleDateString()}
                   </p>
+                  {request.note && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      <span className="font-medium">Note:</span> {request.note}
+                    </p>
+                  )}
                   <div className="mt-3">
                     <p className="text-sm font-medium text-gray-600">
                       Team Members:
@@ -247,9 +300,9 @@ export default function TeamRequestsTab({
                         >
                           <span
                             className={`w-2 h-2 rounded-full mr-2 ${
-                              member.status === "approved"
+                              member.status.toLowerCase() === "approved"
                                 ? "bg-green-500"
-                                : member.status === "rejected"
+                                : member.status.toLowerCase() === "rejected"
                                   ? "bg-red-500"
                                   : "bg-yellow-500"
                             }`}
@@ -281,6 +334,19 @@ export default function TeamRequestsTab({
               onChange={(e) => setTeamName(e.target.value)}
               className="border p-2 rounded w-full"
               placeholder="Enter team name"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Team Note (Optional)
+            </label>
+            <textarea
+              value={teamNote}
+              onChange={(e) => setTeamNote(e.target.value)}
+              className="border p-2 rounded w-full"
+              placeholder="Optional team note or description"
+              rows={3}
             />
           </div>
 
