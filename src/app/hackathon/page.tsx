@@ -7,7 +7,7 @@ import SearchSortBar from "./_components/SearchSortBar";
 import Pagination from "./_components/Pagination";
 import { Hackathon } from "@/types/entities/hackathon";
 import { useQuery } from "@tanstack/react-query";
-import { hackathonService_v0 } from "@/services/hackathon.service_v0";
+import { hackathonService } from "@/services/hackathon.service";
 
 // TODO: {lv2} Research: add Metadata solution for client components
 // export const metadata: Metadata = {
@@ -19,7 +19,7 @@ import { hackathonService_v0 } from "@/services/hackathon.service_v0";
 //NOTE: This page is client component, client side data fetching, client side pagination and filtering
 // TODO: {Lv2} Check optimization, check logic position
 async function getHackathons(): Promise<Hackathon[]> {
-  const response = await hackathonService_v0.getAllHackathons();
+  const response = await hackathonService.getAllHackathons();
   return response.data;
 }
 

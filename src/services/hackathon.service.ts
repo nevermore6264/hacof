@@ -2,7 +2,7 @@
 import { apiService } from "@/services/apiService_v0";
 import { Hackathon } from "@/types/entities/hackathon";
 
-class HackathonService_v0 {
+class HackathonService {
   async getAllHackathons(): Promise<{ data: Hackathon[]; message?: string }> {
     try {
       const response = await apiService.auth.get<Hackathon[]>(
@@ -148,4 +148,4 @@ class HackathonService_v0 {
   }
 }
 
-export const hackathonService_v0 = new HackathonService_v0();
+export const hackathonService = new HackathonService();
