@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_components/IndividualRegistrationsTab.tsx
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { useState } from "react";

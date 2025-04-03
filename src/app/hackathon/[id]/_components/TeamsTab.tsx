@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_components/TeamsTab.tsx
 import { Team } from "@/types/entities/team";
 import { useState } from "react";
 import { ChevronRight, Users, CalendarClock, Award } from "lucide-react";
