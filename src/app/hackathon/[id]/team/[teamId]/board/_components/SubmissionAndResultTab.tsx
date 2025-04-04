@@ -8,25 +8,31 @@ import RewardListTab from "./RewardListTab";
 import { Round } from "@/types/entities/round";
 import { Submission } from "@/types/entities/submission";
 import { fetchMockSubmissions } from "../_mock/fetchMockSubmissions";
+import { submissionService } from "@/services/submission.service";
+import ApiResponseModal from "@/components/common/ApiResponseModal";
+import { useApiModal } from "@/hooks/useApiModal";
 
 interface Props {
   rounds: Round[];
   loading: boolean;
   hackathonId: string;
-  teamId: string; // Added teamId parameter
+  teamId: string;
 }
 
 export default function SubmissionAndResultTab({
   rounds,
   loading,
   hackathonId,
-  teamId, // Make sure this prop is passed from the parent component
+  teamId,
 }: Props) {
   const roundTabs = rounds.map((round) => round.roundTitle);
   const [activeRoundTab, setActiveRoundTab] = useState(roundTabs[0] || "");
   const [activeSubTab, setActiveSubTab] = useState("Submission");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
+
+  // Use the API modal hook
+  const { modalState, hideModal, showError } = useApiModal();
 
   const activeRound = rounds.find(
     (round) => round.roundTitle === activeRoundTab
@@ -37,15 +43,41 @@ export default function SubmissionAndResultTab({
 
   useEffect(() => {
     const loadSubmissions = async () => {
-      if (!activeRoundTab) return;
+      if (!activeRoundTab || !roundId || !teamId) return;
+
       setSubmissionsLoading(true);
-      const mockData = await fetchMockSubmissions(roundId, "Current User");
-      setSubmissions(mockData);
-      setSubmissionsLoading(false);
+
+      try {
+        // Use the real service when roundId is available
+        const response = await submissionService.getSubmissionsByTeamAndRound(
+          teamId,
+          roundId
+        );
+
+        if (response.data && Array.isArray(response.data)) {
+          setSubmissions(response.data);
+        } else {
+          // Fallback to mock data if API fails or returns invalid data
+          console.warn("Falling back to mock submission data");
+          const mockData = await fetchMockSubmissions(roundId, "Current User");
+          setSubmissions(mockData);
+        }
+      } catch (error) {
+        showError(
+          "Failed to load submissions",
+          error instanceof Error ? error.message : "Unknown error occurred"
+        );
+
+        // Fallback to mock data on error
+        const mockData = await fetchMockSubmissions(roundId, "Current User");
+        setSubmissions(mockData);
+      } finally {
+        setSubmissionsLoading(false);
+      }
     };
 
     loadSubmissions();
-  }, [activeRoundTab, roundId]);
+  }, [activeRoundTab, roundId, teamId, showError]);
 
   // Handle new submission or resubmission completion
   const handleSubmissionComplete = (newSubmission: Submission) => {
@@ -149,6 +181,15 @@ export default function SubmissionAndResultTab({
           />
         )}
       </div>
+
+      {/* API Response Modal */}
+      <ApiResponseModal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }

@@ -21,6 +21,8 @@ import { fetchMockTaskLabelsByTaskId } from "./_mock/fetchMockTaskLabels";
 import { fetchMockTaskCommentsByTaskId } from "./_mock/fetchMockTaskComments";
 import { fetchMockTaskAssigneesByTaskId } from "./_mock/fetchMockTaskAssignees";
 import { BoardLabel } from "@/types/entities/boardLabel";
+import ApiResponseModal from "@/components/common/ApiResponseModal";
+import { useApiModal } from "@/hooks/useApiModal";
 
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
@@ -35,6 +37,9 @@ export default function HackathonBoardPage() {
   const [activeTab, setActiveTab] = useState(TABS[0]);
   const [loading, setLoading] = useState(true);
 
+  // Use the API modal hook
+  const { modalState, hideModal, showError } = useApiModal();
+
   useEffect(() => {
     if (!hackathonId || !teamIdValue) return;
 
@@ -43,95 +48,120 @@ export default function HackathonBoardPage() {
     // Fetch rounds data
     fetchMockRounds(hackathonId)
       .then((data) => setRounds(data))
+      .catch((error) => {
+        console.error("Error fetching rounds:", error);
+        showError("Error", "Failed to load rounds data");
+      })
       .finally(() => setLoading(false));
 
     // Fetch team data
-    fetchMockTeams(teamIdValue).then((teams) => {
-      if (teams.length > 0) {
-        setTeam(teams[0]);
-      }
-    });
+    fetchMockTeams(teamIdValue)
+      .then((teams) => {
+        if (teams.length > 0) {
+          setTeam(teams[0]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching teams:", error);
+        showError("Error", "Failed to load team data");
+      });
 
     // Fetch board data using separate mock files
-    fetchMockBoard(teamIdValue, hackathonId).then(async (boardsData) => {
-      if (boardsData.length > 0) {
-        const enhancedBoards = await Promise.all(
-          boardsData.map(async (board) => {
-            // Fetch board users
-            const boardUsers = await fetchMockBoardUsers(board.id);
+    fetchMockBoard(teamIdValue, hackathonId)
+      .then(async (boardsData) => {
+        if (boardsData.length > 0) {
+          try {
+            const enhancedBoards = await Promise.all(
+              boardsData.map(async (board) => {
+                // Fetch board users
+                const boardUsers = await fetchMockBoardUsers(board.id);
 
-            // Fetch board labels
-            const boardLabels = await fetchMockBoardLabelsByBoardId(board.id);
+                // Fetch board labels
+                const boardLabels = await fetchMockBoardLabelsByBoardId(
+                  board.id
+                );
 
-            // Create a map of board labels for quick lookup
-            const boardLabelsMap = boardLabels.reduce(
-              (map, label) => {
-                map[label.id] = label;
-                return map;
-              },
-              {} as Record<string, BoardLabel>
-            );
+                // Create a map of board labels for quick lookup
+                const boardLabelsMap = boardLabels.reduce(
+                  (map, label) => {
+                    map[label.id] = label;
+                    return map;
+                  },
+                  {} as Record<string, BoardLabel>
+                );
 
-            // Fetch board lists
-            const boardLists = await fetchMockBoardListsByBoardId(board.id);
+                // Fetch board lists
+                const boardLists = await fetchMockBoardListsByBoardId(board.id);
 
-            // Fetch tasks for each board list with detailed information
-            const enhancedBoardLists = await Promise.all(
-              boardLists.map(async (list) => {
-                const baseTasks = await fetchMockTasksByBoardListId(list.id);
+                // Fetch tasks for each board list with detailed information
+                const enhancedBoardLists = await Promise.all(
+                  boardLists.map(async (list) => {
+                    const baseTasks = await fetchMockTasksByBoardListId(
+                      list.id
+                    );
 
-                // Fetch detailed information for each task
-                const enhancedTasks = await Promise.all(
-                  baseTasks.map(async (task) => {
-                    // Fetch files, labels, comments, and assignees for each task
-                    const [fileUrls, taskLabels, comments, assignees] =
-                      await Promise.all([
-                        fetchMockTaskFilesByTaskId(task.id),
-                        fetchMockTaskLabelsByTaskId(task.id),
-                        fetchMockTaskCommentsByTaskId(task.id),
-                        fetchMockTaskAssigneesByTaskId(task.id),
-                      ]);
+                    // Fetch detailed information for each task
+                    const enhancedTasks = await Promise.all(
+                      baseTasks.map(async (task) => {
+                        // Fetch files, labels, comments, and assignees for each task
+                        const [fileUrls, taskLabels, comments, assignees] =
+                          await Promise.all([
+                            fetchMockTaskFilesByTaskId(task.id),
+                            fetchMockTaskLabelsByTaskId(task.id),
+                            fetchMockTaskCommentsByTaskId(task.id),
+                            fetchMockTaskAssigneesByTaskId(task.id),
+                          ]);
 
-                    // Enhance taskLabels with their associated boardLabel information
-                    const enhancedTaskLabels = taskLabels.map((taskLabel) => ({
-                      ...taskLabel,
-                      boardLabel: taskLabel.boardLabelId
-                        ? boardLabelsMap[taskLabel.boardLabelId]
-                        : undefined,
-                    }));
+                        // Enhance taskLabels with their associated boardLabel information
+                        const enhancedTaskLabels = taskLabels.map(
+                          (taskLabel) => ({
+                            ...taskLabel,
+                            boardLabel: taskLabel.boardLabelId
+                              ? boardLabelsMap[taskLabel.boardLabelId]
+                              : undefined,
+                          })
+                        );
 
-                    // Combine task with its detailed information
+                        // Combine task with its detailed information
+                        return {
+                          ...task,
+                          fileUrls,
+                          taskLabels: enhancedTaskLabels,
+                          comments,
+                          assignees,
+                        };
+                      })
+                    );
+
                     return {
-                      ...task,
-                      fileUrls,
-                      taskLabels: enhancedTaskLabels,
-                      comments,
-                      assignees,
+                      ...list,
+                      tasks: enhancedTasks,
                     };
                   })
                 );
 
+                // Combine all data into a complete board
                 return {
-                  ...list,
-                  tasks: enhancedTasks,
+                  ...board,
+                  boardUsers,
+                  boardLabels,
+                  boardLists: enhancedBoardLists,
                 };
               })
             );
 
-            // Combine all data into a complete board
-            return {
-              ...board,
-              boardUsers,
-              boardLabels,
-              boardLists: enhancedBoardLists,
-            };
-          })
-        );
-
-        setBoards(enhancedBoards);
-      }
-    });
-  }, [hackathonId, teamIdValue]);
+            setBoards(enhancedBoards);
+          } catch (error) {
+            console.error("Error enhancing boards:", error);
+            showError("Error", "Failed to load board details");
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching boards:", error);
+        showError("Error", "Failed to load board data");
+      });
+  }, [hackathonId, teamIdValue, showError]);
 
   return (
     <div className="p-6">
@@ -171,6 +201,15 @@ export default function HackathonBoardPage() {
         {activeTab === "Schedule" && <Calendar />}
         {activeTab === "Analytics" && <p>Placeholder for analytics.</p>}
       </div>
+
+      {/* API Response Modal */}
+      <ApiResponseModal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }
