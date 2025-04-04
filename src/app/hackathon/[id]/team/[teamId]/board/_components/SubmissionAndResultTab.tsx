@@ -7,7 +7,6 @@ import ResultTab from "./ResultTab";
 import RewardListTab from "./RewardListTab";
 import { Round } from "@/types/entities/round";
 import { Submission } from "@/types/entities/submission";
-import { fetchMockSubmissions } from "../_mock/fetchMockSubmissions";
 import { submissionService } from "@/services/submission.service";
 import ApiResponseModal from "@/components/common/ApiResponseModal";
 import { useApiModal } from "@/hooks/useApiModal";
@@ -48,7 +47,7 @@ export default function SubmissionAndResultTab({
       setSubmissionsLoading(true);
 
       try {
-        // Use the real service when roundId is available
+        // Use only the real service - no fallback to mock data
         const response = await submissionService.getSubmissionsByTeamAndRound(
           teamId,
           roundId
@@ -57,20 +56,15 @@ export default function SubmissionAndResultTab({
         if (response.data && Array.isArray(response.data)) {
           setSubmissions(response.data);
         } else {
-          // Fallback to mock data if API fails or returns invalid data
-          console.warn("Falling back to mock submission data");
-          const mockData = await fetchMockSubmissions(roundId, "Current User");
-          setSubmissions(mockData);
+          throw new Error("Invalid response format from API");
         }
       } catch (error) {
         showError(
           "Failed to load submissions",
           error instanceof Error ? error.message : "Unknown error occurred"
         );
-
-        // Fallback to mock data on error
-        const mockData = await fetchMockSubmissions(roundId, "Current User");
-        setSubmissions(mockData);
+        // Initialize with empty array instead of mock data
+        setSubmissions([]);
       } finally {
         setSubmissionsLoading(false);
       }
@@ -106,7 +100,7 @@ export default function SubmissionAndResultTab({
   return (
     <div>
       {/* Round Navigation */}
-      <div className="flex border-b border-gray-200 space-x-4">
+      <div className="flex border-b border-gray-200 space-x-4 overflow-x-auto">
         {roundTabs.map((round) => (
           <button
             key={round}
