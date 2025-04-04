@@ -1,14 +1,14 @@
-// src/app/hackathon/[id]/_components/TeamRequestsTab.tsx
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { useState, useEffect } from "react";
 import { Trash2, X, Plus } from "lucide-react";
 import { useApiModal } from "@/hooks/useApiModal";
 import { teamRequestService } from "@/services/teamRequest.service";
+import { userService } from "@/services/user.service"; // Import user service
 
 type TeamRequestsTabProps = {
   teamRequests: TeamRequest[];
-  individualRegistrations: IndividualRegistrationRequest[]; // Added this prop
+  individualRegistrations: IndividualRegistrationRequest[];
   hackathonId: string;
   minimumTeamMembers: number;
   maximumTeamMembers: number;
@@ -18,7 +18,7 @@ type TeamRequestsTabProps = {
 
 export default function TeamRequestsTab({
   teamRequests,
-  individualRegistrations, // Added this prop
+  individualRegistrations,
   hackathonId,
   minimumTeamMembers,
   maximumTeamMembers,
@@ -34,50 +34,43 @@ export default function TeamRequestsTab({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]); // Store all team members
 
   // Use our API modal hook for error and success handling
   const { showError, showSuccess, showInfo } = useApiModal();
+
+  // Fetch all team members when component mounts
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const { data: members } = await userService.getTeamMembers();
+        setTeamMembers(members);
+      } catch (error) {
+        console.error("Error fetching team members:", error);
+        showError("Error", "Failed to fetch team members");
+      }
+    };
+
+    fetchTeamMembers();
+  }, [showError]);
 
   // Search users when typing in the member field
   useEffect(() => {
     if (searchTerm.length > 2) {
       setIsSearching(true);
-      // Replace mock implementation with real user search API call
-      // This is a placeholder - you'll need to implement the actual user search service
-      const searchUsers = async () => {
-        try {
-          // Replace with your actual user search service
-          // const users = await userService.searchUsers(searchTerm);
-          // setSearchResults(users);
 
-          // For now, we'll keep a simplified version:
-          const mockUsers = [
-            {
-              id: "1",
-              email: "user1@example.com",
-              firstName: "User",
-              lastName: "One",
-            },
-            {
-              id: "2",
-              email: "user2@example.com",
-              firstName: "User",
-              lastName: "Two",
-            },
-            {
-              id: "3",
-              email: "user3@example.com",
-              firstName: "User",
-              lastName: "Three",
-            },
-          ].filter(
-            (u) =>
-              u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              `${u.firstName} ${u.lastName}`
+      // Filter team members based on search term
+      const filterTeamMembers = () => {
+        try {
+          const filteredUsers = teamMembers.filter(
+            (member) =>
+              member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              `${member.firstName} ${member.lastName}`
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase())
           );
-          setSearchResults(mockUsers);
+
+          setSearchResults(filteredUsers);
         } catch (error) {
           showError("Search Error", "Failed to search for users");
           console.error("Error searching for users:", error);
@@ -86,11 +79,12 @@ export default function TeamRequestsTab({
         }
       };
 
-      searchUsers();
+      filterTeamMembers();
     } else {
       setSearchResults([]);
+      setIsSearching(false);
     }
-  }, [searchTerm, showError]);
+  }, [searchTerm, teamMembers, showError]);
 
   // Delete team request
   const deleteTeamRequest = async (requestId: string, status: string) => {
