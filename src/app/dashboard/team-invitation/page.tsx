@@ -1,14 +1,15 @@
-// src/app/dashboard/team-invitation/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { fetchMockTeamRequests } from "./_mock/fetchMockTeamRequests";
-import { fetchMockIndividualRegistrations } from "./_mock/fetchMockIndividualRegistrations";
-import { updateTeamRequestMemberStatus } from "./_mock/updateTeamRequestMemberStatus";
 import { useAuth } from "@/hooks/useAuth_v0";
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { ChevronDown, ChevronUp, Check, X } from "lucide-react";
+import { teamRequestService } from "@/services/teamRequest.service";
+import { individualRegistrationRequestService } from "@/services/individualRegistrationRequest.service";
+import { teamRequestMemberService } from "@/services/teamRequestMember.service";
+import ApiResponseModal from "@/components/common/ApiResponseModal";
+import { useApiModal } from "@/hooks/useApiModal";
 
 export default function TeamInvitationPage() {
   const { user } = useAuth();
@@ -20,16 +21,53 @@ export default function TeamInvitationPage() {
     [key: string]: boolean;
   }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const { modalState, showError, showSuccess, hideModal } = useApiModal();
+
+  const fetchTeamRequests = async () => {
+    if (!user || !user.id) return;
+
+    try {
+      setIsLoading(true);
+      const { data, message } = await teamRequestService.getTeamRequestsByUser(
+        user.id
+      );
+      setTeamRequests(data);
+    } catch (error) {
+      console.error("Failed to fetch team requests:", error);
+      showError(
+        "Error",
+        "Failed to fetch team invitations. Please try again later."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchIndividualRegistrations = async () => {
+    if (!user || !user.username) return;
+
+    try {
+      setIsLoading(true);
+      const { data, message } =
+        await individualRegistrationRequestService.getIndividualRegistrationRequestsByUser(
+          user.username
+        );
+      setIndividualRegistrations(data);
+    } catch (error) {
+      console.error("Failed to fetch individual registrations:", error);
+      showError(
+        "Error",
+        "Failed to fetch registration status. Please try again later."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
-      // Fetch team requests
-      fetchMockTeamRequests(user.id).then(setTeamRequests);
-
-      // Fetch individual registrations
-      fetchMockIndividualRegistrations(user.username || "").then(
-        setIndividualRegistrations
-      );
+      fetchTeamRequests();
+      fetchIndividualRegistrations();
     }
   }, [user]);
 
@@ -41,39 +79,43 @@ export default function TeamInvitationPage() {
   };
 
   const handleStatusUpdate = async (
-    teamRequestMemberId: string,
-    status: "approved" | "rejected"
+    teamRequestId: string,
+    userId: string,
+    status: "APPROVED" | "REJECTED"
   ) => {
+    if (!user || !user.id) return;
+
     setIsLoading(true);
     try {
-      // Call mock API to update status
-      await updateTeamRequestMemberStatus({
-        teamRequestMemberId,
-        status,
-      });
-
-      // Update local state with the new status
-      setTeamRequests((prevRequests) => {
-        return prevRequests.map((request) => {
-          const updatedMembers = request.teamRequestMembers.map((member) => {
-            if (member.id === teamRequestMemberId) {
-              return {
-                ...member,
-                status,
-                respondedAt: new Date().toISOString(),
-              };
-            }
-            return member;
-          });
-
-          return {
-            ...request,
-            teamRequestMembers: updatedMembers,
-          };
+      // Call real API to update status
+      const { data, message } =
+        await teamRequestMemberService.respondToTeamRequest({
+          requestId: teamRequestId,
+          userId: userId,
+          status,
+          note:
+            status === "APPROVED"
+              ? "Invitation accepted"
+              : "Invitation declined",
         });
-      });
-    } catch (error) {
+
+      // Show success message
+      showSuccess(
+        status === "APPROVED" ? "Invitation Accepted" : "Invitation Declined",
+        message ||
+          `You have ${status === "APPROVED" ? "accepted" : "declined"} the team invitation.`
+      );
+
+      // Refresh data to show updated status
+      fetchTeamRequests();
+      fetchIndividualRegistrations();
+    } catch (error: any) {
       console.error("Failed to update status:", error);
+      showError(
+        "Action Failed",
+        error.message ||
+          "Failed to respond to invitation. Please try again later."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +129,7 @@ export default function TeamInvitationPage() {
         request.hackathon?.id === hackathonId &&
         request.teamRequestMembers.some(
           (member) =>
-            member.user?.id === user?.id && member.status === "approved"
+            member.user?.id === user?.id && member.status === "APPROVED"
         )
     );
 
@@ -122,6 +164,17 @@ export default function TeamInvitationPage() {
     },
     {} as Record<string, { title: string; requests: TeamRequest[] }>
   );
+
+  // Loading state UI
+  if (isLoading && teamRequests.length === 0) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4">
+        <div className="text-center">
+          <p className="text-lg text-gray-600">Loading your invitations...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-gray-100 p-4">
@@ -180,7 +233,9 @@ export default function TeamInvitationPage() {
                               {request.teamRequestMembers.map((member) => {
                                 const isCurrentUser =
                                   member.user?.id === user?.id;
-                                const isPending = member.status === "pending";
+                                const isPending =
+                                  member.status === "PENDING" ||
+                                  member.status === "pending";
 
                                 return (
                                   <li key={member.id} className="py-1">
@@ -190,9 +245,11 @@ export default function TeamInvitationPage() {
                                         {member.user?.lastName} -{" "}
                                         <span
                                           className={
+                                            member.status === "APPROVED" ||
                                             member.status === "approved"
                                               ? "text-green-600"
-                                              : member.status === "rejected"
+                                              : member.status === "REJECTED" ||
+                                                  member.status === "rejected"
                                                 ? "text-red-600"
                                                 : "text-yellow-600"
                                           }
@@ -206,8 +263,9 @@ export default function TeamInvitationPage() {
                                           <button
                                             onClick={() =>
                                               handleStatusUpdate(
-                                                member.id,
-                                                "approved"
+                                                request.id,
+                                                user.id,
+                                                "APPROVED"
                                               )
                                             }
                                             disabled={
@@ -232,8 +290,9 @@ export default function TeamInvitationPage() {
                                           <button
                                             onClick={() =>
                                               handleStatusUpdate(
-                                                member.id,
-                                                "rejected"
+                                                request.id,
+                                                user.id,
+                                                "REJECTED"
                                               )
                                             }
                                             disabled={isLoading}
@@ -271,6 +330,15 @@ export default function TeamInvitationPage() {
           </div>
         )}
       </div>
+
+      {/* API Response Modal */}
+      <ApiResponseModal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 }
