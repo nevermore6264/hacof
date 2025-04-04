@@ -1,200 +1,268 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_components/KanbanBoard.tsx
 "use client";
 
-import { useKanbanStore } from "@/store/kanbanStore";
-import { DndContext, closestCorners } from "@dnd-kit/core";
+import { useState, useEffect } from "react";
+import {
+  DndContext,
+  closestCorners,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Board } from "@/types/entities/board";
+import { Team } from "@/types/entities/team";
 import KanbanColumn from "./KanbanColumn";
-import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
+import BoardHeader from "./BoardHeader";
+import { useAuth } from "@/hooks/useAuth_v0";
+import BoardUserManagement from "./BoardUserManagement";
+import { useKanbanStore } from "@/store/kanbanStore";
 
-export default function KanbanBoard() {
-  const { columns } = useKanbanStore();
-  const [isMentorModalOpen, setMentorModalOpen] = useState(false);
+interface KanbanBoardProps {
+  board: Board | null;
+  team: Team | null;
+}
+
+export default function KanbanBoard({ board, team }: KanbanBoardProps) {
+  const { user } = useAuth();
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      avatar:
-        "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      avatar:
-        "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
-    },
-  ]);
+  const [isEditingBoard, setIsEditingBoard] = useState(false);
+  const [boardName, setBoardName] = useState("");
+  const [boardDescription, setBoardDescription] = useState("");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const { setBoard, setColumns, moveTask, moveList } = useKanbanStore();
+
+  // Check if current user is board owner
+  const isOwner = board?.owner?.id == user?.id;
+
+  // Transform board data to kanban format when board data changes
+  useEffect(() => {
+    if (board) {
+      setBoard(board);
+      setBoardName(board.name);
+      setBoardDescription(board.description || "");
+
+      if (board.boardLists) {
+        const formattedColumns = board.boardLists.map((list) => ({
+          id: list.id,
+          title: list.name,
+          tasks: (list.tasks || []).map((task) => ({
+            id: task.id,
+            title: task.title,
+            status: list.name.toLowerCase().replace(/\s+/g, "-"),
+            description: task.description || "",
+            dueDate: task.dueDate,
+            assignees: task.assignees?.map((assignee) => assignee.user) || [],
+            labels: task.taskLabels?.map((tl) => tl.boardLabel) || [],
+          })),
+        }));
+
+        setColumns(formattedColumns);
+      }
+    }
+  }, [board, setBoard, setColumns]);
+
+  // Handle drag start event
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+  };
+
+  // Handle drag over event
+  const handleDragOver = (event: DragOverEvent) => {
+    // This would be used for column sorting if needed
+  };
+
+  // Handle drag end event
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Check if this is a column being dragged
+    const isColumn = useKanbanStore
+      .getState()
+      .columns.some((col) => col.id === activeId);
+
+    if (isColumn) {
+      // Find current and target index
+      const columns = useKanbanStore.getState().columns;
+      const currentIndex = columns.findIndex((col) => col.id === activeId);
+      const targetIndex = columns.findIndex((col) => col.id === overId);
+
+      if (currentIndex !== targetIndex) {
+        moveList(activeId, targetIndex);
+      }
+      return;
+    }
+
+    // This is a task being dragged
+    const sourceColumnId = useKanbanStore
+      .getState()
+      .columns.find((column) =>
+        column.tasks.some((task) => task.id === activeId)
+      )?.id;
+
+    if (sourceColumnId && sourceColumnId !== overId) {
+      moveTask(activeId, sourceColumnId, overId);
+    }
+  };
+
+  if (!board) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading board data...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Project Name</h1>
-          <p className="text-gray-500">Goal of the board...</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          {/* Status Tag (Click to open Mentorship Modal) */}
-          <button
-            onClick={() => setMentorModalOpen(true)}
-            className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm"
-          >
-            Meeting with mentor
-          </button>
+      <BoardHeader
+        board={board}
+        isOwner={isOwner}
+        onOpenUserManagement={() => setInviteModalOpen(true)}
+        onEdit={() => setIsEditingBoard(true)}
+      />
 
-          {/* Avatars */}
-          <div className="flex -space-x-2">
-            {users.slice(0, 3).map((user) => (
-              <img
-                key={user.id}
-                src={user.avatar}
-                alt={user.name}
-                className="w-8 h-8 rounded-full border-2 border-white"
+      {/* Kanban Board */}
+      <DndContext
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={useKanbanStore.getState().columns.map((col) => col.id)}
+          strategy={horizontalListSortingStrategy}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {useKanbanStore.getState().columns.map((column) => (
+              <KanbanColumn
+                key={column.id}
+                column={column}
+                isActive={activeId === column.id}
               />
             ))}
-            {users.length > 3 && (
-              <span className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full border-2 border-white text-sm">
-                +{users.length - 3}
-              </span>
-            )}
           </div>
+        </SortableContext>
+      </DndContext>
 
-          {/* Invite Button */}
+      {/* Add New List Button */}
+      <div className="mt-4">
+        <button
+          onClick={() => useKanbanStore.getState().createList("New List")}
+          className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg flex items-center"
+        >
+          <span className="mr-2">+</span>
+          <span>Add New List</span>
+        </button>
+      </div>
+
+      {/* User Management Modal */}
+      {isInviteModalOpen && (
+        <BoardUserManagement
+          board={board}
+          team={team}
+          isOpen={isInviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+          isOwner={isOwner}
+        />
+      )}
+
+      {/* Board Edit Modal */}
+      {isEditingBoard && (
+        <BoardEditModal
+          boardName={boardName}
+          boardDescription={boardDescription}
+          onSave={async () => {
+            await useKanbanStore
+              .getState()
+              .updateBoardDetails(boardName, boardDescription);
+            setIsEditingBoard(false);
+          }}
+          onCancel={() => {
+            setBoardName(board.name);
+            setBoardDescription(board.description || "");
+            setIsEditingBoard(false);
+          }}
+          onChangeName={setBoardName}
+          onChangeDescription={setBoardDescription}
+        />
+      )}
+    </div>
+  );
+}
+
+interface BoardEditModalProps {
+  boardName: string;
+  boardDescription: string;
+  onSave: () => void;
+  onCancel: () => void;
+  onChangeName: (name: string) => void;
+  onChangeDescription: (description: string) => void;
+}
+
+function BoardEditModal({
+  boardName,
+  boardDescription,
+  onSave,
+  onCancel,
+  onChangeName,
+  onChangeDescription,
+}: BoardEditModalProps) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+        <h2 className="text-xl font-bold mb-4">Edit Board</h2>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Board Name
+          </label>
+          <input
+            type="text"
+            value={boardName}
+            onChange={(e) => onChangeName(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            value={boardDescription}
+            onChange={(e) => onChangeDescription(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            rows={4}
+          />
+        </div>
+
+        <div className="flex justify-end space-x-2">
           <button
-            onClick={() => setInviteModalOpen(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium"
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700"
           >
-            Invite
+            Cancel
+          </button>
+          <button
+            onClick={onSave}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md"
+          >
+            Save Changes
           </button>
         </div>
       </div>
-
-      {/* Kanban Board */}
-      <DndContext collisionDetection={closestCorners}>
-        <div className="grid grid-cols-3 gap-6">
-          {columns.map((column) => (
-            <KanbanColumn key={column.id} column={column} />
-          ))}
-        </div>
-      </DndContext>
-
-      {/* Mentorship Session Modal */}
-      <Transition appear show={isMentorModalOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50"
-          onClose={() => setMentorModalOpen(false)}
-        >
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-            <Dialog.Panel className="bg-white p-6 rounded-lg shadow-xl w-96">
-              <Dialog.Title className="text-lg font-semibold">
-                Request Mentorship Session
-              </Dialog.Title>
-              <form className="space-y-4 mt-3">
-                <input
-                  type="text"
-                  placeholder="Name"
-                  className="w-full px-3 py-2 border rounded"
-                />
-                <input
-                  type="datetime-local"
-                  placeholder="Start Time"
-                  className="w-full px-3 py-2 border rounded"
-                />
-                <input
-                  type="datetime-local"
-                  placeholder="End Time"
-                  className="w-full px-3 py-2 border rounded"
-                />
-                <input
-                  type="text"
-                  placeholder="Location"
-                  className="w-full px-3 py-2 border rounded"
-                />
-                <textarea
-                  placeholder="Description"
-                  className="w-full px-3 py-2 border rounded h-24"
-                ></textarea>
-                <div className="flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setMentorModalOpen(false)}
-                    className="px-4 py-2 bg-gray-200 rounded"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded"
-                  >
-                    Submit
-                  </button>
-                </div>
-              </form>
-            </Dialog.Panel>
-          </div>
-        </Dialog>
-      </Transition>
-
-      {/* Invite Users Modal */}
-      <Transition appear show={isInviteModalOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50"
-          onClose={() => setInviteModalOpen(false)}
-        >
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
-            <Dialog.Panel className="bg-white p-6 rounded-lg shadow-xl w-96">
-              <Dialog.Title className="text-lg font-semibold">
-                Manage Users
-              </Dialog.Title>
-              <div className="mt-3 space-y-4">
-                {users.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex justify-between items-center"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-8 h-8 rounded-full"
-                      />
-                      <span>{user.name}</span>
-                    </div>
-                    <button
-                      onClick={() =>
-                        setUsers(users.filter((u) => u.id !== user.id))
-                      }
-                      className="px-2 py-1 text-red-600 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                <input
-                  type="text"
-                  placeholder="Enter name..."
-                  className="w-full px-3 py-2 border rounded"
-                />
-                <button className="w-full px-4 py-2 bg-green-500 text-white rounded">
-                  Add User
-                </button>
-                <div className="flex justify-end mt-3">
-                  <button
-                    type="button"
-                    onClick={() => setInviteModalOpen(false)}
-                    className="px-4 py-2 bg-gray-200 rounded"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </Dialog.Panel>
-          </div>
-        </Dialog>
-      </Transition>
     </div>
   );
 }

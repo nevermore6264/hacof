@@ -24,7 +24,15 @@ export const fetchMockMentors = (hackathonId: string): Promise<User[]> => {
           skills: ["React", "Node.js", "GraphQL"],
           experienceLevel: "Advanced",
           status: "Active",
-          userRoles: ["Mentor"],
+          userRoles: [
+            {
+              id: "ur3",
+              user: {
+                id: "mentor1",
+              },
+              role: { id: "5", name: "MENTOR" },
+            },
+          ],
           mentorTeams: [],
           mentorTeamLimits: [],
           createdAt: new Date().toISOString(),
@@ -49,7 +57,15 @@ export const fetchMockMentors = (hackathonId: string): Promise<User[]> => {
           skills: ["Vue.js", "Django", "SQL"],
           experienceLevel: "Intermediate",
           status: "Active",
-          userRoles: ["Mentor"],
+          userRoles: [
+            {
+              id: "ur4",
+              user: {
+                id: "mentor2",
+              },
+              role: { id: "5", name: "MENTOR" },
+            },
+          ],
           mentorTeams: [],
           mentorTeamLimits: [],
           createdAt: new Date().toISOString(),

@@ -5,6 +5,7 @@ import { Team } from "./team";
 import { BoardUser } from "./boardUser";
 import { BoardList } from "./boardList";
 import { BoardLabel } from "./boardLabel";
+import { Hackathon } from "./hackathon";
 
 export type Board = {
   id: string;
@@ -14,6 +15,8 @@ export type Board = {
   ownerId?: string;
   team?: Team;
   teamId?: string;
+  hackathon?: Hackathon;
+  hackathonId?: string;
   boardUsers?: BoardUser[];
   boardLists?: BoardList[];
   boardLabels?: BoardLabel[];

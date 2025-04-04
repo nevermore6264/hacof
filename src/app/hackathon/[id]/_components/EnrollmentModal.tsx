@@ -4,8 +4,11 @@ import { IndividualRegistrationRequest } from "@/types/entities/individualRegist
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { Team } from "@/types/entities/team";
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
-import EnrollmentFormTab from "./EnrollmentFormTab";
+import { Fragment, useState, useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
+import TeamsTab from "./TeamsTab";
+import TeamRequestsTab from "./TeamRequestsTab";
+import IndividualRegistrationsTab from "./IndividualRegistrationsTab";
 
 type EnrollmentModalProps = {
   isOpen: boolean;
@@ -29,8 +32,16 @@ export default function EnrollmentModal({
   maximumTeamMembers,
 }: EnrollmentModalProps) {
   const [activeTab, setActiveTab] = useState<
-    "teams" | "teamRequests" | "individual" | "enroll"
+    "teams" | "teamRequests" | "individual"
   >("teams");
+  const { user } = useAuthStore();
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset any state needed
+    }
+  }, [isOpen]);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -76,92 +87,27 @@ export default function EnrollmentModal({
                 >
                   Individual Registrations
                 </button>
-                <button
-                  onClick={() => setActiveTab("enroll")}
-                  className={`px-4 py-2 rounded ${
-                    activeTab === "enroll"
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  Enroll
-                </button>
               </div>
 
-              {activeTab === "teams" && (
-                <div>
-                  {teams.length === 0 ? (
-                    <p>No teams found.</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {teams.map((team) => (
-                        <li key={team.id} className="border p-3 rounded">
-                          <p className="font-semibold">{team.name}</p>
-                          <p className="text-sm text-gray-500">
-                            Members:{" "}
-                            {team.teamMembers
-                              .map((m) => m.user.firstName)
-                              .join(", ")}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
+              {activeTab === "teams" && <TeamsTab teams={teams} />}
 
               {activeTab === "teamRequests" && (
-                <div>
-                  {teamRequests.length === 0 ? (
-                    <p>No team requests found.</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {teamRequests.map((request) => (
-                        <li key={request.id} className="border p-3 rounded">
-                          <p className="font-semibold">
-                            Request: {request.note}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Status: {request.status}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Members:{" "}
-                            {request.teamRequestMembers
-                              .map((m) => m.user.firstName)
-                              .join(", ")}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                <TeamRequestsTab
+                  teamRequests={teamRequests}
+                  hackathonId={hackathonId}
+                  minimumTeamMembers={minimumTeamMembers}
+                  maximumTeamMembers={maximumTeamMembers}
+                  user={user}
+                />
               )}
 
               {activeTab === "individual" && (
-                <div>
-                  {individualRegistrations.length === 0 ? (
-                    <p>No individual enrollments found.</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {individualRegistrations.map((reg) => (
-                        <li key={reg.id} className="border p-3 rounded">
-                          <p className="font-semibold">Status: {reg.status}</p>
-                          <p className="text-sm text-gray-500">
-                            Registered at: {reg.createdAt}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-              {activeTab === "enroll" && (
-                <EnrollmentFormTab
+                <IndividualRegistrationsTab
+                  individualRegistrations={individualRegistrations}
                   hackathonId={hackathonId}
-                  minTeam={minimumTeamMembers}
-                  maxTeam={maximumTeamMembers}
                 />
               )}
+
               <div className="mt-6 flex justify-end">
                 <button
                   className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"

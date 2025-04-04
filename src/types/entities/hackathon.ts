@@ -13,6 +13,8 @@ import { Device } from "./device";
 import { Feedback } from "./feedback";
 import { MentorTeam } from "./mentorTeam";
 import { MentorTeamLimit } from "./mentorTeamLimit";
+import { Schedule } from "./schedule";
+import { FileUrl } from "./fileUrl";
 
 export type HackathonStatus = "DRAFT" | "OPEN" | "ONGOING" | "CLOSED"; // Update this enum based on your actual Status enum if different
 
@@ -28,7 +30,7 @@ export type Hackathon = {
   endDate: string;
   information: string;
   description: string;
-  documentation: string[]; // document public URLs
+  documentation?: Partial<FileUrl>[];
   contact: string;
   category: string; // New: Used for category filtering
   organization: string; // New: Used for organization filtering
@@ -45,6 +47,7 @@ export type Hackathon = {
   mentorshipRequests: MentorshipRequest[];
   mentorshipSessionRequests: MentorshipSessionRequest[];
   sponsorshipHackathons: SponsorshipHackathon[];
+  schedules: Schedule[];
   devices: Device[];
   feedbacks: Feedback[];
   mentorTeams: MentorTeam[];

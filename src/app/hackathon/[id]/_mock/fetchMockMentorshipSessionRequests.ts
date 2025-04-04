@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/_mock/fetchMockMentorshipSessionRequests.ts
 import { MentorshipSessionRequest } from "@/types/entities/mentorshipSessionRequest";
 
 export const fetchMockMentorshipSessionRequests = (
@@ -8,7 +9,6 @@ export const fetchMockMentorshipSessionRequests = (
       const mockMentorshipSessionRequests: MentorshipSessionRequest[] = [
         {
           id: "session1",
-          mentorTeam: { id: mentorTeamId },
           startTime: new Date().toISOString(),
           endTime: new Date(Date.now() + 3600000).toISOString(),
           location: "Room A",
@@ -19,7 +19,6 @@ export const fetchMockMentorshipSessionRequests = (
         },
         {
           id: "session2",
-          mentorTeam: { id: mentorTeamId },
           startTime: new Date().toISOString(),
           endTime: new Date(Date.now() + 7200000).toISOString(),
           location: "Room B",
@@ -29,6 +28,17 @@ export const fetchMockMentorshipSessionRequests = (
             id: "admin789",
             firstName: "Alice",
             lastName: "Johnson",
+            email: "alice.johnson@example.com",
+            username: "alicejohnson",
+            avatarUrl: "https://example.com/alice-avatar.png",
+            status: "Active",
+            userRoles: [
+              {
+                id: "ur3",
+                user: { id: "admin789" },
+                role: { id: "1", name: "ADMIN" },
+              },
+            ],
           },
           evaluatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -36,7 +46,6 @@ export const fetchMockMentorshipSessionRequests = (
         },
         {
           id: "session3",
-          mentorTeam: { id: mentorTeamId },
           startTime: new Date().toISOString(),
           endTime: new Date(Date.now() + 5400000).toISOString(),
           location: "Room C",
@@ -46,6 +55,17 @@ export const fetchMockMentorshipSessionRequests = (
             id: "admin101",
             firstName: "Chris",
             lastName: "Evans",
+            email: "chris.evans@example.com",
+            username: "chrisevans",
+            avatarUrl: "https://example.com/chris-avatar.png",
+            status: "Active",
+            userRoles: [
+              {
+                id: "ur5",
+                user: { id: "admin101" },
+                role: { id: "1", name: "ADMIN" },
+              },
+            ],
           },
           evaluatedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),

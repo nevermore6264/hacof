@@ -1,15 +1,53 @@
 // src/app/hackathon/[id]/team/[teamId]/board/page.tsx
 "use client";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import KanbanBoard from "./_components/KanbanBoard";
 import Calendar from "@/components/calendar/Calendar";
 import SubmissionAndResultTab from "./_components/SubmissionAndResultTab";
+import { Round } from "@/types/entities/round";
+import { fetchMockRounds } from "./_mock/fetchMockRounds";
+import { fetchMockTeams } from "./_mock/fetchMockTeams";
+import { Team } from "@/types/entities/team";
+import { Board } from "@/types/entities/board";
+import { fetchMockBoardsByTeamId } from "./_mock/fetchMockBoards";
+
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
 export default function HackathonBoardPage() {
-  const { id: hackathonId, teamId } = useParams();
+  const { id, teamId } = useParams();
+  const hackathonId = Array.isArray(id) ? id[0] : id;
+  const teamIdValue = Array.isArray(teamId) ? teamId[0] : teamId;
+
+  const [rounds, setRounds] = useState<Round[]>([]);
+  const [team, setTeam] = useState<Team | null>(null);
+  const [boards, setBoards] = useState<Board[]>([]);
   const [activeTab, setActiveTab] = useState(TABS[0]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!hackathonId || !teamIdValue) return;
+
+    setLoading(true);
+
+    // Fetch rounds data
+    fetchMockRounds(hackathonId)
+      .then((data) => setRounds(data))
+      .finally(() => setLoading(false));
+
+    // Fetch team data
+    fetchMockTeams(teamIdValue).then((teams) => {
+      if (teams.length > 0) {
+        setTeam(teams[0]);
+      }
+    });
+
+    // Fetch board data
+    fetchMockBoardsByTeamId(teamIdValue, hackathonId).then((boards) => {
+      setBoards(boards);
+    });
+  }, [hackathonId, teamIdValue]);
 
   return (
     <div className="p-6">
@@ -32,8 +70,20 @@ export default function HackathonBoardPage() {
 
       {/* Tab Content */}
       <div className="mt-4 p-4 border rounded-lg bg-white shadow">
-        {activeTab === "Task Board" && <KanbanBoard />}
-        {activeTab === "Submission and Result" && <SubmissionAndResultTab />}
+        {activeTab === "Task Board" && (
+          <KanbanBoard
+            board={boards.length > 0 ? boards[0] : null}
+            team={team}
+          />
+        )}
+        {activeTab === "Submission and Result" && (
+          <SubmissionAndResultTab
+            rounds={rounds}
+            loading={loading}
+            hackathonId={hackathonId}
+            teamId={teamIdValue}
+          />
+        )}
         {activeTab === "Schedule" && <Calendar />}
         {activeTab === "Analytics" && <p>Placeholder for analytics.</p>}
       </div>
