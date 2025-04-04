@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/team/[teamId]/board/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
