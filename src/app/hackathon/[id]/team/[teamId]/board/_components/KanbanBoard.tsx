@@ -20,13 +20,27 @@ import BoardHeader from "./BoardHeader";
 import { useAuth } from "@/hooks/useAuth_v0";
 import BoardUserManagement from "./BoardUserManagement";
 import { useKanbanStore } from "@/store/kanbanStore";
+import { fetchMockBoardLabelsByBoardId } from "../_mock/fetchMockBoardLabels";
+import { fetchMockBoardListsByBoardId } from "../_mock/fetchMockBoardLists";
+import { fetchMockBoardUsers } from "../_mock/fetchMockBoardUsers";
+import { fetchMockTasksByBoardListId } from "../_mock/fetchMockTasks";
+import { fetchMockTaskFilesByTaskId } from "../_mock/fetchMockTaskFilesByTaskId";
+import { fetchMockTaskLabelsByTaskId } from "../_mock/fetchMockTaskLabels";
+import { fetchMockTaskCommentsByTaskId } from "../_mock/fetchMockTaskComments";
+import { fetchMockTaskAssigneesByTaskId } from "../_mock/fetchMockTaskAssignees";
+import { BoardLabel } from "@/types/entities/boardLabel";
 
 interface KanbanBoardProps {
   board: Board | null;
   team: Team | null;
+  isLoading: boolean;
 }
 
-export default function KanbanBoard({ board, team }: KanbanBoardProps) {
+export default function KanbanBoard({
+  board,
+  team,
+  isLoading,
+}: KanbanBoardProps) {
   const { user } = useAuth();
   const [isInviteModalOpen, setInviteModalOpen] = useState(false);
   const [isEditingBoard, setIsEditingBoard] = useState(false);
@@ -34,36 +48,135 @@ export default function KanbanBoard({ board, team }: KanbanBoardProps) {
   const [boardDescription, setBoardDescription] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const { setBoard, setColumns, moveTask, moveList } = useKanbanStore();
+  const [loading, setLoading] = useState(true);
+  const [currentLoadingList, setCurrentLoadingList] = useState<string | null>(
+    null
+  );
 
   // Check if current user is board owner
   const isOwner = board?.owner?.id == user?.id;
 
-  // Transform board data to kanban format when board data changes
+  // Load board data progressively
   useEffect(() => {
-    if (board) {
-      setBoard(board);
+    if (!board || isLoading || !team) return;
+
+    const loadBoardData = async () => {
+      setLoading(true);
       setBoardName(board.name);
       setBoardDescription(board.description || "");
+      setBoard(board);
 
-      if (board.boardLists) {
-        const formattedColumns = board.boardLists.map((list) => ({
+      try {
+        // Create a user map from team members for quick access
+        const teamUsersMap = {};
+
+        // Add the team leader to the map
+        if (team.teamLeader) {
+          teamUsersMap[team.teamLeader.id] = team.teamLeader;
+        }
+
+        // Add all team members to the map
+        team.teamMembers?.forEach((member) => {
+          if (member.user) {
+            teamUsersMap[member.user.id] = member.user;
+          }
+        });
+
+        // Load board users first (for header display)
+        const boardUsers = await fetchMockBoardUsers(board.id);
+        setBoard({
+          ...board,
+          boardUsers,
+        });
+
+        // Load board labels (needed for task labels)
+        const boardLabels = await fetchMockBoardLabelsByBoardId(board.id);
+        const boardLabelsMap = boardLabels.reduce(
+          (map, label) => {
+            map[label.id] = label;
+            return map;
+          },
+          {} as Record<string, BoardLabel>
+        );
+
+        // Load board lists (structure only)
+        const boardLists = await fetchMockBoardListsByBoardId(board.id);
+
+        // Set initial columns with empty tasks (to show skeleton UI)
+        const initialColumns = boardLists.map((list) => ({
           id: list.id,
           title: list.name,
-          tasks: (list.tasks || []).map((task) => ({
-            id: task.id,
-            title: task.title,
-            status: list.name.toLowerCase().replace(/\s+/g, "-"),
-            description: task.description || "",
-            dueDate: task.dueDate,
-            assignees: task.assignees?.map((assignee) => assignee.user) || [],
-            labels: task.taskLabels?.map((tl) => tl.boardLabel) || [],
-          })),
+          tasks: [],
         }));
 
-        setColumns(formattedColumns);
+        setColumns(initialColumns);
+        setLoading(false);
+
+        // Load tasks for each list progressively
+        for (const list of boardLists) {
+          setCurrentLoadingList(list.id);
+          const baseTasks = await fetchMockTasksByBoardListId(list.id);
+
+          // Process tasks in smaller batches if there are many
+          const batchSize = 5;
+          const enhancedTasks = [];
+
+          for (let i = 0; i < baseTasks.length; i += batchSize) {
+            const batch = baseTasks.slice(i, i + batchSize);
+            const batchResults = await Promise.all(
+              batch.map(async (task) => {
+                // Fetch detailed information for each task
+                const [fileUrls, taskLabels, comments, assignees] =
+                  await Promise.all([
+                    fetchMockTaskFilesByTaskId(task.id),
+                    fetchMockTaskLabelsByTaskId(task.id),
+                    fetchMockTaskCommentsByTaskId(task.id),
+                    fetchMockTaskAssigneesByTaskId(task.id),
+                  ]);
+
+                // Enhance taskLabels with their associated boardLabel information
+                const enhancedTaskLabels = taskLabels.map((taskLabel) => ({
+                  ...taskLabel,
+                  boardLabel: taskLabel.boardLabelId
+                    ? boardLabelsMap[taskLabel.boardLabelId]
+                    : undefined,
+                }));
+
+                // Return formatted task for Kanban display
+                return {
+                  id: task.id,
+                  title: task.title,
+                  status: list.name.toLowerCase().replace(/\s+/g, "-"),
+                  description: task.description || "",
+                  dueDate: task.dueDate,
+                  assignees: assignees?.map((assignee) => assignee.user) || [],
+                  labels: enhancedTaskLabels?.map((tl) => tl.boardLabel) || [],
+                  fileUrls,
+                  comments,
+                };
+              })
+            );
+
+            enhancedTasks.push(...batchResults);
+
+            // Update the column with the tasks processed so far
+            const updatedColumns = useKanbanStore
+              .getState()
+              .columns.map((col) =>
+                col.id === list.id ? { ...col, tasks: enhancedTasks } : col
+              );
+            setColumns(updatedColumns);
+          }
+        }
+
+        setCurrentLoadingList(null);
+      } catch (error) {
+        console.error("Error loading board data:", error);
       }
-    }
-  }, [board, setBoard, setColumns]);
+    };
+
+    loadBoardData();
+  }, [board, isLoading, setBoard, setColumns]);
 
   // Handle drag start event
   const handleDragStart = (event: DragStartEvent) => {
@@ -115,10 +228,40 @@ export default function KanbanBoard({ board, team }: KanbanBoardProps) {
     }
   };
 
-  if (!board) {
+  // Show loading skeleton if board data is still loading
+  if (!board || isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        Loading board data...
+      <div className="space-y-6">
+        {/* Skeleton Header */}
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-2"></div>
+            <div className="h-4 w-96 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Skeleton Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-gray-100 p-4 rounded-xl shadow-lg w-full min-h-[400px]"
+            >
+              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4"></div>
+              <div className="space-y-3">
+                {[1, 2, 3].map((j) => (
+                  <div
+                    key={j}
+                    className="h-20 bg-gray-200 rounded animate-pulse"
+                  ></div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -150,6 +293,7 @@ export default function KanbanBoard({ board, team }: KanbanBoardProps) {
                 key={column.id}
                 column={column}
                 isActive={activeId === column.id}
+                isLoading={loading || currentLoadingList === column.id}
               />
             ))}
           </div>

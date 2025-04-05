@@ -12,9 +12,14 @@ import { useKanbanStore } from "@/store/kanbanStore";
 interface KanbanColumnProps {
   column: Column;
   isActive?: boolean;
+  isLoading?: boolean;
 }
 
-export default function KanbanColumn({ column, isActive }: KanbanColumnProps) {
+export default function KanbanColumn({
+  column,
+  isActive,
+  isLoading = false,
+}: KanbanColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [columnName, setColumnName] = useState(column.title);
   const [showMenu, setShowMenu] = useState(false);
@@ -137,9 +142,20 @@ export default function KanbanColumn({ column, isActive }: KanbanColumnProps) {
 
       {/* Droppable area for tasks */}
       <div ref={droppableRef} className="space-y-3 min-h-[300px]">
-        {column.tasks.map((task) => (
-          <KanbanTask key={task.id} task={task} />
-        ))}
+        {isLoading ? (
+          // Skeleton cards when loading
+          <>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-20 bg-gray-200 rounded animate-pulse"
+              ></div>
+            ))}
+          </>
+        ) : (
+          // Actual tasks
+          column.tasks.map((task) => <KanbanTask key={task.id} task={task} />)
+        )}
       </div>
 
       {/* Add Card Button */}
@@ -149,6 +165,7 @@ export default function KanbanColumn({ column, isActive }: KanbanColumnProps) {
           console.log("Adding new task to", column.id);
         }}
         className="w-full text-gray-500 mt-4 flex items-center space-x-2 p-2 hover:bg-gray-200 rounded"
+        disabled={isLoading}
       >
         <span className="text-xl">+</span>
         <span>Add a card</span>

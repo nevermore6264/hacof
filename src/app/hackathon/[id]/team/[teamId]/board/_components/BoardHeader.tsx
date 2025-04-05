@@ -71,7 +71,6 @@ export default function BoardHeader({
             </span>
           )}
         </div>
-
         {/* Manage Users Button */}
         <button
           onClick={onOpenUserManagement}
