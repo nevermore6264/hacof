@@ -22,7 +22,7 @@ export const fetchMockTeamRequests = (
             information: "All details about Hackathon Alpha.",
             description: "Join us for an intense coding competition.",
           },
-          status: "pending",
+          status: "PENDING",
           confirmationDeadline: new Date().toISOString(),
           note: "Looking for teammates!",
           reviewedBy: undefined,
@@ -93,7 +93,7 @@ export const fetchMockTeamRequests = (
             information: "All details about Hackathon Beta.",
             description: "Explore the future of blockchain security.",
           },
-          status: "under_review",
+          status: "UNDER_REVIEW",
           confirmationDeadline: new Date().toISOString(),
           note: "Team is reviewing applications.",
           reviewedBy: {
