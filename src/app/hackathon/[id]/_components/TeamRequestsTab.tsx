@@ -2,10 +2,11 @@
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { useState, useEffect } from "react";
-import { Trash2, X, Plus } from "lucide-react";
+import { Trash2, X, Plus, User } from "lucide-react";
 import { useApiModal } from "@/hooks/useApiModal";
 import { teamRequestService } from "@/services/teamRequest.service";
-import { userService } from "@/services/user.service"; // Import user service
+import { userService } from "@/services/user.service";
+import { useAuth } from "@/hooks/useAuth_v0";
 
 type TeamRequestsTabProps = {
   teamRequests: TeamRequest[];
@@ -15,6 +16,19 @@ type TeamRequestsTabProps = {
   maximumTeamMembers: number;
   user: any;
   onDataUpdate?: () => void;
+};
+
+export type User = {
+  id: string;
+  email?: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  country?: string;
+  city?: string;
+  birthdate?: string;
 };
 
 export default function TeamRequestsTab({
@@ -30,15 +44,31 @@ export default function TeamRequestsTab({
   const [teamName, setTeamName] = useState("");
   const [teamNote, setTeamNote] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<
-    Array<{ userId: string; email: string }>
+    Array<{ userId: string; email: string; isCurrentUser?: boolean }>
   >([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<any[]>([]); // Store all team members
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const { user: currentUser } = useAuth();
 
   // Use our API modal hook for error and success handling
   const { showError, showSuccess, showInfo } = useApiModal();
+
+  // Add current user when creating a new team request
+  const handleCreateTeamRequest = () => {
+    setIsCreating(true);
+    // Add current user to the selected members
+    if (currentUser && currentUser.id && currentUser.email) {
+      setSelectedMembers([
+        {
+          userId: currentUser.id,
+          email: currentUser.email,
+          isCurrentUser: true, // Flag to identify this is the current user
+        },
+      ]);
+    }
+  };
 
   // Fetch all team members when component mounts
   useEffect(() => {
@@ -60,16 +90,22 @@ export default function TeamRequestsTab({
     if (searchTerm.length > 2) {
       setIsSearching(true);
 
-      // Filter team members based on search term
+      // Filter team members based on search term and exclude current user
       const filterTeamMembers = () => {
         try {
-          const filteredUsers = teamMembers.filter(
-            (member) =>
+          const filteredUsers = teamMembers.filter((member) => {
+            // Skip current user in search results
+            if (currentUser && member.id === currentUser.id) {
+              return false;
+            }
+
+            return (
               member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
               `${member.firstName} ${member.lastName}`
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase())
-          );
+            );
+          });
 
           setSearchResults(filteredUsers);
         } catch (error) {
@@ -85,7 +121,7 @@ export default function TeamRequestsTab({
       setSearchResults([]);
       setIsSearching(false);
     }
-  }, [searchTerm, teamMembers, showError]);
+  }, [searchTerm, teamMembers, showError, currentUser]);
 
   // Delete team request
   const deleteTeamRequest = async (requestId: string, status: string) => {
@@ -152,7 +188,8 @@ export default function TeamRequestsTab({
       return;
     }
 
-    if (selectedMembers.length < minimumTeamMembers - 1) {
+    // The current user is already included, so we check if we have enough members in total
+    if (selectedMembers.length < minimumTeamMembers) {
       showInfo(
         "Not Enough Members",
         `You need at least ${minimumTeamMembers} team members (including yourself)`
@@ -203,7 +240,7 @@ export default function TeamRequestsTab({
     }
 
     // Check if max team size is reached
-    if (selectedMembers.length >= maximumTeamMembers - 1) {
+    if (selectedMembers.length >= maximumTeamMembers) {
       showInfo(
         "Maximum Size Reached",
         `Maximum team size is ${maximumTeamMembers}`
@@ -219,9 +256,24 @@ export default function TeamRequestsTab({
     setSearchResults([]);
   };
 
-  // Remove member from selection
+  // Remove member from selection (except current user)
   const removeMember = (userId: string) => {
+    const member = selectedMembers.find((m) => m.userId === userId);
+
+    // Don't allow removing the current user
+    if (member?.isCurrentUser) {
+      return;
+    }
+
     setSelectedMembers(selectedMembers.filter((m) => m.userId !== userId));
+  };
+
+  // Function to handle canceling creation and resetting form
+  const handleCancelCreation = () => {
+    setIsCreating(false);
+    setTeamName("");
+    setTeamNote("");
+    setSelectedMembers([]);
   };
 
   return (
@@ -230,7 +282,7 @@ export default function TeamRequestsTab({
         <h4 className="font-medium">Your Team Requests</h4>
         {!isCreating && (
           <button
-            onClick={() => setIsCreating(true)}
+            onClick={handleCreateTeamRequest}
             className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
           >
             <Plus size={16} /> Create Team Request
@@ -366,24 +418,28 @@ export default function TeamRequestsTab({
               Team Members (Min: {minimumTeamMembers}, Max: {maximumTeamMembers}
               )
             </label>
-            <p className="text-xs text-gray-500 mb-2">
-              You will be automatically added as a team member
-            </p>
 
             {/* Selected members list */}
             <div className="mb-2">
               {selectedMembers.map((member) => (
                 <div
                   key={member.userId}
-                  className="flex items-center bg-blue-50 p-2 rounded mb-1"
+                  className={`flex items-center ${member.isCurrentUser ? "bg-green-50" : "bg-blue-50"} p-2 rounded mb-1`}
                 >
-                  <span className="flex-1">{member.email}</span>
-                  <button
-                    onClick={() => removeMember(member.userId)}
-                    className="text-red-500"
-                  >
-                    <X size={16} />
-                  </button>
+                  <span className="flex-1">
+                    {member.isCurrentUser && (
+                      <span className="text-green-600 mr-1">(You)</span>
+                    )}
+                    {member.email}
+                  </span>
+                  {!member.isCurrentUser && (
+                    <button
+                      onClick={() => removeMember(member.userId)}
+                      className="text-red-500"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -432,7 +488,7 @@ export default function TeamRequestsTab({
               Create Team Request
             </button>
             <button
-              onClick={() => setIsCreating(false)}
+              onClick={handleCancelCreation}
               className="bg-gray-300 hover:bg-gray-400 font-bold py-2 px-6 rounded transition"
             >
               Cancel
