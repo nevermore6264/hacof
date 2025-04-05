@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     }
 
     const backendResponse = await fetch(
-      `${process.env.API_URL}/communication/api/v1/conversations/group`, // 👈 Endpoint backend
+      `${process.env.NEXT_PUBLIC_API_URL}/communication/api/v1/conversations/group`, // 👈 Endpoint backend
       {
         method: "POST",
         headers: {
