@@ -161,7 +161,7 @@ export default function ChatClient() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
-        body: JSON.stringify({ userIds }),
+        body: JSON.stringify({ "userId": userIds[0] }),
       });
 
       if (response.ok) {
