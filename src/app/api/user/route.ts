@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 interface Response {
     code: number;
     message: string;
-    result: User[];
+    data: User[];
 }
 interface User {
     id: string;
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 
         // Gọi API backend thực
         const backendResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/identity/api/v1/users`,
+            `${process.env.NEXT_PUBLIC_API_URL}/identity-service/api/v1/users`,
             {
                 method: "GET",
                 headers: {
