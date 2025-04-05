@@ -70,11 +70,6 @@ export default function KanbanBoard({
         // Create a user map from team members for quick access
         const teamUsersMap = {};
 
-        // Add the team leader to the map
-        if (team.teamLeader) {
-          teamUsersMap[team.teamLeader.id] = team.teamLeader;
-        }
-
         // Add all team members to the map
         team.teamMembers?.forEach((member) => {
           if (member.user) {
