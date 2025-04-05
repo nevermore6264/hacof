@@ -126,7 +126,7 @@ export default function KanbanBoard({
             const batchResults = await Promise.all(
               batch.map(async (task) => {
                 // Fetch detailed information for each task
-                const [fileUrls, taskLabels, comments, assignees] =
+                const [fileUrls, taskLabels, comments, taskAssignees] =
                   await Promise.all([
                     fetchMockTaskFilesByTaskId(task.id),
                     fetchMockTaskLabelsByTaskId(task.id),
@@ -142,6 +142,14 @@ export default function KanbanBoard({
                     : undefined,
                 }));
 
+                // Map task assignees (which now only contain user IDs) to the actual user data from teamUsersMap
+                const enhancedAssignees = taskAssignees.map((assignee) => ({
+                  ...assignee,
+                  user: assignee.user?.id
+                    ? teamUsersMap[assignee.user.id]
+                    : undefined,
+                }));
+
                 // Return formatted task for Kanban display
                 return {
                   id: task.id,
@@ -149,8 +157,14 @@ export default function KanbanBoard({
                   status: list.name.toLowerCase().replace(/\s+/g, "-"),
                   description: task.description || "",
                   dueDate: task.dueDate,
-                  assignees: assignees?.map((assignee) => assignee.user) || [],
-                  labels: enhancedTaskLabels?.map((tl) => tl.boardLabel) || [],
+                  assignees:
+                    enhancedAssignees
+                      ?.map((assignee) => assignee.user)
+                      .filter(Boolean) || [],
+                  labels:
+                    enhancedTaskLabels
+                      ?.map((tl) => tl.boardLabel)
+                      .filter(Boolean) || [],
                   fileUrls,
                   comments,
                 };
@@ -176,7 +190,7 @@ export default function KanbanBoard({
     };
 
     loadBoardData();
-  }, [board, isLoading, setBoard, setColumns]);
+  }, [board, isLoading, team, setBoard, setColumns]);
 
   // Handle drag start event
   const handleDragStart = (event: DragStartEvent) => {
