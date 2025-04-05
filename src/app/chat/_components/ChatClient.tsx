@@ -36,7 +36,6 @@ export default function ChatClient() {
   const [isCreateChatModalOpen, setIsCreateChatModalOpen] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   // Fetch user's chats
@@ -58,8 +57,6 @@ export default function ChatClient() {
         }
       } catch (error) {
         console.error("Error fetching chats:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
