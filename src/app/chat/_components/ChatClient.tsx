@@ -4,143 +4,68 @@ import { useState, useEffect } from "react";
 import ChatList from "./ChatList";
 import ChatDetails from "./ChatDetails";
 import CreateChatModal from "./CreateChatModal";
+import { useAuth } from "@/hooks/useAuth_v0";
+
+interface User {
+  id: number;
+  name: string;
+  image: string;
+}
+
+interface Message {
+  sender: string;
+  time: string;
+  content: string;
+  type: "text" | "image";
+}
+
+interface Chat {
+  id: number;
+  name: string;
+  image: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  messages: Message[];
+  isGroup?: boolean;
+  participants?: User[];
+}
 
 export default function ChatClient() {
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
-  const [isCreateChatModalOpen, setIsCreateChatModalOpen] = useState(false); // Trạng thái modal
+  const [isCreateChatModalOpen, setIsCreateChatModalOpen] = useState(false);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  const [chats, setChats] = useState([
-    // Danh sách chat ban đầu
-    {
-      id: 1,
-      name: "Cody Fisher",
-      image: "https://randomuser.me/api/portraits/men/49.jpg",
-      lastMessage: "Haha oh man",
-      lastMessageTime: "05:14 pm",
-      messages: [
-        {
-          sender: "Cody Fisher",
-          time: "05:14 pm",
-          content: "Haha oh man",
-          type: "text",
-        },
-        {
-          sender: "You",
-          time: "05:15 pm",
-          content: "What's up?",
-          type: "text",
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Jane Cooper",
-      image: "https://randomuser.me/api/portraits/men/11.jpg",
-      lastMessage: "Haha that’s terrifying 😊",
-      lastMessageTime: "07:38 am",
-      messages: [
-        {
-          sender: "Jane Cooper",
-          time: "07:38 am",
-          content: "Haha that’s terrifying 😊",
-          type: "text",
-        },
-        {
-          sender: "You",
-          time: "07:40 am",
-          content: "https://example.com/image.jpg",
-          type: "image",
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: "Floyd Miles",
-      image: "https://randomuser.me/api/portraits/men/22.jpg",
-      lastMessage: "perfect!",
-      lastMessageTime: "11:49 pm",
-      messages: [
-        {
-          sender: "Jane Cooper",
-          time: "07:38 am",
-          content: "Haha that’s terrifying 😊",
-          type: "text",
-        },
-        {
-          sender: "You",
-          time: "07:40 am",
-          content: "https://example.com/image.jpg",
-          type: "image",
-        },
-      ],
-    },
-    {
-      id: 4,
-      name: "Marvin McKinney",
-      image: "https://randomuser.me/api/portraits/men/23.jpg",
-      lastMessage: "omg, this is amazing...",
-      lastMessageTime: "07:40 am",
-      messages: [
-        {
-          sender: "Jane Cooper",
-          time: "07:38 am",
-          content: "Haha that’s terrifying 😊",
-          type: "text",
-        },
-        {
-          sender: "You",
-          time: "07:40 am",
-          content: "https://example.com/image.jpg",
-          type: "image",
-        },
-      ],
-    },
-    {
-      id: 5,
-      name: "Courtney Henry",
-      image: "https://randomuser.me/api/portraits/men/55.jpg",
-      lastMessage: "aww",
-      lastMessageTime: "08:20 pm",
-      messages: [
-        {
-          sender: "Jane Cooper",
-          time: "07:38 am",
-          content: "Haha that’s terrifying 😊",
-          type: "text",
-        },
-        {
-          sender: "You",
-          time: "07:40 am",
-          content: "https://example.com/image.jpg",
-          type: "image",
-        },
-      ],
-    },
-    {
-      id: 6,
-      name: "Dianne Russell",
-      image: "https://randomuser.me/api/portraits/men/15.jpg",
-      lastMessage: "I'll be there in 2 mins",
-      lastMessageTime: "01:09 am",
-      messages: [
-        {
-          sender: "Jane Cooper",
-          time: "07:38 am",
-          content: "Haha that’s terrifying 😊",
-          type: "text",
-        },
-        {
-          sender: "You",
-          time: "07:40 am",
-          content: "https://example.com/image.jpg",
-          type: "image",
-        },
-      ],
-    },
-  ]);
+  // Fetch user's chats
+  useEffect(() => {
+    const fetchChats = async () => {
+      if (!user?.id) return;
+      try {
+        console.log("có vô đây ko")
 
-  // Danh sách người dùng có sẵn
-  const [users, setUsers] = useState([]); // Danh sách người dùng
+        const userId = user?.id;
+        const response = await fetch(`/api/chats?userId=${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setChats(data);
+        } else {
+          console.error("Failed to fetch chats");
+        }
+      } catch (error) {
+        console.error("Error fetching chats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChats();
+  }, [user?.id]);
 
   // Hàm tạo cuộc hội thoại mới bằng API
   const handleCreateChat = async (
@@ -173,6 +98,9 @@ export default function ChatClient() {
       }
     } catch (error) {
       console.error("Error creating chat:", error);
+    }
+    if (loading) {
+      return <div className="flex min-h-screen bg-gray-100 items-center justify-center">Loading...</div>;
     }
   };
 
