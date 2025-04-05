@@ -43,8 +43,6 @@ export default function ChatClient() {
     const fetchChats = async () => {
       if (!user?.id) return;
       try {
-        console.log("có vô đây ko")
-
         const userId = user?.id;
         const response = await fetch(`/api/chats?userId=${userId}`, {
           headers: {
@@ -52,8 +50,8 @@ export default function ChatClient() {
           },
         });
         if (response.ok) {
-          const data = await response.json();
-          setChats(data);
+          const res = await response.json();
+          setChats(res?.data);
         } else {
           console.error("Failed to fetch chats");
         }
