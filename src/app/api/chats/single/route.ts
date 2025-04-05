@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
         // 2. Proxy request đến backend thực
         const backendResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/communication/api/v1/conversations/single`, // 👈 Endpoint backend
+            `${process.env.NEXT_PUBLIC_API_URL}/communication-service/api/v1/conversations/single`, // 👈 Endpoint backend
             {
                 method: "POST",
                 headers: {
