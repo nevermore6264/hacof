@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/chat/ChatClient.tsx
 "use client";
 import { useState, useEffect } from "react";
@@ -65,26 +66,16 @@ export default function ChatClient() {
     fetchChats();
   }, [user?.id]);
 
-  // Hàm tạo cuộc hội thoại mới bằng API
-  const handleCreateChat = async (
-    selectedUsers: { id: number; name: string; image: string }[]
-  ) => {
-    const isGroup = selectedUsers.length > 1;
-
+  // Hàm tạo cuộc hội thoại mới bằng API - CHỈ CÒN SINGLE CHAT
+  const handleCreateChat = async (selectedUser: any) => {
     try {
-      const userIds = selectedUsers.map((user) => user.id);
-      const endpoint = isGroup
-        ? "/api/chats/group"
-        : "/api/chats/single"; // Phân biệt endpoint
-
-      const response = await fetch(endpoint, {
-        // 👈 Gọi endpoint khác nhau
+      const response = await fetch("/api/chats/single", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
-        body: JSON.stringify({ "userId": userIds[0] }),
+        body: JSON.stringify({ userId: selectedUser.id }),
       });
 
       if (response.ok) {
@@ -96,9 +87,6 @@ export default function ChatClient() {
       }
     } catch (error) {
       console.error("Error creating chat:", error);
-    }
-    if (loading) {
-      return <div className="flex min-h-screen bg-gray-100 items-center justify-center">Loading...</div>;
     }
   };
 
@@ -157,7 +145,7 @@ export default function ChatClient() {
       <CreateChatModal
         isOpen={isCreateChatModalOpen}
         onClose={handleCloseCreateChatModal}
-        onCreateChat={handleCreateChat}
+        onCreateChat={(user) => handleCreateChat(user)} // Truyền 1 user thay vì mảng
         users={users}
       />
     </div>

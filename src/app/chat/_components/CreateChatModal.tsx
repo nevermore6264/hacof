@@ -8,47 +8,39 @@ interface User {
     name: string;
     image: string;
 }
-
 interface CreateChatModalProps {
-    isOpen: boolean; // Trạng thái mở/đóng modal
-    onClose: () => void; // Hàm đóng modal
-    onCreateChat: (users: User[]) => void; // Hàm tạo chat mới với danh sách người dùng
-    users: User[]; // Danh sách người dùng có sẵn
+    isOpen: boolean;
+    onClose: () => void;
+    onCreateChat: (user: User) => void; // Thay đổi từ User[] thành User
+    users: User[];
 }
 
 const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClose, onCreateChat, users }) => {
-    const [selectedUsers, setSelectedUsers] = useState<User[]>([]); // Danh sách người dùng được chọn
+    const [selectedUser, setSelectedUser] = useState<User | null>(null); // Thay đổi từ User[] thành User | null
 
     const handleUserSelect = (user: User) => {
-        // Kiểm tra xem người dùng đã được chọn chưa
-        if (selectedUsers.some((u) => u.id === user.id)) {
-            // Nếu đã chọn, bỏ chọn
-            setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
-        } else {
-            // Nếu chưa chọn, thêm vào danh sách
-            setSelectedUsers([...selectedUsers, user]);
-        }
+        setSelectedUser(user); // Chỉ chọn 1 user
     };
 
     const handleSubmit = () => {
-        if (selectedUsers.length > 0) {
-            onCreateChat(selectedUsers); // Gọi hàm tạo chat với danh sách người dùng
-            setSelectedUsers([]); // Reset danh sách
-            onClose(); // Đóng modal
+        if (selectedUser) {
+            onCreateChat(selectedUser); // Truyền 1 user thay vì mảng
+            setSelectedUser(null);
+            onClose();
         }
     };
 
-    if (!isOpen) return null; // Không hiển thị nếu modal đóng
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-96">
-                <h2 className="text-lg font-bold mb-4">Add Users to Chat</h2>
+                <h2 className="text-lg font-bold mb-4">Select User to Chat</h2>
                 <div className="mb-4">
                     {users.map((user) => (
                         <div
                             key={user.id}
-                            className={`flex items-center p-2 cursor-pointer ${selectedUsers.some((u) => u.id === user.id) ? 'bg-blue-50' : 'hover:bg-gray-50'
+                            className={`flex items-center p-2 cursor-pointer ${selectedUser?.id === user.id ? 'bg-blue-50' : 'hover:bg-gray-50'
                                 }`}
                             onClick={() => handleUserSelect(user)}
                         >
@@ -59,19 +51,17 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClose, onCr
                 </div>
                 <div className="flex justify-end">
                     <button
-                        type="button"
                         onClick={onClose}
                         className="mr-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
                     >
                         Cancel
                     </button>
                     <button
-                        type="button"
                         onClick={handleSubmit}
                         className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                        disabled={selectedUsers.length === 0} // Vô hiệu hóa nút nếu không có người dùng nào được chọn
+                        disabled={!selectedUser} // Vô hiệu hóa nếu chưa chọn user
                     >
-                        Create Chat
+                        Start Chat
                     </button>
                 </div>
             </div>

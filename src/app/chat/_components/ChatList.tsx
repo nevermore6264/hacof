@@ -19,9 +19,10 @@ const ChatList: React.FC<ChatListProps> = ({ chats, onChatSelect, onCreateNewCha
     const [searchQuery, setSearchQuery] = useState('');
 
     // Lọc danh sách chat dựa trên search query
-    const filteredChats = chats.filter((chat) =>
-        chat.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredChats = chats
+    // const filteredChats = chats.filter((chat) =>
+    //     chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    // );
 
     return (
         <div className="w-1/3 bg-white border-r border-gray-200">
