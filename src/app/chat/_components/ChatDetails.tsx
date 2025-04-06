@@ -1,35 +1,51 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import React, { useState } from 'react';
-import { FaPaperclip, FaSmile } from 'react-icons/fa'; // Icon cho tài liệu và emoji
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react'; // Thư viện EmojiPicker
+import { FaPaperclip, FaSmile } from 'react-icons/fa';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+
+interface ConversationUser {
+    id: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
+    // ... các trường khác
+}
 
 interface Message {
-    sender: string;
-    time: string;
+    id: string;
+    conversationId: string;
     content: string;
+    fileUrls: string[];
+    reactions: any[]; // Có thể định nghĩa cụ thể hơn
+    createdAt: string;
+    updatedAt: string;
+    createdByUserName: string;
+    deleted: boolean;
+}
+
+interface Chat {
+    id: string;
     type: string;
-    likes?: { emoji: string; user: string }[]; // Danh sách like với emoji và người like
-    seenBy?: string[]; // Danh sách người đã xem
+    name: string;
+    avatarUrl: string | null;
+    conversationUsers: ConversationUser[];
+    messages: Message[];
+    createdAt: string;
+    updatedAt: string;
+    createdByUserName: string;
 }
 
 interface ChatDetailsProps {
-    chatId: number;
-    chats: {
-        id: number;
-        name: string;
-        avatarUrl: string;
-        lastMessage: string;
-        lastMessageTime: string;
-        messages: Message[];
-    }[];
+    chatId: string; // Đổi từ number sang string để phù hợp với dữ liệu
+    chats: Chat[];
 }
 
 const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
     const chat = chats.find((chat) => chat.id === chatId);
-    const [message, setMessage] = useState(''); // Tin nhắn đang nhập
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Hiển thị emoji picker
-    const [file, setFile] = useState<File | null>(null); // File tài liệu
+    const [message, setMessage] = useState('');
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [file, setFile] = useState<File | null>(null);
 
     if (!chat) {
         return (
@@ -39,11 +55,21 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
         );
     }
 
-    // Xử lý gửi tin nhắn
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const getSenderName = (username: string) => {
+        const user = chat.conversationUsers.find(u =>
+            `${u.firstName} ${u.lastName}`.toLowerCase().includes(username.toLowerCase())
+        );
+        return user ? `${user.firstName} ${user.lastName}` : username;
+    };
+
     const handleSendMessage = async () => {
         if (message.trim()) {
             try {
-                // Gửi tin nhắn qua API
                 const response = await fetch(`/api/messages/${chatId}`, {
                     method: "POST",
                     headers: {
@@ -58,22 +84,22 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
 
                 if (response.ok) {
                     const newMessage = await response.json();
-                    console.log("newMessage ", newMessage)
-                    // Thêm tin nhắn mới vào danh sách (tùy thuộc vào cấu trúc response)
+                    // Thêm tin nhắn mới vào danh sách theo cấu trúc backend
                     chat.messages.push({
-                        sender: 'You',
-                        time: new Date().toLocaleTimeString(),
+                        id: newMessage.data.id,
+                        conversationId: chatId,
                         content: message,
-                        type: 'text',
-                        likes: [],
-                        seenBy: [],
+                        fileUrls: [],
+                        reactions: [],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        createdByUserName: "currentUser", // Thay bằng username thực tế
+                        deleted: false
                     });
 
                     setMessage('');
                     setFile(null);
                     setShowEmojiPicker(false);
-                } else {
-                    console.error("Failed to send message");
                 }
             } catch (error) {
                 console.error("Error sending message:", error);
@@ -81,28 +107,29 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
         }
     };
 
-    // Xử lý chọn emoji từ EmojiPicker
     const handleEmojiClick = (emojiObject: EmojiClickData) => {
         setMessage((prev) => prev + emojiObject.emoji);
     };
 
-    // Xử lý chọn file
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
         }
     };
 
-    // Xử lý thả emoji vào tin nhắn
-    const handleDropEmoji = (messageIndex: number, emoji: string) => {
-        const message = chat.messages[messageIndex];
-        if (!message.likes) message.likes = [];
-        // Kiểm tra xem người dùng đã like chưa
-        const existingLike = message.likes.find((like) => like.user === 'You');
-        if (existingLike) {
-            existingLike.emoji = emoji; // Cập nhật emoji nếu đã like
-        } else {
-            message.likes.push({ emoji, user: 'You' }); // Thêm like mới
+    const handleReaction = (messageId: string, emoji: string) => {
+        const message = chat.messages.find(m => m.id === messageId);
+        if (message) {
+            const existingReaction = message.reactions.find(r => r.user === "currentUser");
+            if (existingReaction) {
+                existingReaction.emoji = emoji;
+            } else {
+                message.reactions.push({
+                    emoji,
+                    user: "currentUser",
+                    createdAt: new Date().toISOString()
+                });
+            }
         }
     };
 
@@ -111,60 +138,70 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
             {/* Header */}
             <div className="p-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center">
-                    <img src={chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"} alt={chat.name} className="w-10 h-10 rounded-full" />
-                    <p className="ml-3 text-lg font-bold text-gray-900">{chat.name}</p>
+                    <img
+                        src={chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"}
+                        alt={chat.name}
+                        className="w-10 h-10 rounded-full"
+                    />
+                    <div className="ml-3">
+                        <p className="text-lg font-bold text-gray-900">{chat.name}</p>
+                        <p className="text-sm text-gray-500">
+                            {chat.conversationUsers.map(u => `${u.firstName} ${u.lastName}`).join(', ')}
+                        </p>
+                    </div>
                 </div>
             </div>
 
             {/* Danh sách tin nhắn */}
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-                {chat.messages.map((message, index) => (
-                    <div key={index} className="mb-4">
+                {chat.messages.map((message) => (
+                    <div key={message.id} className="mb-4">
                         <div className="flex items-center justify-between">
-                            <span className="font-bold text-gray-900">{message.sender}</span>
-                            <span className="text-sm text-gray-500">{message.time}</span>
+                            <span className="font-bold text-gray-900">
+                                {getSenderName(message.createdByUserName)}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                                {formatTime(message.createdAt)}
+                            </span>
                         </div>
-                        {message.type === 'text' ? (
-                            <p className="text-gray-700">{message.content}</p>
-                        ) : message.type === 'file' ? (
-                            <a
-                                href={message.content}
-                                download
-                                className="text-blue-500 underline"
-                            >
-                                Download File
-                            </a>
+
+                        {message.fileUrls?.length > 0 ? (
+                            message.fileUrls.map((fileUrl, index) => (
+                                <div key={index} className="mt-2">
+                                    {fileUrl.match(/\.(jpeg|jpg|gif|png)$/) ? (
+                                        <img src={fileUrl} alt="Attachment" className="rounded-lg max-w-xs" />
+                                    ) : (
+                                        <a
+                                            href={fileUrl}
+                                            download
+                                            className="text-blue-500 underline"
+                                        >
+                                            Download File
+                                        </a>
+                                    )}
+                                </div>
+                            ))
                         ) : (
-                            <img src={message.content} alt="Sent image" className="mt-2 rounded-lg max-w-xs" />
+                            <p className="text-gray-700">{message.content}</p>
                         )}
-                        {/* Like và xem ai đã xem */}
-                        <div className="flex items-center mt-2">
-                            <div className="flex items-center space-x-1">
-                                {message.likes?.map((like, i) => (
+
+                        {/* Reactions */}
+                        {message.reactions?.length > 0 && (
+                            <div className="flex items-center mt-2 space-x-1">
+                                {message.reactions.map((reaction, i) => (
                                     <span key={i} className="text-sm">
-                                        {like.emoji}
+                                        {reaction.emoji}
                                     </span>
                                 ))}
                             </div>
-                            <span className="mx-2 text-gray-300">|</span>
-                            <button
-                                onClick={() => {
-                                    if (!message.seenBy) message.seenBy = [];
-                                    if (!message.seenBy.includes('You')) {
-                                        message.seenBy.push('You');
-                                    }
-                                }}
-                                className="text-sm text-gray-500 hover:text-blue-500"
-                            >
-                                Seen by {message.seenBy?.length || 0}
-                            </button>
-                        </div>
-                        {/* Danh sách emoji để thả */}
+                        )}
+
+                        {/* Reaction buttons */}
                         <div className="flex items-center mt-2 space-x-1">
                             {['👍', '❤️', '😂', '😮', '😢', '👏'].map((emoji, i) => (
                                 <button
                                     key={i}
-                                    onClick={() => handleDropEmoji(index, emoji)}
+                                    onClick={() => handleReaction(message.id, emoji)}
                                     className="text-sm hover:scale-110 transition-transform"
                                 >
                                     {emoji}
@@ -175,10 +212,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                 ))}
             </div>
 
-            {/* Input và các nút chức năng */}
+            {/* Input message */}
             <div className="p-4 border-t border-gray-200 bg-white">
                 <div className="flex items-center">
-                    {/* Nút chọn emoji */}
                     <button
                         onClick={() => setShowEmojiPicker((prev) => !prev)}
                         className="p-2 text-gray-500 hover:text-blue-500"
@@ -191,7 +227,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                         </div>
                     )}
 
-                    {/* Nút chọn file */}
                     <label className="p-2 text-gray-500 hover:text-blue-500 cursor-pointer">
                         <FaPaperclip size={20} />
                         <input
@@ -201,16 +236,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                         />
                     </label>
 
-                    {/* Input nhập tin nhắn */}
                     <input
                         type="text"
                         placeholder="Say Something..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                         className="flex-1 rounded-lg border border-gray-300 p-2 mx-2"
                     />
 
-                    {/* Nút gửi */}
                     <button
                         onClick={handleSendMessage}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
