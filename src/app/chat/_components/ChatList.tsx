@@ -107,13 +107,15 @@ const ChatList: React.FC<ChatListProps> = ({ chats, onChatSelect, onCreateNewCha
                                         {formatMessageTime(chat?.lastMessageTime)}
                                     </span>
                                 </div>
-                                <p className="text-sm text-gray-500 truncate">{chat?.lastMessage}</p>
+                                <p className="text-sm text-gray-500 truncate">
+                                    {chat?.lastMessage ? decodeURIComponent(chat.lastMessage) : ''}
+                                </p>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
-        </div>
+        </div >
     );
 };
 

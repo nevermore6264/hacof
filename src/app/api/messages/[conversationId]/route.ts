@@ -13,16 +13,11 @@ export async function POST(
         const authHeader = request.headers.get("authorization");
         if (!authHeader) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
         }
 
         // 3. Parse request body
-        const { content } = await request.json();
-        if (!content) {
-            return NextResponse.json(
-                { error: "Message content is required" },
-                { status: 400 }
-            );
-        }
+        const { content, fileUrls } = await request.json();
 
         // 4. Gửi request đến backend API
         const backendResponse = await fetch(
@@ -35,7 +30,7 @@ export async function POST(
                 },
                 body: JSON.stringify({
                     content,
-                    fileUrls: [], // Tạm thời để mảng rỗng
+                    fileUrls: fileUrls || [], // Sử dụng fileUrls từ request body
                 }),
             }
         );

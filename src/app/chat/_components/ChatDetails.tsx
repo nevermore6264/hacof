@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaPaperclip, FaSmile } from 'react-icons/fa';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useAuth } from "@/hooks/useAuth_v0";
@@ -56,8 +56,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
     const chat = chats.find((chat) => chat.id === chatId);
     const [message, setMessage] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [file, setFile] = useState<File | null>(null);
+    const [file, setFile] = useState<string | null>(null);
     const { user } = useAuth();
+
+    useEffect(() => {
+        if (file) {
+            console.log('File state changed to:', file);
+            handleSendMessage();
+        }
+    }, [file]);
 
     if (!chat) {
         return (
@@ -73,8 +80,12 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
     };
 
     const handleSendMessage = async () => {
-        if (message.trim()) {
+        console.log('Sending message with file:', file);
+        if (message.trim() || file) {
             try {
+                // Encode emoji before sending
+                const encodedMessage = message ? encodeURIComponent(message) : '';
+
                 const response = await fetch(`/api/messages/${chatId}`, {
                     method: "POST",
                     headers: {
@@ -82,10 +93,11 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
                     },
                     body: JSON.stringify({
-                        content: message,
-                        fileUrls: file ? [URL.createObjectURL(file)] : [],
+                        content: encodedMessage,
+                        fileUrls: file ? [file] : [],
                     }),
                 });
+
                 if (!user) return;
 
                 if (response.ok) {
@@ -94,8 +106,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                     chat.messages.push({
                         id: newMessage.data.id,
                         conversationId: chatId,
-                        content: message,
-                        fileUrls: [],
+                        content: message, // Keep original message for display
+                        fileUrls: newMessage.data.fileUrls || [],
                         reactions: [],
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
@@ -107,8 +119,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                     setFile(null);
                     setShowEmojiPicker(false);
                 }
-            } catch (error) {
-                console.error("Error sending message:", error);
+            } catch {
+                toast.error("Error sending message");
             }
         }
     };
@@ -132,9 +144,44 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
-                    setFile(data.url); // Lưu URL của file đã upload
-                    toast.success("File uploaded successfully");
+                    const res = await response.json();
+                    const fileUrl = res?.data[0]?.fileUrl;
+                    console.log('File URL from upload:', fileUrl);
+                    if (fileUrl) {
+                        // Gửi tin nhắn ngay sau khi upload file thành công
+                        const messageResponse = await fetch(`/api/messages/${chatId}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                            },
+                            body: JSON.stringify({
+                                content: '',
+                                fileUrls: [fileUrl],
+                            }),
+                        });
+
+                        if (messageResponse.ok) {
+                            const newMessage = await messageResponse.json();
+                            if (!user) return;
+
+                            // Thêm tin nhắn mới vào danh sách
+                            chat.messages.push({
+                                id: newMessage.data.id,
+                                conversationId: chatId,
+                                content: '',
+                                fileUrls: [fileUrl],
+                                reactions: [],
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
+                                createdByUserName: user.username || `${user.firstName} ${user.lastName}`,
+                                deleted: false
+                            });
+
+                            setFile(null);
+                            toast.success("File uploaded and sent successfully");
+                        }
+                    }
                 } else {
                     const errorData = await response.json();
                     toast.error(errorData.message || "Failed to upload file");
@@ -249,7 +296,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                                             </div>
                                         ))
                                     ) : (
-                                        <p className="text-sm">{message.content}</p>
+                                        <p className="text-sm whitespace-pre-wrap">
+                                            {decodeURIComponent(message.content)}
+                                        </p>
                                     )}
                                 </div>
 
