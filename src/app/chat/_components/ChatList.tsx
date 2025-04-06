@@ -71,7 +71,7 @@ const ChatList: React.FC<ChatListProps> = ({ chats, onChatSelect, onCreateNewCha
                         onClick={() => onChatSelect(chat.id)}
                     >
                         <div className="flex items-center">
-                            <img src={chat.image} alt={chat.name} className="w-10 h-10 rounded-md" />
+                            <img src={chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"} alt={chat.name} className="w-10 h-10 rounded-md" />
                             <div className="ml-3">
                                 <p className="text-sm font-medium text-gray-900">{chat.name}</p>
                                 <p className="text-sm text-gray-500">{chat.lastMessage}</p>
