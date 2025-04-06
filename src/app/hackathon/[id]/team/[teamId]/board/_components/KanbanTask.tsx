@@ -39,7 +39,7 @@ export default function KanbanTask({ task }: KanbanTaskProps) {
         ref={setNodeRef}
         {...listeners}
         {...attributes}
-        className="bg-white p-4 rounded-lg shadow-md cursor-grab space-y-2"
+        className="bg-white p-4 rounded-lg shadow-md cursor-pointer space-y-2"
         style={{
           transform: transform
             ? `translate(${transform.x}px, ${transform.y}px)`
