@@ -9,6 +9,7 @@ import {
   createBoardLabel,
   updateBoardLabel,
   deleteBoardLabel,
+  createTask,
 } from "@/services/boardService";
 import { Board } from "@/types/entities/board";
 import { BoardLabel } from "@/types/entities/boardLabel";
@@ -38,6 +39,15 @@ interface KanbanState {
   // Column operations
   setColumns: (columns: Column[]) => void;
   moveTask: (taskId: string, from: string, to: string) => void;
+
+  createTask: (
+    listId: string,
+    taskData: {
+      title: string;
+      description?: string;
+      dueDate?: string;
+    }
+  ) => Promise<Task | null>;
 
   // Board operations
   setBoard: (board: Board) => void;
@@ -90,6 +100,49 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
   setColumns: (columns) => set({ columns }),
   setPendingPositionUpdates: (updates) =>
     set({ pendingPositionUpdates: updates }),
+
+  createTask: async (listId, taskData) => {
+    const state = get();
+    if (!state.board) return null;
+
+    const column = state.columns.find((col) => col.id === listId);
+    if (!column) return null;
+
+    try {
+      // Calculate the position based on existing tasks
+      const position = column.tasks.length;
+
+      // Mock API call - replace with actual API when available
+      const newTask = await createTask({
+        ...taskData,
+        boardListId: listId,
+        position,
+      });
+
+      // Simulate the basic task object that would be returned from the API
+      const taskForUI: Task = {
+        id: newTask.id,
+        title: newTask.title,
+        description: newTask.description || "",
+        status: column.title.toLowerCase().replace(/\s+/g, "-"),
+        dueDate: newTask.dueDate,
+        assignees: [],
+        labels: [],
+      };
+
+      // Update local state
+      set({
+        columns: state.columns.map((col) =>
+          col.id === listId ? { ...col, tasks: [...col.tasks, taskForUI] } : col
+        ),
+      });
+
+      return taskForUI;
+    } catch (error) {
+      console.error("Failed to create task:", error);
+      return null;
+    }
+  },
 
   // Task operations
   moveTask: (taskId, fromColumnId, toColumnId) => {
