@@ -40,20 +40,44 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
     }
 
     // Xử lý gửi tin nhắn
-    const handleSendMessage = () => {
-        if (message.trim() || file) {
-            const newMessage: Message = {
-                sender: 'You',
-                time: new Date().toLocaleTimeString(),
-                content: file ? URL.createObjectURL(file) : message,
-                type: file ? 'file' : 'text',
-                likes: [],
-                seenBy: [],
-            };
-            chat.messages.push(newMessage); // Thêm tin nhắn mới
-            setMessage(''); // Reset input
-            setFile(null); // Reset file
-            setShowEmojiPicker(false); // Ẩn emoji picker
+    const handleSendMessage = async () => {
+        if (message.trim()) {
+            try {
+                // Gửi tin nhắn qua API
+                const response = await fetch(`/api/messages/${chatId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
+                    body: JSON.stringify({
+                        content: message,
+                        fileUrls: file ? [URL.createObjectURL(file)] : [],
+                    }),
+                });
+
+                if (response.ok) {
+                    const newMessage = await response.json();
+                    console.log("newMessage ", newMessage)
+                    // Thêm tin nhắn mới vào danh sách (tùy thuộc vào cấu trúc response)
+                    chat.messages.push({
+                        sender: 'You',
+                        time: new Date().toLocaleTimeString(),
+                        content: message,
+                        type: 'text',
+                        likes: [],
+                        seenBy: [],
+                    });
+
+                    setMessage('');
+                    setFile(null);
+                    setShowEmojiPicker(false);
+                } else {
+                    console.error("Failed to send message");
+                }
+            } catch (error) {
+                console.error("Error sending message:", error);
+            }
         }
     };
 
