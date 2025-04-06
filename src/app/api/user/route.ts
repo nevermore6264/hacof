@@ -54,7 +54,7 @@ export async function GET(req: Request) {
         console.log(backendResponse);
 
         // Parse dữ liệu từ backend
-        const backendUsers: Response[] = await backendResponse.json();
+        const backendUsers: Response = await backendResponse.json();
         // Format dữ liệu để trả về client (loại bỏ thông tin nhạy cảm)
         const users = backendUsers?.data.map((user: User) => ({
             id: user.id,
