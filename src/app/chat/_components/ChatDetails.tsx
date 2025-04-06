@@ -39,12 +39,20 @@ interface Chat {
     createdByUserName: string;
 }
 
-interface ChatDetailsProps {
-    chatId: string; // Đổi từ number sang string để phù hợp với dữ liệu
-    chats: Chat[];
+interface User {
+    id: string;
+    name: string;
+    username: string;
+    // ... các trường khác
 }
 
-const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
+interface ChatDetailsProps {
+    chatId: string;
+    chats: Chat[];
+    users: User[];
+}
+
+const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
     const chat = chats.find((chat) => chat.id === chatId);
     const [message, setMessage] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -155,17 +163,17 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
             {/* Danh sách tin nhắn */}
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
                 {chat.messages.map((message) => {
-                    const messageUser = chat.conversationUsers.find(u =>
-                        u.userId === message.createdByUserName
+                    const messageUser = users.find(u =>
+                        u.username === message.createdByUserName
                     );
-                    const isCurrentUser = user && messageUser?.userId === user.id.toString();
+                    const isCurrentUser = user && messageUser?.id === user.id.toString();
                     return (
                         <div key={message.id} className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-4`}>
                             <div className={`max-w-[70%] group relative`}>
                                 {/* Sender name for other users */}
                                 {!isCurrentUser && messageUser && (
                                     <div className="text-xs text-gray-500 mb-1">
-                                        {messageUser.firstName} {messageUser.lastName}
+                                        {messageUser.name}
                                     </div>
                                 )}
 

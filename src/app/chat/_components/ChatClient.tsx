@@ -164,7 +164,7 @@ export default function ChatClient() {
 
       {/* Right Side - Chat Details */}
       {selectedChatId ? (
-        <ChatDetails chatId={selectedChatId} chats={chats} />
+        <ChatDetails chatId={selectedChatId} chats={chats} users={users} />
       ) : (
         <div className="w-2/3 flex items-center justify-center bg-gray-50">
           <p className="text-gray-500">Select a chat to start messaging</p>
