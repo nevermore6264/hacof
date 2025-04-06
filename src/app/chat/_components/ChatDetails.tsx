@@ -244,7 +244,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                                 )}
 
                                 {/* Reaction buttons - show on hover */}
-                                <div className={`absolute ${isCurrentUser ? 'left-0' : 'right-0'} -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none`}>
+                                <div className={`absolute ${isCurrentUser ? 'right-0' : 'left-0'} -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none`}>
                                     <div className="bg-white rounded-full shadow-lg p-1 flex items-center space-x-1">
                                         {[
                                             { type: 'LIKE', emoji: '👍' },
