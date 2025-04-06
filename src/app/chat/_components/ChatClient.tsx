@@ -23,7 +23,7 @@ interface Message {
 interface Chat {
   id: number;
   name: string;
-  image: string;
+  avatarUrl: string;
   lastMessage: string;
   lastMessageTime: string;
   messages: Message[];
