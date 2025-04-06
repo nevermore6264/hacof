@@ -148,7 +148,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
         // Transform schedule events into calendar events
         const calendarEvents: CalendarEvent[] = scheduleEvents.map((event) => ({
           id: event.id,
-          title: event.name,
+          name: event.name,
           start: event.startTime,
           end: event.endTime,
           allDay: false,
@@ -190,7 +190,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
   };
 
   const handleAddEvent = async (eventData: {
-    title: string;
+    name: string;
     startDate: string;
     endDate: string;
     level: string;
@@ -205,7 +205,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     try {
       // Create event using our service
       const newCalendarEvent = await addEventToCalendar(activeScheduleId, {
-        name: eventData.title,
+        name: eventData.name,
         description: eventData.description,
         location: eventData.location,
         startTime: eventData.startDate,
@@ -268,7 +268,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
         className={`event-tooltip event-fc-color flex fc-event-main fc-bg-${extendedProps.calendar.toLowerCase()} p-1 rounded-sm`}
       >
         <div className="flex flex-col">
-          <div className="font-bold">{event.title}</div>
+          <div className="font-bold">{event.name}</div>
           {extendedProps.description && (
             <div className="text-xs">{extendedProps.description}</div>
           )}
@@ -307,7 +307,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
                 <div
                   key={user.id}
                   className="h-8 w-8 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-sm font-medium"
-                  title={`${user.firstName} ${user.lastName}`}
+                  name={`${user.firstName} ${user.lastName}`}
                 >
                   {user.firstName?.charAt(0) || "U"}
                 </div>
@@ -370,7 +370,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
           initialView="dayGridMonth"
           headerToolbar={{
             left: "prev,next addEventButton",
-            center: "title",
+            center: "name",
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
           events={events}

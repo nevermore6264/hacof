@@ -41,7 +41,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   const { user } = useAuth();
 
   // Event basic information
-  const [eventTitle, setEventTitle] = useState("");
+  const [eventName, setEventName] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventLocation, setEventLocation] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
@@ -60,7 +60,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     // Populate modal fields when selectedEvent changes
     if (selectedEvent) {
       // Basic event info
-      setEventTitle(selectedEvent.name || "");
+      setEventName(selectedEvent.name || "");
       setEventStartDate(
         selectedEvent.start
           ? (selectedEvent.start as Date).toISOString().split("T")[0]
@@ -87,7 +87,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
 
   const handleSubmit = () => {
     onUpdateEvent({
-      name: eventTitle,
+      name: eventName,
       startDate: eventStartDate,
       endDate: eventEndDate || eventStartDate,
       eventLabel: eventLevel,
@@ -145,8 +145,8 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         <div className="mt-6">
           {activeTab === "information" && (
             <EventInformationSection
-              eventTitle={eventTitle}
-              setEventTitle={setEventTitle}
+              eventName={eventName}
+              setEventName={setEventName}
               eventDescription={eventDescription}
               setEventDescription={setEventDescription}
               eventLocation={eventLocation}
