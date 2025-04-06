@@ -1,90 +1,72 @@
 // src/app/forum/thread/[id]/_components/EditForm.tsx
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import TiptapEditor, { type TiptapEditorRef } from "@/components/TiptapEditor";
-import { useParams } from "next/navigation";
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThreadPost } from "@/types/entities/threadPost";
-import { getPost, savePost } from "@/services/post";
-
-interface PostForm {
-  title: string;
-  content: string;
-}
+import RichTextEditor from "@/components/RichTextEditor";
 
 interface EditFormProps {
-  post?: ThreadPost; // Pass the post object instead of fetching it
-  onPostSaved?: () => void;
+  post?: ThreadPost;
+  onPostSaved: () => void;
 }
 
 export default function EditForm({ post, onPostSaved }: EditFormProps) {
-  const { id: threadId } = useParams(); // Get thread ID from URL
-  const postId = post?.id;
+  const [content, setContent] = useState(post?.content || "");
+  const [submitting, setSubmitting] = useState(false);
 
-  const editorRef = useRef<TiptapEditorRef>(null);
-  const [isLoading, setIsLoading] = useState(!!post); // Show loading only when editing
-  const { control, reset, watch, handleSubmit } = useForm<PostForm>();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
 
-  const getWordCount = useCallback(
-    () => editorRef.current?.getInstance()?.storage.characterCount.words() ?? 0,
-    [editorRef.current]
-  );
-
-  useEffect(() => {
-    if (post) {
-      reset(post);
-      setIsLoading(false);
-    }
-  }, [post]);
-
-  useEffect(() => {
-    const subscription = watch((values, { type }) => {
-      if (type === "change") {
-        savePost({ ...values, wordCount: getWordCount() });
+    try {
+      // Replace with your actual API call
+      if (post) {
+        // Update existing post
+        await fetch(`/api/thread-posts/${post.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content }),
+        });
+      } else {
+        // Create new post
+        await fetch(`/api/thread-posts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            threadId: window.location.pathname.split("/").pop(),
+            content,
+          }),
+        });
       }
-    });
 
-    return () => subscription.unsubscribe();
-  }, [watch]);
-
-  const onSubmit = async (data: PostForm) => {
-    setIsLoading(true);
-    await savePost({ ...data, threadId, postId, wordCount: getWordCount() });
-    setIsLoading(false);
-    onPostSaved?.(); // Notify parent component
+      // Clear form
+      setContent("");
+      // Notify parent
+      onPostSaved();
+    } catch (error) {
+      console.error("Error saving post:", error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (isLoading) return;
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="inline-block font-medium dark:text-white mb-2">
-          Content
+        <label
+          htmlFor="content"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {post ? "Edit your post" : "Share your thoughts"}
         </label>
-        <Controller
-          control={control}
-          name="content"
-          render={({ field }) => (
-            <TiptapEditor
-              ref={editorRef}
-              ssr={true}
-              output="html"
-              placeholder={{
-                paragraph: "Type your content here...",
-                imageCaption: "Type caption for image (optional)",
-              }}
-              contentMinHeight={256}
-              contentMaxHeight={640}
-              onContentChange={field.onChange}
-              initialContent={field.value}
-            />
-          )}
-        />
+        <RichTextEditor content={content} onChange={setContent} />
       </div>
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Saving..." : postId ? "Update Post" : "Create Post"}
-      </Button>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={submitting || !content.trim()}>
+          {submitting ? "Saving..." : post ? "Update" : "Post"}
+        </Button>
+      </div>
     </form>
   );
 }
