@@ -2,19 +2,23 @@
 "use client";
 import React, { useState } from "react";
 import { Modal } from "@/components/ui/modal";
+import { ScheduleEventLabel } from "@/types/entities/scheduleEvent";
 
 interface AddEventModalProps {
   isOpen: boolean;
   onClose: () => void;
+  scheduleId: string;
   onAddEvent: (eventData: {
     title: string;
     startDate: string;
     endDate: string;
     level: string;
+    description: string;
+    location: string;
   }) => void;
 }
 
-const calendarsEvents = {
+const calendarsEvents: Record<string, ScheduleEventLabel> = {
   Danger: "danger",
   Success: "success",
   Primary: "primary",
@@ -24,27 +28,55 @@ const calendarsEvents = {
 const AddEventModal: React.FC<AddEventModalProps> = ({
   isOpen,
   onClose,
+  scheduleId,
   onAddEvent,
 }) => {
   const [eventTitle, setEventTitle] = useState("");
+  const [eventDescription, setEventDescription] = useState("");
+  const [eventLocation, setEventLocation] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
+  const [eventStartTime, setEventStartTime] = useState("09:00");
   const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("");
+  const [eventEndTime, setEventEndTime] = useState("10:00");
+  const [eventLevel, setEventLevel] = useState<string>("Primary");
 
   const resetModalFields = () => {
     setEventTitle("");
+    setEventDescription("");
+    setEventLocation("");
     setEventStartDate("");
+    setEventStartTime("09:00");
     setEventEndDate("");
-    setEventLevel("");
+    setEventEndTime("10:00");
+    setEventLevel("Primary");
+  };
+
+  const combineDateTime = (date: string, time: string): string => {
+    if (!date) return "";
+    return `${date}T${time}:00`;
   };
 
   const handleSubmit = () => {
+    if (!eventTitle || !eventStartDate) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    const startDateTime = combineDateTime(eventStartDate, eventStartTime);
+    const endDateTime = combineDateTime(
+      eventEndDate || eventStartDate,
+      eventEndTime
+    );
+
     onAddEvent({
       title: eventTitle,
-      startDate: eventStartDate,
-      endDate: eventEndDate || eventStartDate,
-      level: eventLevel,
+      startDate: startDateTime,
+      endDate: endDateTime,
+      level: calendarsEvents[eventLevel],
+      description: eventDescription,
+      location: eventLocation,
     });
+
     resetModalFields();
     onClose();
   };
@@ -60,14 +92,11 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
           <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
             Add Event
           </h5>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Plan your next big moment: schedule a new event to stay on track
-          </p>
         </div>
         <div className="mt-8">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Event Title
+              Event Title*
             </label>
             <input
               id="event-title"
@@ -75,6 +104,36 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
               value={eventTitle}
               onChange={(e) => setEventTitle(e.target.value)}
               className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              placeholder="Enter event title"
+              required
+            />
+          </div>
+
+          <div className="mt-6">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Description
+            </label>
+            <textarea
+              id="event-description"
+              value={eventDescription}
+              onChange={(e) => setEventDescription(e.target.value)}
+              className="dark:bg-dark-900 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              placeholder="Enter event description"
+              rows={3}
+            />
+          </div>
+
+          <div className="mt-6">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Location
+            </label>
+            <input
+              id="event-location"
+              type="text"
+              value={eventLocation}
+              onChange={(e) => setEventLocation(e.target.value)}
+              className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              placeholder="Enter event location"
             />
           </div>
 
@@ -104,7 +163,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                         />
                         <span className="flex items-center justify-center w-5 h-5 mr-2 border border-gray-300 rounded-full box dark:border-gray-700">
                           <span
-                            className={`h-2 w-2 rounded-full bg-white ${
+                            className={`h-2 w-2 rounded-full bg-${value} ${
                               eventLevel === key ? "block" : "hidden"
                             }`}
                           ></span>
@@ -118,33 +177,70 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
             </div>
           </div>
 
-          <div className="mt-6">
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Enter Start Date
-            </label>
-            <div className="relative">
-              <input
-                id="event-start-date"
-                type="date"
-                value={eventStartDate}
-                onChange={(e) => setEventStartDate(e.target.value)}
-                className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-              />
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Start Date*
+              </label>
+              <div className="relative">
+                <input
+                  id="event-start-date"
+                  type="date"
+                  value={eventStartDate}
+                  onChange={(e) => setEventStartDate(e.target.value)}
+                  className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Start Time*
+              </label>
+              <div className="relative">
+                <input
+                  id="event-start-time"
+                  type="time"
+                  value={eventStartTime}
+                  onChange={(e) => setEventStartTime(e.target.value)}
+                  className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  required
+                />
+              </div>
             </div>
           </div>
 
-          <div className="mt-6">
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Enter End Date
-            </label>
-            <div className="relative">
-              <input
-                id="event-end-date"
-                type="date"
-                value={eventEndDate}
-                onChange={(e) => setEventEndDate(e.target.value)}
-                className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-              />
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                End Date
+              </label>
+              <div className="relative">
+                <input
+                  id="event-end-date"
+                  type="date"
+                  value={eventEndDate}
+                  onChange={(e) => setEventEndDate(e.target.value)}
+                  className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                End Time*
+              </label>
+              <div className="relative">
+                <input
+                  id="event-end-time"
+                  type="time"
+                  value={eventEndTime}
+                  onChange={(e) => setEventEndTime(e.target.value)}
+                  className="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                  required
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -154,7 +250,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
             type="button"
             className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
           >
-            Close
+            Cancel
           </button>
           <button
             onClick={handleSubmit}

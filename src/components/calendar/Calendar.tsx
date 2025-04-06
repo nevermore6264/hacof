@@ -18,6 +18,7 @@ import { fetchMockSchedules } from "@/app/hackathon/[id]/team/[teamId]/board/_mo
 import { fetchMockScheduleEvents } from "@/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockScheduleEvents";
 import { Schedule } from "@/types/entities/schedule";
 import { useParams } from "next/navigation";
+import { addEventToCalendar } from "@/services/scheduleEventService";
 
 export interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -45,6 +46,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
   );
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [activeScheduleId, setActiveScheduleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
 
@@ -71,9 +73,16 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
           currentHackathonId
         );
         // Wrap in array if it's a single object since our component expects an array
-        setSchedules(
-          Array.isArray(fetchedSchedule) ? fetchedSchedule : [fetchedSchedule]
-        );
+        const schedulesArray = Array.isArray(fetchedSchedule)
+          ? fetchedSchedule
+          : [fetchedSchedule];
+
+        setSchedules(schedulesArray);
+
+        // Set the first schedule as active if we have any
+        if (schedulesArray.length > 0 && !activeScheduleId) {
+          setActiveScheduleId(schedulesArray[0].id);
+        }
       } catch (error) {
         console.error("Failed to fetch basic schedule data", error);
       } finally {
@@ -82,7 +91,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     };
 
     loadBasicScheduleData();
-  }, [currentTeamId, currentHackathonId]);
+  }, [currentTeamId, currentHackathonId, activeScheduleId]);
 
   // Load schedule events only when calendar view changes or schedules are loaded
   const loadScheduleEvents = async () => {
@@ -140,26 +149,37 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     openEditModal();
   };
 
-  const handleAddEvent = (eventData: {
+  const handleAddEvent = async (eventData: {
     title: string;
     startDate: string;
     endDate: string;
     level: string;
+    description: string;
+    location: string;
   }) => {
-    const newEvent: CalendarEvent = {
-      id: Date.now().toString(),
-      title: eventData.title,
-      start: eventData.startDate,
-      end: eventData.endDate,
-      allDay: true,
-      extendedProps: {
-        calendar: eventData.level,
-        description: "",
-        location: "",
-      },
-    };
-    setEvents((prevEvents) => [...prevEvents, newEvent]);
-    closeAddModal();
+    if (!activeScheduleId) {
+      console.error("No active schedule selected");
+      return;
+    }
+
+    try {
+      // Create event using our service
+      const newCalendarEvent = await addEventToCalendar(activeScheduleId, {
+        name: eventData.title,
+        description: eventData.description,
+        location: eventData.location,
+        startTime: eventData.startDate,
+        endTime: eventData.endDate,
+        eventLabel: eventData.level as any,
+      });
+
+      // Add the new event to the state
+      setEvents((prevEvents) => [...prevEvents, newCalendarEvent]);
+      closeAddModal();
+    } catch (error) {
+      console.error("Failed to add event:", error);
+      alert("Failed to add event. Please try again.");
+    }
   };
 
   const handleUpdateEvent = (eventData: {
@@ -215,6 +235,10 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     );
   };
 
+  const handleScheduleSelect = (scheduleId: string) => {
+    setActiveScheduleId(scheduleId);
+  };
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="p-4">
@@ -225,10 +249,18 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
 
         {!loading && schedules.length > 0 && (
           <div className="mb-4">
-            <h3 className="text-lg font-semibold">Schedules</h3>
+            <h3 className="text-lg font-semibold mb-2">Schedules</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {schedules.map((schedule) => (
-                <div key={schedule.id} className="bg-gray-100 p-3 rounded-lg">
+                <div
+                  key={schedule.id}
+                  className={`bg-gray-100 p-3 rounded-lg cursor-pointer border-2 ${
+                    activeScheduleId === schedule.id
+                      ? "border-brand-500"
+                      : "border-transparent"
+                  }`}
+                  onClick={() => handleScheduleSelect(schedule.id)}
+                >
                   <h4 className="font-medium">{schedule.name}</h4>
                   <p className="text-sm text-gray-600">
                     {schedule.description}
@@ -261,7 +293,6 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
           eventContent={renderEventTooltip}
           datesSet={() => {
             // Optionally refresh events when date range changes
-            // This is useful if you want to implement date-range based loading
             // loadScheduleEvents();
           }}
           customButtons={{
@@ -275,6 +306,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
       <AddEventModal
         isOpen={isAddModalOpen}
         onClose={closeAddModal}
+        scheduleId={activeScheduleId || ""}
         onAddEvent={handleAddEvent}
       />
       {selectedEvent && (
