@@ -1,4 +1,3 @@
-// src/components/calendar/EditEventModal.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
@@ -8,6 +7,7 @@ import { User } from "@/types/entities/user";
 import { FileUrl } from "@/types/entities/fileUrl";
 import { ScheduleEventAttendee } from "@/types/entities/scheduleEventAttendee";
 import { ScheduleEventReminder } from "@/types/entities/scheduleEventReminder";
+import { ScheduleEventLabel } from "@/types/entities/scheduleEvent";
 import EventInformationSection from "./event/EventInformationSection";
 import EventFilesSection from "./event/EventFilesSection";
 import EventAttendeesSection from "./event/EventAttendeesSection";
@@ -21,7 +21,7 @@ interface EditEventModalProps {
     name: string;
     startDate: string;
     endDate: string;
-    eventLabel: string;
+    eventLabel: ScheduleEventLabel;
     description: string;
     location: string;
     files: FileUrl[];
@@ -46,7 +46,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   const [eventLocation, setEventLocation] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
-  const [eventLevel, setEventLevel] = useState("");
+  const [eventLabel, setEventLabel] = useState<ScheduleEventLabel>("primary");
 
   // Event additional data
   const [files, setFiles] = useState<FileUrl[]>([]);
@@ -61,17 +61,20 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     if (selectedEvent) {
       // Basic event info
       setEventName(selectedEvent.name || "");
-      setEventStartDate(
-        selectedEvent.start
-          ? (selectedEvent.start as Date).toISOString().split("T")[0]
-          : ""
-      );
-      setEventEndDate(
-        selectedEvent.end
-          ? (selectedEvent.end as Date).toISOString().split("T")[0]
-          : ""
-      );
-      setEventLevel(selectedEvent.extendedProps?.calendar || "");
+
+      // Convert Date objects to datetime-local input format (YYYY-MM-DDThh:mm)
+      const formatDateTime = (date: Date | string | undefined) => {
+        if (!date) return "";
+        const d = date instanceof Date ? date : new Date(date);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}T${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+      };
+
+      setEventStartDate(formatDateTime(selectedEvent.start));
+      setEventEndDate(formatDateTime(selectedEvent.end));
+
+      // Map calendar value to eventLabel
+      const calendarValue = selectedEvent.extendedProps?.calendar || "primary";
+      setEventLabel(calendarValue as ScheduleEventLabel);
 
       // Additional event info from extendedProps
       setEventDescription(selectedEvent.extendedProps?.description || "");
@@ -90,7 +93,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       name: eventName,
       startDate: eventStartDate,
       endDate: eventEndDate || eventStartDate,
-      eventLabel: eventLevel,
+      eventLabel: eventLabel,
       description: eventDescription,
       location: eventLocation,
       files,
@@ -151,8 +154,8 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
               setEventDescription={setEventDescription}
               eventLocation={eventLocation}
               setEventLocation={setEventLocation}
-              eventLevel={eventLevel}
-              setEventLevel={setEventLevel}
+              eventLabel={eventLabel}
+              setEventLabel={setEventLabel}
               eventStartDate={eventStartDate}
               setEventStartDate={setEventStartDate}
               eventEndDate={eventEndDate}
