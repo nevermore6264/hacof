@@ -25,7 +25,6 @@ const calendarsEvents: Record<string, ScheduleEventLabel> = {
   Warning: "warning",
 };
 
-// Define color codes for each label (matching EditEventModal)
 const labelColorMap = {
   danger: "#dc3545",
   success: "#28a745",

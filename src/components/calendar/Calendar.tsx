@@ -259,25 +259,58 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     closeEditModal();
   };
 
+  const labelColorMap = {
+    danger: "#dc3545",
+    success: "#28a745",
+    primary: "#007bff",
+    warning: "#ffc107",
+  };
+
   const renderEventTooltip = (eventInfo: EventContentArg) => {
     const event = eventInfo.event;
     const extendedProps = event.extendedProps as CalendarEvent["extendedProps"];
+    const eventLabel = extendedProps.calendar.toLowerCase();
+    const baseColor =
+      labelColorMap[eventLabel as keyof typeof labelColorMap] || "#007bff";
+
+    // Convert hex color to rgba to add opacity
+    const hexToRgba = (hex: string, opacity: number) => {
+      // Remove the hash if it exists
+      hex = hex.replace("#", "");
+
+      // Parse the hex values
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+
+      // Return rgba format
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    };
+
+    // Add opacity (0.8 = 80% opacity)
+    const backgroundColor = hexToRgba(baseColor, 0.8);
 
     return (
       <div
-        className={`event-tooltip event-fc-color flex fc-event-main fc-bg-${extendedProps.calendar.toLowerCase()} p-1 rounded-sm`}
+        className="event-tooltip flex p-1.5 rounded-md max-w-full"
+        style={{
+          backgroundColor,
+          color: ["warning"].includes(eventLabel) ? "#212529" : "#ffffff",
+          // Add a subtle border of the original color for better definition
+          border: `1px solid ${baseColor}`,
+        }}
       >
-        <div className="flex flex-col">
-          <div className="font-bold">{event.title}</div>
+        <div className="flex flex-col w-full">
+          <div className="font-bold truncate">{event.title}</div>
           {extendedProps.description && (
-            <div className="text-xs">{extendedProps.description}</div>
+            <div className="text-xs truncate">{extendedProps.description}</div>
           )}
           {extendedProps.location && (
-            <div className="text-xs italic">
+            <div className="text-xs italic truncate">
               Location: {extendedProps.location}
             </div>
           )}
-          <div className="text-xs">
+          <div className="text-xs truncate">
             {event.start?.toLocaleString()} - {event.end?.toLocaleString()}
           </div>
         </div>
@@ -370,7 +403,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
           initialView="dayGridMonth"
           headerToolbar={{
             left: "prev,next addEventButton",
-            center: "name",
+            center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
           events={events}
@@ -387,6 +420,16 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
               text: "Add Event +",
               click: openAddModal,
             },
+          }}
+          // Add these options to enforce max height and handle overflow
+          eventMaxStack={3}
+          height="auto"
+          // Add these options to apply default styling to events
+          eventClassNames="overflow-hidden"
+          eventTimeFormat={{
+            hour: "2-digit",
+            minute: "2-digit",
+            meridiem: false,
           }}
         />
       </div>
