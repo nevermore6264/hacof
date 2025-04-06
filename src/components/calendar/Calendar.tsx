@@ -19,6 +19,9 @@ import { fetchMockScheduleEvents } from "@/app/hackathon/[id]/team/[teamId]/boar
 import { Schedule } from "@/types/entities/schedule";
 import { useParams } from "next/navigation";
 import { addEventToCalendar } from "@/services/scheduleEventService";
+import ScheduleMembers from "./ScheduleMembers";
+import { fetchMockTeams } from "@/app/hackathon/[id]/_mock/fetchMockTeams";
+import { User } from "@/types/entities/user";
 
 export interface CalendarEvent extends EventInput {
   extendedProps: {
@@ -48,6 +51,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [activeScheduleId, setActiveScheduleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<User[]>([]);
   const calendarRef = useRef<FullCalendar>(null);
 
   const {
@@ -60,6 +64,40 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     openModal: openEditModal,
     closeModal: closeEditModal,
   } = useModal();
+  const {
+    isOpen: isMembersModalOpen,
+    openModal: openMembersModal,
+    closeModal: closeMembersModal,
+  } = useModal();
+
+  // Load team members
+  useEffect(() => {
+    const loadTeamMembers = async () => {
+      if (!currentTeamId || !currentHackathonId) return;
+
+      try {
+        // Mock user ID for fetching teams
+        const mockUserId = "user123";
+        const teams = await fetchMockTeams(mockUserId, currentHackathonId);
+
+        // Find the current team
+        const currentTeam = teams.find((team) => team.id === currentTeamId);
+
+        if (currentTeam) {
+          // Extract users from team members
+          const users = currentTeam.teamMembers
+            .filter((member) => member.user)
+            .map((member) => member.user);
+
+          setTeamMembers(users);
+        }
+      } catch (error) {
+        console.error("Failed to fetch team members", error);
+      }
+    };
+
+    loadTeamMembers();
+  }, [currentTeamId, currentHackathonId]);
 
   // Load basic schedule data when component mounts
   useEffect(() => {
@@ -239,10 +277,47 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     setActiveScheduleId(scheduleId);
   };
 
+  // Get current active schedule
+  const activeSchedule = schedules.find(
+    (schedule) => schedule.id === activeScheduleId
+  );
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Team Schedule</h2>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+          <h2 className="text-2xl font-bold">Team Schedule</h2>
+
+          {/* Members display */}
+          <div className="flex items-center mt-2 md:mt-0">
+            <div className="flex -space-x-2 mr-2">
+              {teamMembers.slice(0, 3).map((user) => (
+                <div
+                  key={user.id}
+                  className="h-8 w-8 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-sm font-medium"
+                  title={`${user.firstName} ${user.lastName}`}
+                >
+                  {user.firstName?.charAt(0) || "U"}
+                </div>
+              ))}
+              {teamMembers.length > 3 && (
+                <div
+                  className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium cursor-pointer"
+                  onClick={openMembersModal}
+                >
+                  +{teamMembers.length - 3}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={openMembersModal}
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              View Members
+            </button>
+          </div>
+        </div>
+
         {loading && (
           <div className="text-center py-4">Loading schedule data...</div>
         )}
@@ -317,6 +392,12 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
           onUpdateEvent={handleUpdateEvent}
         />
       )}
+      <ScheduleMembers
+        isOpen={isMembersModalOpen}
+        onClose={closeMembersModal}
+        members={teamMembers}
+        scheduleName={activeSchedule?.name || "Schedule"}
+      />
     </div>
   );
 };
