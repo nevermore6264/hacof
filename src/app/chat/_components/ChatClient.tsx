@@ -13,22 +13,36 @@ interface User {
   image: string;
 }
 
+interface ConversationUser {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  // ... các trường khác
+}
+
 interface Message {
-  sender: string;
-  time: string;
+  id: string;
+  conversationId: string;
   content: string;
-  type: "text" | "image";
+  fileUrls: string[];
+  reactions: any[]; // Có thể định nghĩa cụ thể hơn
+  createdAt: string;
+  updatedAt: string;
+  createdByUserName: string;
+  deleted: boolean;
 }
 
 interface Chat {
-  id: number;
+  id: string;
+  type: string;
   name: string;
-  avatarUrl: string;
-  lastMessage: string;
-  lastMessageTime: string;
+  avatarUrl: string | null;
+  conversationUsers: ConversationUser[];
   messages: Message[];
-  isGroup?: boolean;
-  participants?: User[];
+  createdAt: string;
+  updatedAt: string;
+  createdByUserName: string;
 }
 
 export default function ChatClient() {
