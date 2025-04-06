@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 interface Chat {
     id: number;
     name: string;
-    image: string;
-    lastMessage: string;
-    lastMessageTime: string;
+    avatarUrl: string;
+    lastMessage?: string;
+    lastMessageTime?: string;
 }
 
 interface ChatListProps {
@@ -71,12 +71,12 @@ const ChatList: React.FC<ChatListProps> = ({ chats, onChatSelect, onCreateNewCha
                         onClick={() => onChatSelect(chat.id)}
                     >
                         <div className="flex items-center">
-                            <img src={chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"} alt={chat.name} className="w-10 h-10 rounded-md" />
+                            <img src={chat?.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"} alt={chat.name} className="w-10 h-10 rounded-md" />
                             <div className="ml-3">
                                 <p className="text-sm font-medium text-gray-900">{chat.name}</p>
-                                <p className="text-sm text-gray-500">{chat.lastMessage}</p>
+                                <p className="text-sm text-gray-500">{chat?.lastMessage}</p>
                             </div>
-                            <div className="ml-auto text-xs text-gray-500">{chat.lastMessageTime}</div>
+                            <div className="ml-auto text-xs text-gray-500">{chat?.lastMessageTime}</div>
                         </div>
                     </div>
                 ))}

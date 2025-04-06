@@ -18,7 +18,7 @@ interface ChatDetailsProps {
     chats: {
         id: number;
         name: string;
-        image: string;
+        avatarUrl: string;
         lastMessage: string;
         lastMessageTime: string;
         messages: Message[];
@@ -87,7 +87,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
             {/* Header */}
             <div className="p-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center">
-                    <img src={chat.image} alt={chat.name} className="w-10 h-10 rounded-md" />
+                    <img src={chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"} alt={chat.name} className="w-10 h-10 rounded-full" />
                     <p className="ml-3 text-lg font-bold text-gray-900">{chat.name}</p>
                 </div>
             </div>
