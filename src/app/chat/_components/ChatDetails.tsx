@@ -123,21 +123,45 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
         }
     };
 
-    const handleReaction = (messageId: string, emoji: string) => {
+    const handleReaction = async (messageId: string, reactionType: string) => {
         if (!user) return;
 
-        const message = chat.messages.find(m => m.id === messageId);
-        if (message) {
-            const existingReaction = message.reactions.find(r => r.user === `${user.firstName} ${user.lastName}`,);
-            if (existingReaction) {
-                existingReaction.emoji = emoji;
-            } else {
-                message.reactions.push({
-                    emoji,
-                    user: `${user.firstName} ${user.lastName}`,
-                    createdAt: new Date().toISOString()
-                });
+        try {
+            const response = await fetch(`/api/reactions/${messageId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+                body: JSON.stringify({
+                    reactionType,
+                }),
+            });
+
+            if (response.ok) {
+                const message = chat.messages.find(m => m.id === messageId);
+                if (message) {
+                    const existingReaction = message.reactions.find(r => r.userId === user.id.toString());
+                    if (existingReaction) {
+                        if (existingReaction.reactionType === reactionType) {
+                            // Nếu đã có reaction giống nhau thì xóa
+                            message.reactions = message.reactions.filter(r => r.userId !== user.id.toString());
+                        } else {
+                            // Nếu có reaction khác thì cập nhật
+                            existingReaction.reactionType = reactionType;
+                        }
+                    } else {
+                        // Thêm reaction mới
+                        message.reactions.push({
+                            userId: user.id.toString(),
+                            reactionType,
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+                }
             }
+        } catch (error) {
+            console.error("Error sending reaction:", error);
         }
     };
 
@@ -211,7 +235,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                                         <div className="bg-white rounded-full px-2 py-1 shadow-sm flex items-center space-x-1">
                                             {message.reactions.map((reaction, i) => (
                                                 <span key={i} className="text-sm">
-                                                    {reaction.emoji}
+                                                    {getReactionEmoji(reaction.reactionType)}
                                                 </span>
                                             ))}
                                             <span className="text-xs text-gray-500">{message.reactions.length}</span>
@@ -222,13 +246,20 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                                 {/* Reaction buttons - show on hover */}
                                 <div className={`absolute ${isCurrentUser ? 'left-0' : 'right-0'} -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
                                     <div className="bg-white rounded-full shadow-lg p-1 flex items-center space-x-1">
-                                        {['👍', '❤️', '😂', '😮', '😢', '👏'].map((emoji, i) => (
+                                        {[
+                                            { type: 'LIKE', emoji: '👍' },
+                                            { type: 'LOVE', emoji: '❤️' },
+                                            { type: 'HAHA', emoji: '😂' },
+                                            { type: 'WOW', emoji: '😮' },
+                                            { type: 'SAD', emoji: '😢' },
+                                            { type: 'ANGRY', emoji: '😠' }
+                                        ].map((reaction, i) => (
                                             <button
                                                 key={i}
-                                                onClick={() => handleReaction(message.id, emoji)}
+                                                onClick={() => handleReaction(message.id, reaction.type)}
                                                 className="text-sm hover:scale-110 transition-transform p-1"
                                             >
-                                                {emoji}
+                                                {reaction.emoji}
                                             </button>
                                         ))}
                                     </div>
@@ -282,6 +313,18 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
             </div>
         </div>
     );
+};
+
+const getReactionEmoji = (reactionType: string): string => {
+    switch (reactionType) {
+        case 'LIKE': return '👍';
+        case 'LOVE': return '❤️';
+        case 'HAHA': return '😂';
+        case 'WOW': return '😮';
+        case 'SAD': return '😢';
+        case 'ANGRY': return '😠';
+        default: return '';
+    }
 };
 
 export default ChatDetails;
