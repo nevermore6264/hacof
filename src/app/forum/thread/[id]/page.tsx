@@ -2,27 +2,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 import { fetchMockThreadPosts } from "./_mock/fetchMockThreadPosts";
 import { ThreadPost } from "@/types/entities/threadPost";
-import EditForm from "./_components/EditForm";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth_v0";
+import PostForm from "./_components/PostForm";
+import ThreadPostItem from "./_components/ThreadPostItem";
 
 export default function ThreadPage() {
   const params = useParams();
   const threadId = params?.id as string;
+  const { user } = useAuth();
 
   const [threadPosts, setThreadPosts] = useState<ThreadPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
 
   // Fetch posts for the thread
   const fetchPosts = async () => {
     setLoading(true);
-    const posts = await fetchMockThreadPosts(threadId);
-    setThreadPosts(posts);
-    setLoading(false);
+    try {
+      const posts = await fetchMockThreadPosts(threadId);
+      setThreadPosts(posts);
+    } catch (error) {
+      console.error("Failed to fetch thread posts:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -31,103 +36,66 @@ export default function ThreadPage() {
     }
   }, [threadId]);
 
-  // Handle post save (refresh list after creating/editing)
+  // Handle post actions
   const handlePostSaved = () => {
-    setEditingPostId(null);
     fetchPosts();
   };
 
-  if (loading) {
-    return <p className="text-center text-gray-500">Loading discussions...</p>;
-  }
+  const handlePostDeleted = (postId: string) => {
+    setThreadPosts((prev) => prev.filter((post) => post.id !== postId));
+  };
+
+  const handlePostUpdated = (updatedPost: ThreadPost) => {
+    setThreadPosts((prev) =>
+      prev.map((post) => (post.id === updatedPost.id ? updatedPost : post))
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold text-gray-900 text-center mb-6">
-        Discussion
-      </h1>
-      {/* New Post Form */}
-      <div className="max-w-4xl mx-auto bg-white p-6 shadow rounded-lg mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Start a New Discussion
-        </h2>
-        <EditForm onPostSaved={handlePostSaved} />
-      </div>
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          Discussion Thread
+        </h1>
 
-      {/* Discussion Posts */}
-      <div className="max-w-4xl mx-auto space-y-6">
-        {threadPosts.length > 0 ? (
-          threadPosts.map((post) => (
-            <div
-              key={post.id}
-              className="bg-white p-4 shadow rounded-lg flex space-x-4"
-            >
-              {/* Avatar (mocked image for now) */}
-              <Image
-                src="/default-avatar.png"
-                alt={post.createdByUserName}
-                width={50}
-                height={50}
-                className="rounded-full"
-              />
+        {/* New Post Form */}
+        <div className="bg-white p-6 shadow-md rounded-lg mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Start a New Discussion
+          </h2>
+          <PostForm
+            forumThreadId={threadId}
+            onPostSaved={handlePostSaved}
+            currentUsername={user?.username}
+          />
+        </div>
 
-              <div className="flex-1">
-                {/* Author Name & Timestamp */}
-                <p className="text-gray-900 font-semibold">
-                  {post.createdByUserName}{" "}
-                  <span className="text-sm text-gray-500">
-                    {new Date(post.createdAt).toLocaleString()}
-                  </span>
-                </p>
-
-                {/* Post Content */}
-                {editingPostId === post.id ? (
-                  <EditForm post={post} onPostSaved={handlePostSaved} />
-                ) : (
-                  <div
-                    className="text-gray-700 mt-2 prose max-w-none"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  />
-                )}
-
-                {/* Post Actions */}
-                <div className="flex justify-between mt-3 text-sm text-gray-500">
-                  <div>👍 {post.threadPostLikes?.length || 0} Likes</div>
-                  <div>🚩 {post.threadPostReports?.length || 0} Reports</div>
-                </div>
-
-                {/* If post is deleted */}
-                {post.isDeleted && (
-                  <p className="text-red-500 text-sm mt-2">
-                    Deleted by {post.deletedBy?.firstName}{" "}
-                    {post.deletedBy?.lastName}
-                  </p>
-                )}
-
-                {/* Edit Button (Only for the current user) */}
-                {!post.isDeleted && (
-                  <div className="mt-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setEditingPostId(
-                          editingPostId === post.id ? null : post.id
-                        )
-                      }
-                    >
-                      {editingPostId === post.id ? "Cancel" : "Edit"}
-                    </Button>
-                  </div>
-                )}
-              </div>
+        {/* Discussion Posts */}
+        <div className="space-y-6">
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+              <p className="mt-2 text-gray-600">Loading discussions...</p>
             </div>
-          ))
-        ) : (
-          <p className="text-gray-500 text-center">
-            No discussions available in this thread.
-          </p>
-        )}
+          ) : threadPosts.length > 0 ? (
+            threadPosts.map((post) => (
+              <ThreadPostItem
+                key={post.id}
+                post={post}
+                currentUsername={user?.username}
+                onPostUpdated={handlePostUpdated}
+                onPostDeleted={handlePostDeleted}
+              />
+            ))
+          ) : (
+            <div className="bg-white p-8 shadow-md rounded-lg text-center">
+              <p className="text-gray-500">
+                No discussions available in this thread yet. Be the first to
+                post!
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
