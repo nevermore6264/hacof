@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import React, { useState } from 'react';
 import { FaPaperclip, FaSmile } from 'react-icons/fa';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { useAuth } from "@/hooks/useAuth_v0";
 
 interface ConversationUser {
     id: string;
@@ -46,6 +48,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
     const [message, setMessage] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [file, setFile] = useState<File | null>(null);
+    const { user } = useAuth();
 
     if (!chat) {
         return (
@@ -81,6 +84,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                         fileUrls: file ? [URL.createObjectURL(file)] : [],
                     }),
                 });
+                if (!user) return;
 
                 if (response.ok) {
                     const newMessage = await response.json();
@@ -93,7 +97,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                         reactions: [],
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
-                        createdByUserName: "currentUser", // Thay bằng username thực tế
+                        createdByUserName: `${user.firstName} ${user.lastName}`,
                         deleted: false
                     });
 
@@ -118,15 +122,17 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
     };
 
     const handleReaction = (messageId: string, emoji: string) => {
+        if (!user) return;
+
         const message = chat.messages.find(m => m.id === messageId);
         if (message) {
-            const existingReaction = message.reactions.find(r => r.user === "currentUser");
+            const existingReaction = message.reactions.find(r => r.user === `${user.firstName} ${user.lastName}`,);
             if (existingReaction) {
                 existingReaction.emoji = emoji;
             } else {
                 message.reactions.push({
                     emoji,
-                    user: "currentUser",
+                    user: `${user.firstName} ${user.lastName}`,
                     createdAt: new Date().toISOString()
                 });
             }
