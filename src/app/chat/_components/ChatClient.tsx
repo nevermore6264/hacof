@@ -6,9 +6,10 @@ import ChatList from "./ChatList";
 import ChatDetails from "./ChatDetails";
 import CreateChatModal from "./CreateChatModal";
 import { useAuth } from "@/hooks/useAuth_v0";
+import { User as BaseUser } from "@/types/entities/user";
+import { toast } from "sonner";
 
-interface User {
-  id: number;
+interface ChatUser extends BaseUser {
   name: string;
   image: string;
 }
@@ -59,7 +60,7 @@ export default function ChatClient() {
   const [isCreateChatModalOpen, setIsCreateChatModalOpen] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatListItems, setChatListItems] = useState<ChatListItem[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<ChatUser[]>([]);
   const { user } = useAuth();
 
   // Fetch user's chats
@@ -86,10 +87,11 @@ export default function ChatClient() {
           }));
           setChatListItems(items);
         } else {
-          console.error("Failed to fetch chats");
+          const errorData = await response.json();
+          toast.error(errorData.message || "Failed to fetch chats");
         }
-      } catch (error) {
-        console.error("Error fetching chats:", error);
+      } catch {
+        toast.error("An error occurred while fetching chats");
       }
     };
 
@@ -99,6 +101,11 @@ export default function ChatClient() {
   // Hàm tạo cuộc hội thoại mới bằng API - CHỈ CÒN SINGLE CHAT
   const handleCreateChat = async (selectedUser: any) => {
     try {
+      if (selectedUser.id === user?.id) {
+        toast.error("You cannot create a conversation with yourself");
+        return;
+      }
+
       const response = await fetch("/api/chats/single", {
         method: "POST",
         headers: {
@@ -112,11 +119,13 @@ export default function ChatClient() {
         const newChat = await response.json();
         setChats([...chats, newChat]);
         setIsCreateChatModalOpen(false);
+        toast.success("Chat created successfully");
       } else {
-        console.error("Failed to create chat");
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to create chat");
       }
-    } catch (error) {
-      console.error("Error creating chat:", error);
+    } catch {
+      toast.error("An error occurred while creating the chat");
     }
   };
 
@@ -143,10 +152,11 @@ export default function ChatClient() {
           const data = await response.json();
           setUsers(data);
         } else {
-          console.error("Failed to fetch users");
+          const errorData = await response.json();
+          toast.error(errorData.message || "Failed to fetch users");
         }
-      } catch (error) {
-        console.error("Error fetching users:", error);
+      } catch {
+        toast.error("An error occurred while fetching users");
       }
     };
 
@@ -164,7 +174,7 @@ export default function ChatClient() {
 
       {/* Right Side - Chat Details */}
       {selectedChatId ? (
-        <ChatDetails chatId={selectedChatId} chats={chats} users={users} />
+        <ChatDetails chatId={selectedChatId} chats={chats} users={users as ChatUser[]} />
       ) : (
         <div className="w-2/3 flex items-center justify-center bg-gray-50">
           <p className="text-gray-500">Select a chat to start messaging</p>

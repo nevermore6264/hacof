@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 
 interface User {
-    id: number;
+    id: string;
     name: string;
     image: string;
 }

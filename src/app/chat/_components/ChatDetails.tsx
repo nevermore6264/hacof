@@ -5,6 +5,13 @@ import React, { useState } from 'react';
 import { FaPaperclip, FaSmile } from 'react-icons/fa';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useAuth } from "@/hooks/useAuth_v0";
+import { User as BaseUser } from "@/types/entities/user";
+import { toast } from "sonner";
+
+interface ChatUser extends BaseUser {
+    name: string;
+    image: string;
+}
 
 interface ConversationUser {
     id: string;
@@ -39,17 +46,10 @@ interface Chat {
     createdByUserName: string;
 }
 
-interface User {
-    id: string;
-    name: string;
-    username: string;
-    // ... các trường khác
-}
-
 interface ChatDetailsProps {
     chatId: string;
     chats: Chat[];
-    users: User[];
+    users: ChatUser[];
 }
 
 const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
@@ -99,7 +99,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                         reactions: [],
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
-                        createdByUserName: `${user.firstName} ${user.lastName}`,
+                        createdByUserName: user.username || `${user.firstName} ${user.lastName}`,
                         deleted: false
                     });
 
@@ -146,9 +146,11 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                         if (existingReaction.reactionType === reactionType) {
                             // Nếu đã có reaction giống nhau thì xóa
                             message.reactions = message.reactions.filter(r => r.userId !== user.id.toString());
+                            toast.success("Reaction removed");
                         } else {
                             // Nếu có reaction khác thì cập nhật
                             existingReaction.reactionType = reactionType;
+                            toast.success("Reaction updated");
                         }
                     } else {
                         // Thêm reaction mới
@@ -157,11 +159,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                             reactionType,
                             createdAt: new Date().toISOString()
                         });
+                        toast.success("Reaction added");
                     }
                 }
+            } else {
+                const errorData = await response.json();
+                toast.error(errorData.message || "Failed to add reaction");
             }
-        } catch (error) {
-            console.error("Error sending reaction:", error);
+        } catch {
+            toast.error("An error occurred while adding reaction");
         }
     };
 
@@ -188,7 +194,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                 {chat.messages.map((message) => {
                     const messageUser = users.find(u =>
-                        u.username === message.createdByUserName
+                        u.username === message.createdByUserName ||
+                        `${u.firstName} ${u.lastName}` === message.createdByUserName
                     );
                     const isCurrentUser = user && messageUser?.id === user.id.toString();
                     return (
