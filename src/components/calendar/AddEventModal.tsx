@@ -9,7 +9,7 @@ interface AddEventModalProps {
   onClose: () => void;
   scheduleId: string;
   onAddEvent: (eventData: {
-    title: string;
+    name: string;
     startDate: string;
     endDate: string;
     level: string;
@@ -31,7 +31,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   scheduleId,
   onAddEvent,
 }) => {
-  const [eventTitle, setEventTitle] = useState("");
+  const [eventName, setEventName] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventLocation, setEventLocation] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
@@ -41,7 +41,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   const [eventLevel, setEventLevel] = useState<string>("Primary");
 
   const resetModalFields = () => {
-    setEventTitle("");
+    setEventName("");
     setEventDescription("");
     setEventLocation("");
     setEventStartDate("");
@@ -57,7 +57,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   };
 
   const handleSubmit = () => {
-    if (!eventTitle || !eventStartDate) {
+    if (!eventName || !eventStartDate) {
       alert("Please fill in all required fields");
       return;
     }
@@ -69,7 +69,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
     );
 
     onAddEvent({
-      title: eventTitle,
+      name: eventName,
       startDate: startDateTime,
       endDate: endDateTime,
       level: calendarsEvents[eventLevel],
@@ -96,15 +96,15 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
         <div className="mt-8">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Event Title*
+              Event Name*
             </label>
             <input
-              id="event-title"
+              id="event-name"
               type="text"
-              value={eventTitle}
-              onChange={(e) => setEventTitle(e.target.value)}
+              value={eventName}
+              onChange={(e) => setEventName(e.target.value)}
               className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-              placeholder="Enter event title"
+              placeholder="Enter event name"
               required
             />
           </div>
