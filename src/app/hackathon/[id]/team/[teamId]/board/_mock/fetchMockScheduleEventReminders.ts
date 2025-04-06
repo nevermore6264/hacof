@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockScheduleEventReminders.ts
 import { ScheduleEventReminder } from "@/types/entities/scheduleEventReminder";
 
 export const fetchMockScheduleEventReminders = (

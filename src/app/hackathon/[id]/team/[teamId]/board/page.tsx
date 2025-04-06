@@ -29,6 +29,9 @@ export default function HackathonBoardPage() {
   const [loading, setLoading] = useState(true);
   const [boardLoading, setBoardLoading] = useState(true);
 
+  // Track if calendar data has been loaded
+  const [calendarInitialized, setCalendarInitialized] = useState(false);
+
   // Use the API modal hook
   const { modalState, hideModal, showError } = useApiModal();
 
@@ -83,6 +86,13 @@ export default function HackathonBoardPage() {
     }
   }, [activeTab, rounds.length, hackathonId, showError]);
 
+  // Mark calendar as initialized when the Schedule tab is selected for the first time
+  useEffect(() => {
+    if (activeTab === "Schedule" && !calendarInitialized) {
+      setCalendarInitialized(true);
+    }
+  }, [activeTab, calendarInitialized]);
+
   return (
     <div className="p-6">
       {/* Tabs Navigation */}
@@ -119,7 +129,9 @@ export default function HackathonBoardPage() {
             teamId={teamIdValue}
           />
         )}
-        {activeTab === "Schedule" && <Calendar />}
+        {activeTab === "Schedule" && (
+          <Calendar teamId={teamIdValue} hackathonId={hackathonId} />
+        )}
         {activeTab === "Analytics" && <p>Placeholder for analytics.</p>}
       </div>
 

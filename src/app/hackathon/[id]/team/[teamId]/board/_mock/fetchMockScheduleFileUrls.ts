@@ -1,3 +1,4 @@
+// src/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockScheduleFileUrls.ts
 import { FileUrl } from "@/types/entities/fileUrl";
 
 export const fetchMockFileUrls = (
