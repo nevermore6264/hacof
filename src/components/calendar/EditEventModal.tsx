@@ -1,3 +1,4 @@
+// src/components/calendar/EditEventModal.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
@@ -60,7 +61,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     // Populate modal fields when selectedEvent changes
     if (selectedEvent) {
       // Basic event info
-      setEventName(selectedEvent.name || "");
+      setEventName(selectedEvent.title || "");
 
       // Convert Date objects to datetime-local input format (YYYY-MM-DDThh:mm)
       const formatDateTime = (date: Date | string | undefined) => {

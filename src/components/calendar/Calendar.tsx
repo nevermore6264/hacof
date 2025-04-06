@@ -148,7 +148,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
         // Transform schedule events into calendar events
         const calendarEvents: CalendarEvent[] = scheduleEvents.map((event) => ({
           id: event.id,
-          name: event.name,
+          title: event.name,
           start: event.startTime,
           end: event.endTime,
           allDay: false,
@@ -240,7 +240,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
         event.id === selectedEvent.id
           ? {
               ...event,
-              name: eventData.name,
+              title: eventData.name,
               startDate: eventData.startDate,
               endDate: eventData.endDate,
               extendedProps: {
@@ -268,7 +268,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
         className={`event-tooltip event-fc-color flex fc-event-main fc-bg-${extendedProps.calendar.toLowerCase()} p-1 rounded-sm`}
       >
         <div className="flex flex-col">
-          <div className="font-bold">{event.name}</div>
+          <div className="font-bold">{event.title}</div>
           {extendedProps.description && (
             <div className="text-xs">{extendedProps.description}</div>
           )}

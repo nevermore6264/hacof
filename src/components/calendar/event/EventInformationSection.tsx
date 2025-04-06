@@ -1,3 +1,4 @@
+// src/components/calendar/event/EventInformationSection.tsx
 import React from "react";
 import { ScheduleEventLabel } from "@/types/entities/scheduleEvent";
 
@@ -21,6 +22,14 @@ const calendarsEvents: Record<string, ScheduleEventLabel> = {
   Success: "success",
   Primary: "primary",
   Warning: "warning",
+};
+
+// Define color codes for each label
+const labelColorMap = {
+  danger: "#dc3545",
+  success: "#28a745",
+  primary: "#007bff",
+  warning: "#ffc107",
 };
 
 const EventInformationSection: React.FC<EventInformationSectionProps> = ({
@@ -109,7 +118,9 @@ const EventInformationSection: React.FC<EventInformationSectionProps> = ({
                       className="flex items-center justify-center w-5 h-5 mr-2 border border-gray-300 rounded-full box dark:border-gray-700"
                       style={{
                         backgroundColor:
-                          eventLabel === value ? value : "transparent",
+                          eventLabel === value
+                            ? labelColorMap[value]
+                            : "transparent",
                       }}
                     >
                       <span
