@@ -117,9 +117,31 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
         setMessage((prev) => prev + emojiObject.emoji);
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
+            try {
+                const formData = new FormData();
+                formData.append('files', e.target.files[0]);
+
+                const response = await fetch('/api/files/upload', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setFile(data.url); // Lưu URL của file đã upload
+                    toast.success("File uploaded successfully");
+                } else {
+                    const errorData = await response.json();
+                    toast.error(errorData.message || "Failed to upload file");
+                }
+            } catch {
+                toast.error("An error occurred while uploading file");
+            }
         }
     };
 
