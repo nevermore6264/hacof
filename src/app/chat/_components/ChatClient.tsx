@@ -18,6 +18,7 @@ interface ConversationUser {
   userId: string;
   firstName: string;
   lastName: string;
+  username: string;
   // ... các trường khác
 }
 

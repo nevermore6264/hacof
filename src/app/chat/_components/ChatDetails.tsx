@@ -11,6 +11,7 @@ interface ConversationUser {
     userId: string;
     firstName: string;
     lastName: string;
+    username: string;
     // ... các trường khác
 }
 
@@ -61,13 +62,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
     const formatTime = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
-
-    const getSenderName = (username: string) => {
-        const user = chat.conversationUsers.find(u =>
-            `${u.firstName} ${u.lastName}`.toLowerCase().includes(username.toLowerCase())
-        );
-        return user ? `${user.firstName} ${user.lastName}` : username;
     };
 
     const handleSendMessage = async () => {
@@ -161,12 +155,22 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
             {/* Danh sách tin nhắn */}
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
                 {chat.messages.map((message) => {
-                    const isCurrentUser = user && message.createdByUserName === `${user.firstName} ${user.lastName}`;
+                    const messageUser = chat.conversationUsers.find(u =>
+                        u.userId === message.createdByUserName
+                    );
+                    const isCurrentUser = user && messageUser?.userId === user.id.toString();
                     return (
                         <div key={message.id} className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-4`}>
                             <div className={`max-w-[70%] group relative`}>
+                                {/* Sender name for other users */}
+                                {!isCurrentUser && messageUser && (
+                                    <div className="text-xs text-gray-500 mb-1">
+                                        {messageUser.firstName} {messageUser.lastName}
+                                    </div>
+                                )}
+
                                 {/* Message bubble */}
-                                <div className={`rounded-2xl px-4 py-2 ${isCurrentUser ? 'bg-blue-500 text-white' : 'bg-white text-gray-900'} shadow-sm`}>
+                                <div className={`rounded-2xl px-4 py-2 ${isCurrentUser ? 'bg-blue-600 text-white' : 'bg-blue-100 text-gray-900'} shadow-sm`}>
                                     {message.fileUrls?.length > 0 ? (
                                         message.fileUrls.map((fileUrl, index) => (
                                             <div key={index} className="mt-2">
@@ -176,7 +180,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                                                     <a
                                                         href={fileUrl}
                                                         download
-                                                        className={`${isCurrentUser ? 'text-white' : 'text-blue-500'} underline`}
+                                                        className={`${isCurrentUser ? 'text-white' : 'text-blue-600'} underline`}
                                                     >
                                                         Download File
                                                     </a>

@@ -12,6 +12,7 @@ interface User {
     firstName: string;
     lastName: string;
     avatarUrl?: string;
+    username: string;
 }
 
 export async function GET(req: Request) {
@@ -59,6 +60,7 @@ export async function GET(req: Request) {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
             image: user.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg",
+            username: user.username
         }));
 
         return NextResponse.json(users);
