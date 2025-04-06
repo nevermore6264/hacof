@@ -154,7 +154,7 @@ export default function ChatClient() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100">
       {/* Left Side - Chat List */}
       <ChatList
         chats={chatListItems}
