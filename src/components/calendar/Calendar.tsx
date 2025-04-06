@@ -22,7 +22,9 @@ import { addEventToCalendar } from "@/services/scheduleEventService";
 import ScheduleMembers from "./ScheduleMembers";
 import { fetchMockTeams } from "@/app/hackathon/[id]/_mock/fetchMockTeams";
 import { User } from "@/types/entities/user";
-
+import { FileUrl } from "@/types/entities/fileUrl";
+import { ScheduleEventAttendee } from "@/types/entities/scheduleEventAttendee";
+import { ScheduleEventReminder } from "@/types/entities/scheduleEventReminder";
 export interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
@@ -221,10 +223,15 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
   };
 
   const handleUpdateEvent = (eventData: {
-    title: string;
+    name: string;
     startDate: string;
     endDate: string;
-    level: string;
+    eventLabel: string;
+    description: string;
+    location: string;
+    files: FileUrl[];
+    attendees: ScheduleEventAttendee[];
+    reminders: ScheduleEventReminder[];
   }) => {
     if (!selectedEvent) return;
 
@@ -233,12 +240,17 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
         event.id === selectedEvent.id
           ? {
               ...event,
-              title: eventData.title,
-              start: eventData.startDate,
-              end: eventData.endDate,
+              name: eventData.name,
+              startDate: eventData.startDate,
+              endDate: eventData.endDate,
               extendedProps: {
                 ...event.extendedProps,
-                calendar: eventData.level,
+                calendar: eventData.eventLabel,
+                description: eventData.description,
+                location: eventData.location,
+                files: eventData.files,
+                attendees: eventData.attendees,
+                reminders: eventData.reminders,
               },
             }
           : event
@@ -390,6 +402,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
           onClose={closeEditModal}
           selectedEvent={selectedEvent}
           onUpdateEvent={handleUpdateEvent}
+          teamMembers={teamMembers}
         />
       )}
       <ScheduleMembers
