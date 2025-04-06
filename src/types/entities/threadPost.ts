@@ -12,7 +12,7 @@ export type ThreadPost = {
   content: string;
   threadPostLikes?: ThreadPostLike[];
   threadPostReports?: ThreadPostReport[];
-  isDeleted: boolean;
+  isDeleted?: boolean;
   deletedBy?: User;
   deletedById?: string;
 } & AuditCreatedBase;

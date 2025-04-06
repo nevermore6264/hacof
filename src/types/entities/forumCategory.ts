@@ -7,5 +7,5 @@ export type ForumCategory = {
   name: string;
   description?: string;
   section: string;
-  forumThreads: ForumThread[];
+  forumThreads?: ForumThread[];
 } & AuditBase;
