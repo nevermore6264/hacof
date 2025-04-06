@@ -166,9 +166,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
     };
 
     return (
-        <div className="w-2/3 flex flex-col" style={{ height: '500px' }}>
+        <div className="w-2/3 flex flex-col h-full">
             {/* Header */}
-            <div className="p-4 border-b border-gray-200 bg-white">
+            <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center">
                     <img
                         src={chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"}
@@ -185,7 +185,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
             </div>
 
             {/* Danh sách tin nhắn */}
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-50" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                 {chat.messages.map((message) => {
                     const messageUser = users.find(u =>
                         u.username === message.createdByUserName
@@ -244,7 +244,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                                 )}
 
                                 {/* Reaction buttons - show on hover */}
-                                <div className={`absolute ${isCurrentUser ? 'left-0' : 'right-0'} -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
+                                <div className={`absolute ${isCurrentUser ? 'left-0' : 'right-0'} -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none`}>
                                     <div className="bg-white rounded-full shadow-lg p-1 flex items-center space-x-1">
                                         {[
                                             { type: 'LIKE', emoji: '👍' },
@@ -257,7 +257,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                                             <button
                                                 key={i}
                                                 onClick={() => handleReaction(message.id, reaction.type)}
-                                                className="text-sm hover:scale-110 transition-transform p-1"
+                                                className="text-sm hover:scale-110 transition-transform p-1 pointer-events-auto"
                                             >
                                                 {reaction.emoji}
                                             </button>
@@ -271,7 +271,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
             </div>
 
             {/* Input message */}
-            <div className="p-4 border-t border-gray-200 bg-white">
+            <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
                 <div className="flex items-center space-x-2">
                     <button
                         onClick={() => setShowEmojiPicker((prev) => !prev)}
