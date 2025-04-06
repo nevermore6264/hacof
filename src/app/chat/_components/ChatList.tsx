@@ -18,6 +18,35 @@ interface ChatListProps {
 const ChatList: React.FC<ChatListProps> = ({ chats, onChatSelect, onCreateNewChat }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
+    const formatMessageTime = (dateString?: string) => {
+        if (!dateString) return '';
+
+        const date = new Date(dateString);
+        const now = new Date();
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        // Check if it's today
+        if (date.toDateString() === now.toDateString()) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Check if it's yesterday
+        if (date.toDateString() === yesterday.toDateString()) {
+            return 'Yesterday';
+        }
+
+        // Check if it's within the last 7 days
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays <= 7) {
+            return date.toLocaleDateString([], { weekday: 'long' });
+        }
+
+        // Otherwise show the date
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    };
+
     // Lọc danh sách chat dựa trên search query
     const filteredChats = chats
     // const filteredChats = chats.filter((chat) =>
@@ -72,11 +101,15 @@ const ChatList: React.FC<ChatListProps> = ({ chats, onChatSelect, onCreateNewCha
                     >
                         <div className="flex items-center">
                             <img src={chat?.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"} alt={chat.name} className="w-10 h-10 rounded-full" />
-                            <div className="ml-3">
-                                <p className="text-sm font-medium text-gray-900">{chat.name}</p>
-                                <p className="text-sm text-gray-500">{chat?.lastMessage}</p>
+                            <div className="ml-3 flex-1 min-w-0">
+                                <div className="flex justify-between items-center">
+                                    <p className="text-sm font-medium text-gray-900 truncate">{chat.name}</p>
+                                    <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                                        {formatMessageTime(chat?.lastMessageTime)}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-500 truncate">{chat?.lastMessage}</p>
                             </div>
-                            <div className="ml-auto text-xs text-gray-500">{chat?.lastMessageTime}</div>
                         </div>
                     </div>
                 ))}

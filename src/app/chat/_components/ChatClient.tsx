@@ -33,6 +33,14 @@ interface Message {
   deleted: boolean;
 }
 
+interface ChatListItem {
+  id: number;
+  name: string;
+  avatarUrl: string;
+  lastMessage?: string;
+  lastMessageTime?: string;
+}
+
 interface Chat {
   id: string;
   type: string;
@@ -46,9 +54,10 @@ interface Chat {
 }
 
 export default function ChatClient() {
-  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [isCreateChatModalOpen, setIsCreateChatModalOpen] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
+  const [chatListItems, setChatListItems] = useState<ChatListItem[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const { user } = useAuth();
 
@@ -66,6 +75,15 @@ export default function ChatClient() {
         if (response.ok) {
           const res = await response.json();
           setChats(res?.data);
+          // Convert Chat[] to ChatListItem[]
+          const items: ChatListItem[] = res?.data.map((chat: Chat) => ({
+            id: parseInt(chat.id),
+            name: chat.name,
+            avatarUrl: chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg",
+            lastMessage: chat.messages[chat.messages.length - 1]?.content,
+            lastMessageTime: chat.messages[chat.messages.length - 1]?.createdAt
+          }));
+          setChatListItems(items);
         } else {
           console.error("Failed to fetch chats");
         }
@@ -138,8 +156,8 @@ export default function ChatClient() {
     <div className="flex min-h-screen bg-gray-100">
       {/* Left Side - Chat List */}
       <ChatList
-        chats={chats}
-        onChatSelect={setSelectedChatId}
+        chats={chatListItems}
+        onChatSelect={(id) => setSelectedChatId(id.toString())}
         onCreateNewChat={handleOpenCreateChatModal}
       />
 
@@ -156,7 +174,7 @@ export default function ChatClient() {
       <CreateChatModal
         isOpen={isCreateChatModalOpen}
         onClose={handleCloseCreateChatModal}
-        onCreateChat={(user) => handleCreateChat(user)} // Truyền 1 user thay vì mảng
+        onCreateChat={(user) => handleCreateChat(user)}
         users={users}
       />
     </div>

@@ -160,70 +160,79 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
 
             {/* Danh sách tin nhắn */}
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-                {chat.messages.map((message) => (
-                    <div key={message.id} className="mb-4">
-                        <div className="flex items-center justify-between">
-                            <span className="font-bold text-gray-900">
-                                {getSenderName(message.createdByUserName)}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                                {formatTime(message.createdAt)}
-                            </span>
-                        </div>
-
-                        {message.fileUrls?.length > 0 ? (
-                            message.fileUrls.map((fileUrl, index) => (
-                                <div key={index} className="mt-2">
-                                    {fileUrl.match(/\.(jpeg|jpg|gif|png)$/) ? (
-                                        <img src={fileUrl} alt="Attachment" className="rounded-lg max-w-xs" />
+                {chat.messages.map((message) => {
+                    const isCurrentUser = user && message.createdByUserName === `${user.firstName} ${user.lastName}`;
+                    return (
+                        <div key={message.id} className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-4`}>
+                            <div className={`max-w-[70%] group relative`}>
+                                {/* Message bubble */}
+                                <div className={`rounded-2xl px-4 py-2 ${isCurrentUser ? 'bg-blue-500 text-white' : 'bg-white text-gray-900'} shadow-sm`}>
+                                    {message.fileUrls?.length > 0 ? (
+                                        message.fileUrls.map((fileUrl, index) => (
+                                            <div key={index} className="mt-2">
+                                                {fileUrl.match(/\.(jpeg|jpg|gif|png)$/) ? (
+                                                    <img src={fileUrl} alt="Attachment" className="rounded-lg max-w-xs" />
+                                                ) : (
+                                                    <a
+                                                        href={fileUrl}
+                                                        download
+                                                        className={`${isCurrentUser ? 'text-white' : 'text-blue-500'} underline`}
+                                                    >
+                                                        Download File
+                                                    </a>
+                                                )}
+                                            </div>
+                                        ))
                                     ) : (
-                                        <a
-                                            href={fileUrl}
-                                            download
-                                            className="text-blue-500 underline"
-                                        >
-                                            Download File
-                                        </a>
+                                        <p className="text-sm">{message.content}</p>
                                     )}
                                 </div>
-                            ))
-                        ) : (
-                            <p className="text-gray-700">{message.content}</p>
-                        )}
 
-                        {/* Reactions */}
-                        {message.reactions?.length > 0 && (
-                            <div className="flex items-center mt-2 space-x-1">
-                                {message.reactions.map((reaction, i) => (
-                                    <span key={i} className="text-sm">
-                                        {reaction.emoji}
-                                    </span>
-                                ))}
+                                {/* Timestamp */}
+                                <div className={`text-xs text-gray-500 mt-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                                    {formatTime(message.createdAt)}
+                                </div>
+
+                                {/* Reactions */}
+                                {message.reactions?.length > 0 && (
+                                    <div className={`flex items-center mt-1 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+                                        <div className="bg-white rounded-full px-2 py-1 shadow-sm flex items-center space-x-1">
+                                            {message.reactions.map((reaction, i) => (
+                                                <span key={i} className="text-sm">
+                                                    {reaction.emoji}
+                                                </span>
+                                            ))}
+                                            <span className="text-xs text-gray-500">{message.reactions.length}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Reaction buttons - show on hover */}
+                                <div className={`absolute ${isCurrentUser ? 'left-0' : 'right-0'} -bottom-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
+                                    <div className="bg-white rounded-full shadow-lg p-1 flex items-center space-x-1">
+                                        {['👍', '❤️', '😂', '😮', '😢', '👏'].map((emoji, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => handleReaction(message.id, emoji)}
+                                                className="text-sm hover:scale-110 transition-transform p-1"
+                                            >
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                        )}
-
-                        {/* Reaction buttons */}
-                        <div className="flex items-center mt-2 space-x-1">
-                            {['👍', '❤️', '😂', '😮', '😢', '👏'].map((emoji, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => handleReaction(message.id, emoji)}
-                                    className="text-sm hover:scale-110 transition-transform"
-                                >
-                                    {emoji}
-                                </button>
-                            ))}
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Input message */}
             <div className="p-4 border-t border-gray-200 bg-white">
-                <div className="flex items-center">
+                <div className="flex items-center space-x-2">
                     <button
                         onClick={() => setShowEmojiPicker((prev) => !prev)}
-                        className="p-2 text-gray-500 hover:text-blue-500"
+                        className="p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100"
                     >
                         <FaSmile size={20} />
                     </button>
@@ -233,7 +242,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                         </div>
                     )}
 
-                    <label className="p-2 text-gray-500 hover:text-blue-500 cursor-pointer">
+                    <label className="p-2 text-gray-500 hover:text-blue-500 cursor-pointer rounded-full hover:bg-gray-100">
                         <FaPaperclip size={20} />
                         <input
                             type="file"
@@ -248,12 +257,12 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats }) => {
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        className="flex-1 rounded-lg border border-gray-300 p-2 mx-2"
+                        className="flex-1 rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
 
                     <button
                         onClick={handleSendMessage}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                        className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
                     >
                         Send
                     </button>
