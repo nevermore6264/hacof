@@ -51,16 +51,29 @@ export async function GET(request: Request) {
         if (passwordResponse.status === 400) {
             const error = await passwordResponse.json();
             if (error.code === "PASSWORD_EXISTED") {
-                const redirectUrl = new URL("/", request.url);
-                redirectUrl.searchParams.set("token", data.token);
-                return NextResponse.redirect(redirectUrl);
+                // Store token in localStorage
+                const script = `
+                    <script>
+                        localStorage.setItem('token', '${data.token}');
+                        window.location.href = '/';
+                    </script>
+                `;
+                return new NextResponse(script, {
+                    headers: { 'Content-Type': 'text/html' },
+                });
             }
         }
 
         // If password doesn't exist, redirect to create password page
-        const redirectUrl = new URL("/create-password", request.url);
-        redirectUrl.searchParams.set("token", data.token);
-        return NextResponse.redirect(redirectUrl);
+        const script = `
+            <script>
+                localStorage.setItem('token', '${data.token}');
+                window.location.href = '/create-password';
+            </script>
+        `;
+        return new NextResponse(script, {
+            headers: { 'Content-Type': 'text/html' },
+        });
     } catch (error) {
         console.error("Authentication error:", error);
         return NextResponse.json(
