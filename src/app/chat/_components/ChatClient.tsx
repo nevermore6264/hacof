@@ -116,16 +116,34 @@ export default function ChatClient() {
       });
 
       if (response.ok) {
-        const newChat = await response.json();
-        setChats([...chats, newChat]);
+        const res = await response.json();
+        const newChat = res.data; // Lấy data từ response
+
+        // Cập nhật chats
+        setChats(prevChats => [...prevChats, newChat]);
+
+        // Cập nhật chatListItems
+        setChatListItems(prevItems => {
+          const newChatListItem: ChatListItem = {
+            id: parseInt(newChat.id),
+            name: newChat.name,
+            avatarUrl: newChat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg",
+            lastMessage: newChat.messages?.[newChat.messages.length - 1]?.content,
+            lastMessageTime: newChat.messages?.[newChat.messages.length - 1]?.createdAt
+          };
+          return [...prevItems, newChatListItem];
+        });
+
         setIsCreateChatModalOpen(false);
         toast.success("Chat created successfully");
       } else {
         const errorData = await response.json();
+        console.error('Chat creation failed:', errorData);
         toast.error(errorData.message || "Failed to create chat");
       }
-    } catch {
-      toast.error("An error occurred while creating the chat");
+    } catch (error) {
+      console.error('Error creating chat:', error);
+      toast.error("An error occurred while creating the chat. Please try again.");
     }
   };
 
