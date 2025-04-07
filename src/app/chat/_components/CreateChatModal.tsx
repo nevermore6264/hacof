@@ -11,24 +11,30 @@ interface User {
 interface CreateChatModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onCreateChat: (user: User) => void; // Thay đổi từ User[] thành User
+    onCreateChat: (user: User) => void;
     users: User[];
 }
 
 const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClose, onCreateChat, users }) => {
-    const [selectedUser, setSelectedUser] = useState<User | null>(null); // Thay đổi từ User[] thành User | null
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleUserSelect = (user: User) => {
-        setSelectedUser(user); // Chỉ chọn 1 user
+        setSelectedUser(user);
     };
 
     const handleSubmit = () => {
         if (selectedUser) {
-            onCreateChat(selectedUser); // Truyền 1 user thay vì mảng
+            onCreateChat(selectedUser);
             setSelectedUser(null);
             onClose();
         }
     };
+
+    // Filter users based on search query
+    const filteredUsers = users.filter(user =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     if (!isOpen) return null;
 
@@ -36,8 +42,21 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClose, onCr
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-96">
                 <h2 className="text-lg font-bold mb-4">Select User to Chat</h2>
+
+                {/* Search input */}
                 <div className="mb-4">
-                    {users.map((user) => (
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                {/* Scrollable user list */}
+                <div className="mb-4 max-h-96 overflow-y-auto">
+                    {filteredUsers.map((user) => (
                         <div
                             key={user.id}
                             className={`flex items-center p-2 cursor-pointer ${selectedUser?.id === user.id ? 'bg-blue-50' : 'hover:bg-gray-50'
@@ -49,17 +68,18 @@ const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClose, onCr
                         </div>
                     ))}
                 </div>
-                <div className="flex justify-end">
+
+                <div className="flex justify-end space-x-2">
                     <button
                         onClick={onClose}
-                        className="mr-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                        className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
                         className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                        disabled={!selectedUser} // Vô hiệu hóa nếu chưa chọn user
+                        disabled={!selectedUser}
                     >
                         Start Chat
                     </button>
