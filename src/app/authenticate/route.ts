@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -31,8 +30,8 @@ export async function GET(request: Request) {
             return NextResponse.json(error, { status: response.status });
         }
 
-        const data = await response.json();
-        console.log("Authentication successful:", data);
+        const res = await response.json();
+        console.log("Authentication successful:", res);
 
         // Check if user needs to create password
         const passwordResponse = await fetch(
@@ -40,7 +39,7 @@ export async function GET(request: Request) {
             {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${data.token}`,
+                    "Authorization": `Bearer ${res.data.token}`,
                     "Content-Type": "application/json",
                     "Accept": "application/json",
                 },
@@ -54,7 +53,7 @@ export async function GET(request: Request) {
                 // Store token in localStorage
                 const script = `
                     <script>
-                        localStorage.setItem('token', '${data.token}');
+                        localStorage.setItem('token', '${res.data.token}');
                         window.location.href = '/';
                     </script>
                 `;
@@ -67,7 +66,7 @@ export async function GET(request: Request) {
         // If password doesn't exist, redirect to create password page
         const script = `
             <script>
-                localStorage.setItem('token', '${data.token}');
+                localStorage.setItem('token', '${res?.data?.token}');
                 window.location.href = '/create-password';
             </script>
         `;
