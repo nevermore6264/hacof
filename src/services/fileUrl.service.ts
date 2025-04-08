@@ -1,3 +1,4 @@
+// src/services/fileUrl.service.ts
 import { apiService } from "@/services/apiService_v0";
 import { FileUrl } from "@/types/entities/fileUrl";
 import { handleApiError } from "@/utils/errorHandler";
