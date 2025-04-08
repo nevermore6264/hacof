@@ -162,13 +162,13 @@ export default function ChatClient() {
 
   // Send message through WebSocket
   const sendMessage = async (content: string, messageData?: any) => {
-    if (!client || !isConnected || !selectedChatId) return;
+    if (!client || !isConnected || !selectedChatId || !user?.username) return;
 
     try {
-      const messageBody = messageData || {
-        content: content,
-        fileUrls: [],
-        createdByUserName: user?.username
+      const messageBody = {
+        content: encodeURIComponent(content),
+        fileUrls: messageData?.fileUrls || [],
+        createdByUserName: user.username
       };
 
       client.publish({
