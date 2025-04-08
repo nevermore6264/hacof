@@ -1,7 +1,5 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_components/KanbanTask.tsx
-"use client";
-
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { format, isPast } from "date-fns";
 import TaskEditModal from "./TaskEdit/TaskEditModal";
@@ -14,6 +12,9 @@ interface KanbanTaskProps {
 
 export default function KanbanTask({ task }: KanbanTaskProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const isDragging = useRef(false);
+  const clickStartPosition = useRef({ x: 0, y: 0 });
+
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: task.id,
     data: { task },
@@ -33,6 +34,28 @@ export default function KanbanTask({ task }: KanbanTaskProps) {
   const teamMembers =
     board?.boardUsers?.map((bu) => bu.user).filter(Boolean) || [];
 
+  // Handle mouse down to track if it's a potential drag
+  const handleMouseDown = (e: React.MouseEvent) => {
+    clickStartPosition.current = { x: e.clientX, y: e.clientY };
+    isDragging.current = false;
+  };
+
+  // Handle mouse move to detect dragging
+  const handleMouseMove = () => {
+    isDragging.current = true;
+  };
+
+  // Handle mouse up to determine if it was a click or drag
+  const handleMouseUp = (e: React.MouseEvent) => {
+    const deltaX = Math.abs(e.clientX - clickStartPosition.current.x);
+    const deltaY = Math.abs(e.clientY - clickStartPosition.current.y);
+
+    // If the mouse barely moved, consider it a click and not a drag
+    if (!isDragging.current && deltaX < 5 && deltaY < 5) {
+      setIsEditModalOpen(true);
+    }
+  };
+
   return (
     <>
       <div
@@ -45,8 +68,11 @@ export default function KanbanTask({ task }: KanbanTaskProps) {
             ? `translate(${transform.x}px, ${transform.y}px)`
             : undefined,
         }}
-        onClick={() => setIsEditModalOpen(true)}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
       >
+        {/* Rest of your component remains the same */}
         {/* Task Title */}
         <p className="font-medium">{task.title}</p>
 
