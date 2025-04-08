@@ -212,18 +212,19 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
   },
 
   // BoardList operations
-  createList: async (name) => {
+  createList: async (name, position) => {
     const state = get();
     if (!state.board) return null;
 
     try {
-      // Calculate position as the length of current columns
-      const position = state.columns.length;
+      // Use provided position or calculate it as the length of current columns
+      const listPosition =
+        position !== undefined ? position : state.columns.length;
 
       const newBoardList = await createBoardList({
         name,
         boardId: state.board.id,
-        position,
+        position: listPosition,
       });
 
       // Add to local state
