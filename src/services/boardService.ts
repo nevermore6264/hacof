@@ -70,6 +70,7 @@ export const updateBoard = async (
 export const createBoardList = async (data: {
   name: string;
   boardId: string;
+  position?: number;
 }): Promise<BoardList> => {
   // Simulate API call
   console.log("API call: Creating board list", data);
@@ -79,7 +80,7 @@ export const createBoardList = async (data: {
       resolve({
         id: `list-${Date.now()}`,
         name: data.name,
-        position: 999, // This will be set by the backend
+        position: data.position !== undefined ? data.position : 999, // Use provided position or fallback to 999
         boardId: data.boardId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

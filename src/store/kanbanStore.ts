@@ -62,7 +62,7 @@ interface KanbanState {
   ) => Promise<Board | null>;
 
   // BoardList operations
-  createList: (name: string) => Promise<Column | null>;
+  createList: (name: string, position?: number) => Promise<Column | null>;
   updateList: (listId: string, name: string) => Promise<boolean>;
   deleteList: (listId: string) => Promise<boolean>;
   moveList: (listId: string, newPosition: number) => void;
@@ -217,9 +217,13 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
     if (!state.board) return null;
 
     try {
+      // Calculate position as the length of current columns
+      const position = state.columns.length;
+
       const newBoardList = await createBoardList({
         name,
         boardId: state.board.id,
+        position,
       });
 
       // Add to local state
