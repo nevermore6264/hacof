@@ -308,6 +308,30 @@ export default function ChatClient() {
     fetchUsers();
   }, []);
 
+  const handleReaction = async (messageId: string, reactionType: string) => {
+    if (!client || !isConnected || !selectedChatId || !user?.username) {
+      toast.error('Cannot send reaction: Missing required information');
+      return;
+    }
+
+    try {
+      const reactionBody = {
+        messageId: messageId,
+        reactionType: reactionType,
+        createdByUserName: user.username
+      };
+
+      console.log('Sending reaction with body:', reactionBody); // Debug log
+
+      client.publish({
+        destination: `/app/reactions/${selectedChatId}`,
+        body: JSON.stringify(reactionBody)
+      });
+    } catch (error) {
+      toast.error('Failed to send reaction');
+    }
+  };
+
   if (!mounted) {
     return null; // or a loading spinner
   }
@@ -327,6 +351,7 @@ export default function ChatClient() {
           chatId={selectedChatId}
           chats={chats}
           onSendMessage={sendMessage}
+          onReaction={handleReaction}
         />
       ) : (
         <div className="w-2/3 flex items-center justify-center bg-gray-50">

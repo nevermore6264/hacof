@@ -54,10 +54,11 @@ interface Chat {
 interface ChatDetailsProps {
     chatId: string;
     chats: Chat[];
-    onSendMessage: (content: string, messageData?: any) => void;
+    onSendMessage: (content: string, messageData?: any) => Promise<void>;
+    onReaction: (messageId: string, reactionType: string) => Promise<void>;
 }
 
-const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage }) => {
+const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage, onReaction }) => {
     const chat = chats.find((chat) => chat.id === chatId);
     const [message, setMessage] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -163,7 +164,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
         if (!content.trim()) return;
 
         try {
-            onSendMessage(content);
+            await onSendMessage(content);
             setMessage('');
         } catch (error) {
             toast.error('Failed to send message');
@@ -199,7 +200,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
                             createdByUserName: user?.username
                         };
 
-                        onSendMessage('', messageBody);
+                        await onSendMessage('', messageBody);
                         setFile(null);
                         toast.success("File uploaded successfully");
                     }
@@ -217,45 +218,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
         if (!user) return;
 
         try {
-            const response = await fetch(`/api/reactions/${messageId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-                },
-                body: JSON.stringify({
-                    reactionType,
-                }),
-            });
-
-            if (response.ok) {
-                const message = chat.messages.find(m => m.id === messageId);
-                if (message) {
-                    const existingReaction = message.reactions.find(r => r.userId === user.id.toString());
-                    if (existingReaction) {
-                        if (existingReaction.reactionType === reactionType) {
-                            // Nếu đã có reaction giống nhau thì xóa
-                            message.reactions = message.reactions.filter(r => r.userId !== user.id.toString());
-                            toast.success("Reaction removed");
-                        } else {
-                            // Nếu có reaction khác thì cập nhật
-                            existingReaction.reactionType = reactionType;
-                            toast.success("Reaction updated");
-                        }
-                    } else {
-                        // Thêm reaction mới
-                        message.reactions.push({
-                            userId: user.id.toString(),
-                            reactionType,
-                            createdAt: new Date().toISOString()
-                        });
-                        toast.success("Reaction added");
-                    }
-                }
-            } else {
-                const errorData = await response.json();
-                toast.error(errorData.message || "Failed to add reaction");
-            }
+            await onReaction(messageId, reactionType);
         } catch {
             toast.error("An error occurred while adding reaction");
         }
