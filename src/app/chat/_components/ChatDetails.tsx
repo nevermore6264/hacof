@@ -2,17 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaPaperclip, FaSmile } from 'react-icons/fa';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useAuth } from "@/hooks/useAuth_v0";
-import { User as BaseUser } from "@/types/entities/user";
 import { toast } from "sonner";
-
-interface ChatUser extends BaseUser {
-    name: string;
-    image: string;
-}
 
 interface ConversationUser {
     id: string;
@@ -50,16 +44,16 @@ interface Chat {
 interface ChatDetailsProps {
     chatId: string;
     chats: Chat[];
-    users: ChatUser[];
     onSendMessage: (content: string) => void;
 }
 
-const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users, onSendMessage }) => {
+const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage }) => {
     const chat = chats.find((chat) => chat.id === chatId);
     const [message, setMessage] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [file, setFile] = useState<string | null>(null);
     const { user } = useAuth();
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (file) {
@@ -209,71 +203,71 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users, onSendM
     };
 
     return (
-        <div className="w-2/3 flex flex-col h-full">
-            {/* Header */}
-            <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
-                <div className="flex items-center">
+        <div className="w-2/3 flex flex-col bg-white">
+            {/* Chat header */}
+            <div className="p-4 border-b flex items-center space-x-2">
+                <div className="w-10 h-10 rounded-full bg-gray-300">
                     <img
                         src={chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"}
                         alt={chat.name}
-                        className="w-10 h-10 rounded-full"
+                        className="w-full h-full rounded-full object-cover"
                     />
-                    <div className="ml-3">
-                        <p className="text-lg font-bold text-gray-900">{chat.name}</p>
-                        <p className="text-sm text-gray-500">
-                            {chat.conversationUsers.map(u => `${u.firstName} ${u.lastName}`).join(', ')}
-                        </p>
-                    </div>
+                </div>
+                <div>
+                    <h2 className="font-semibold">{chat.name}</h2>
+                    <p className="text-sm text-gray-500">
+                        {chat.conversationUsers.length} members
+                    </p>
                 </div>
             </div>
 
-            {/* Danh sách tin nhắn */}
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {chat.messages.map((message) => {
-                    const messageUser = users.find(u =>
-                        u.username === message.createdByUserName ||
-                        `${u.firstName} ${u.lastName}` === message.createdByUserName
-                    );
-                    const isCurrentUser = user && messageUser?.id === user.id.toString();
+                    const isCurrentUser = message?.createdByUserName == user?.username;
+
                     return (
-                        <div key={message.id} className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-4`}>
-                            <div className={`max-w-[70%] group relative`}>
-                                {/* Sender name for other users */}
-                                {!isCurrentUser && messageUser && (
-                                    <div className="text-xs text-gray-500 mb-1">
-                                        {messageUser.name}
-                                    </div>
+                        <div
+                            key={message.id}
+                            className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                        >
+
+                            <div className={`max-w-[70%] group relative ${isCurrentUser
+                                ? 'bg-blue-500 text-white rounded-l-lg rounded-tr-lg'
+                                : 'bg-gray-200 text-gray-800 rounded-r-lg rounded-tl-lg'
+                                } p-3 shadow`}
+                            >
+                                {!isCurrentUser && (
+                                    <p className="text-xs text-gray-600 font-semibold mb-1">
+                                        {message.createdByUserName}
+                                    </p>
                                 )}
 
-                                {/* Message bubble */}
-                                <div className={`rounded-2xl px-4 py-2 ${isCurrentUser ? 'bg-blue-600 text-white' : 'bg-blue-100 text-gray-900'} shadow-sm`}>
-                                    {message.fileUrls?.length > 0 ? (
-                                        message.fileUrls.map((fileUrl, index) => (
-                                            <div key={index} className="mt-2">
-                                                {fileUrl.match(/\.(jpeg|jpg|gif|png)$/) ? (
-                                                    <img src={fileUrl} alt="Attachment" className="rounded-lg max-w-xs" />
-                                                ) : (
-                                                    <a
-                                                        href={fileUrl}
-                                                        download
-                                                        className={`${isCurrentUser ? 'text-white' : 'text-blue-600'} underline`}
-                                                    >
-                                                        Download File
-                                                    </a>
-                                                )}
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm whitespace-pre-wrap">
-                                            {decodeURIComponent(message.content)}
-                                        </p>
-                                    )}
-                                </div>
+                                {/* Message content */}
+                                {message.fileUrls?.length > 0 ? (
+                                    message.fileUrls.map((fileUrl, index) => (
+                                        <div key={index} className="mt-2">
+                                            {fileUrl.match(/\.(jpeg|jpg|gif|png)$/) ? (
+                                                <img src={fileUrl} alt="Attachment" className="rounded-lg max-w-xs" />
+                                            ) : (
+                                                <a
+                                                    href={fileUrl}
+                                                    download
+                                                    className={`${isCurrentUser ? 'text-white' : 'text-blue-600'} underline`}
+                                                >
+                                                    Download File
+                                                </a>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p>{message.content}</p>
+                                )}
 
                                 {/* Timestamp */}
-                                <div className={`text-xs text-gray-500 mt-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                                <p className="text-xs text-right mt-1 opacity-70">
                                     {formatTime(message.createdAt)}
-                                </div>
+                                </p>
 
                                 {/* Reactions */}
                                 {message.reactions?.length > 0 && (
@@ -314,11 +308,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users, onSendM
                         </div>
                     );
                 })}
+                <div ref={messagesEndRef} />
             </div>
 
-            {/* Input message */}
-            <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
-                <div className="flex items-center space-x-2">
+            {/* Message input */}
+            <div className="p-4 border-t">
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage(message);
+                }} className="flex space-x-2">
                     <button
                         onClick={() => setShowEmojiPicker((prev) => !prev)}
                         className="p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100"
@@ -342,20 +340,19 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users, onSendM
 
                     <input
                         type="text"
-                        placeholder="Say Something..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(message)}
-                        className="flex-1 rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Type a message..."
+                        className="flex-1 p-2 border rounded-lg focus:outline-none focus:border-blue-500"
                     />
 
                     <button
-                        onClick={() => handleSendMessage(message)}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+                        type="submit"
+                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                     >
                         Send
                     </button>
-                </div>
+                </form>
             </div>
         </div>
     );

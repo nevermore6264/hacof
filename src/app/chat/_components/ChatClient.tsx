@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/chat/ChatClient.tsx
 "use client";
@@ -115,20 +116,13 @@ export default function ChatClient() {
   useEffect(() => {
     if (!client || !isConnected || !selectedChatId) return;
 
-    console.log('Subscribing to chat:', selectedChatId);
     const subscription = client.subscribe(
       `/topic/conversations/${selectedChatId}`,
       (message: { body: string }) => {
-        console.log('Received message:', message);
         try {
           const messageData = JSON.parse(message.body);
-          console.log('Parsed message data:', messageData);
 
-          // Ensure we have the required data
-          if (!messageData?.content) {
-            console.error('Invalid message format:', messageData);
-            return;
-          }
+          if (!messageData?.content) return;
 
           // Update chats state
           setChats(prevChats => {
@@ -158,7 +152,6 @@ export default function ChatClient() {
             });
           });
         } catch (error) {
-          console.error('Error processing message:', error);
           toast.error('Error processing message');
         }
       }
@@ -171,27 +164,20 @@ export default function ChatClient() {
 
   // Send message through WebSocket
   const sendMessage = async (content: string) => {
-    if (!client || !isConnected || !selectedChatId) {
-      console.log('Cannot send message:', { client, isConnected, selectedChatId });
-      return;
-    }
+    if (!client || !isConnected || !selectedChatId) return;
 
     try {
-      console.log('Sending message to:', `/app/chat/${selectedChatId}`);
       const messageBody = {
         content: content,
         fileUrls: [],
-        username: user?.username // Get username from user object
+        createdByUserName: user?.username
       };
-      console.log('Message body:', messageBody);
 
       client.publish({
         destination: `/app/chat/${selectedChatId}`,
         body: JSON.stringify(messageBody)
       });
-      console.log('Message sent successfully');
     } catch (error) {
-      console.error('Error sending message:', error);
       toast.error('Failed to send message');
     }
   };
@@ -298,7 +284,6 @@ export default function ChatClient() {
         <ChatDetails
           chatId={selectedChatId}
           chats={chats}
-          users={users as ChatUser[]}
           onSendMessage={sendMessage}
         />
       ) : (
