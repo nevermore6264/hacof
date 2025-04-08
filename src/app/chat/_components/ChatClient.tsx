@@ -162,7 +162,10 @@ export default function ChatClient() {
 
   // Send message through WebSocket
   const sendMessage = async (content: string, messageData?: any) => {
-    if (!client || !isConnected || !selectedChatId || !user?.username) return;
+    if (!client || !isConnected || !selectedChatId || !user?.username) {
+      toast.error('Cannot send message: Missing required information');
+      return;
+    }
 
     try {
       const messageBody = {
@@ -171,12 +174,53 @@ export default function ChatClient() {
         createdByUserName: user.username
       };
 
+      console.log('Sending message with body:', messageBody); // Debug log
+
       client.publish({
         destination: `/app/chat/${selectedChatId}`,
         body: JSON.stringify(messageBody)
       });
     } catch (error) {
       toast.error('Failed to send message');
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!client || !isConnected || !selectedChatId || !user?.username) {
+      toast.error('Cannot upload file: Missing required information');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const fileUrl = data.url;
+
+        const messageBody = {
+          content: `Sent a file: ${file.name}`,
+          fileUrls: [fileUrl],
+          createdByUserName: user.username
+        };
+
+        console.log('Sending file message with body:', messageBody); // Debug log
+
+        client.publish({
+          destination: `/app/chat/${selectedChatId}`,
+          body: JSON.stringify(messageBody)
+        });
+      } else {
+        toast.error('Failed to upload file');
+      }
+    } catch (error) {
+      toast.error('Failed to upload file');
     }
   };
 

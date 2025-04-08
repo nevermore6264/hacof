@@ -283,8 +283,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {chat.messages.map((message) => {
-                    const isCurrentUser = message?.createdByUserName == user?.username;
-
+                    const isCurrentUser = message?.createdByUserName && user?.username && message.createdByUserName === user.username;
                     return (
                         <div
                             key={message.id}
