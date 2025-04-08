@@ -20,10 +20,10 @@ export type Task = {
   title: string;
   status: string;
   description?: string;
+  position: number;
   dueDate?: string;
   assignees?: any[];
   labels?: any[];
-  position: number;
 };
 
 export type Column = {
