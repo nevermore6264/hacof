@@ -11,9 +11,6 @@ class TaskService {
     position: number;
     boardListId: string;
     dueDate: string;
-    assignees: string[];
-    comments: string[];
-    taskLabels: string[];
   }): Promise<{ data: Task; message?: string }> {
     try {
       const response = await apiService.auth.post<Task>(
@@ -44,12 +41,9 @@ class TaskService {
     data: {
       title: string;
       description: string;
-      position: number;
       boardListId: string;
       dueDate: string;
-      assignees: string[];
-      comments: string[];
-      taskLabels: string[];
+      fileUrls: string[];
     }
   ): Promise<{ data: Task; message?: string }> {
     try {
@@ -140,7 +134,7 @@ class TaskService {
   }
 
   // Bulk update Tasks
-  async bulkUpdateTasks(
+  async bulkUpdateTaskPositions(
     data: {
       id: string;
       boardListId: string;

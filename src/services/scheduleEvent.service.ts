@@ -11,8 +11,8 @@ class ScheduleEventService {
     location: string;
     startTime: string;
     endTime: string;
-    isRecurring: boolean;
-    recurrenceRule: string;
+    isRecurring?: boolean;
+    recurrenceRule?: string;
   }): Promise<{ data: ScheduleEvent; message?: string }> {
     try {
       const response = await apiService.auth.post<ScheduleEvent>(
@@ -46,8 +46,9 @@ class ScheduleEventService {
       location: string;
       startTime: string;
       endTime: string;
-      isRecurring: boolean;
-      recurrenceRule: string;
+      isRecurring?: boolean;
+      recurrenceRule?: string;
+      fileUrls: string[];
     }
   ): Promise<{ data: ScheduleEvent; message?: string }> {
     try {
