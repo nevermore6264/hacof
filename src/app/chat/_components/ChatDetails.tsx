@@ -352,10 +352,11 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     handleSendMessage(message);
-                }} className="flex space-x-2">
+                }} className="flex items-center space-x-2">
                     <button
+                        type="button"
                         onClick={() => setShowEmojiPicker((prev) => !prev)}
-                        className="p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100"
+                        className="p-2 flex items-center justify-center text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100"
                     >
                         <FaSmile size={20} />
                     </button>
@@ -365,7 +366,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
                         </div>
                     )}
 
-                    <label className="p-2 text-gray-500 hover:text-blue-500 cursor-pointer rounded-full hover:bg-gray-100">
+                    <label className="p-2 flex items-center justify-center text-gray-500 hover:text-blue-500 cursor-pointer rounded-full hover:bg-gray-100">
                         <FaPaperclip size={20} />
                         <input
                             type="file"
