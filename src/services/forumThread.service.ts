@@ -84,6 +84,31 @@ class ForumThreadService {
     }
   }
 
+  async getForumThreadsByCategoryId(
+    forumCategoryId: string
+  ): Promise<{ data: ForumThread[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<ForumThread[]>(
+        `/communication-service/api/v1/forum-threads/by-category/${forumCategoryId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve forum threads by category ID");
+      }
+
+      return {
+        data: response.data,
+        message: response.message,
+      };
+    } catch (error: any) {
+      return handleApiError<ForumThread[]>(
+        error,
+        [],
+        "[Forum Thread Service] Error getting forum threads by category ID:"
+      );
+    }
+  }
+
   async updateForumThread(
     id: string,
     data: {

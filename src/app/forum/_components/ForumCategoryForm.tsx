@@ -1,4 +1,4 @@
-// src/components/forum/ForumCategoryForm.tsx
+// src/app/forum/_components/ForumCategoryForm.tsx
 import { useState, useEffect } from "react";
 import { ForumCategory } from "@/types/entities/forumCategory";
 import { forumCategoryService } from "@/services/forumCategory.service";

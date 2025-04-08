@@ -1,4 +1,4 @@
-// src/components/forum/ForumCategoryItem.tsx
+// src/app/forum/_components/ForumCategoryItem.tsx
 import Link from "next/link";
 import { ForumCategory } from "@/types/entities/forumCategory";
 import { useAuth } from "@/hooks/useAuth_v0";

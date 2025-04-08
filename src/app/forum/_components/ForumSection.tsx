@@ -1,4 +1,4 @@
-// src/components/forum/ForumSection.tsx
+// src/app/forum/_components/ForumSection.tsx
 import { ForumCategory } from "@/types/entities/forumCategory";
 import { ForumCategoryItem } from "./ForumCategoryItem";
 
