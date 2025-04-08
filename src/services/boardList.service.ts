@@ -111,7 +111,7 @@ class BoardListService {
     }
   }
 
-  async bulkUpdateBoardLists(
+  async bulkUpdateBoardListPositions(
     data: {
       id: string;
       position: number;
