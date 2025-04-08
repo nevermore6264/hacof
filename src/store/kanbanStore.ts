@@ -37,6 +37,14 @@ interface KanbanState {
   board: Board | null;
   columns: Column[];
 
+  // Loading states
+  isLoading: boolean;
+  error: string | null;
+
+  // Actions
+  setError: (error: string | null) => void;
+  setLoading: (isLoading: boolean) => void;
+
   // Column operations
   setColumns: (columns: Column[]) => void;
   moveTask: (taskId: string, from: string, to: string) => void;
@@ -97,6 +105,8 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
     { id: "in-progress", title: "In Progress", tasks: [] },
     { id: "done", title: "Done", tasks: [] },
   ],
+  isLoading: false,
+  error: null,
   boardListPositionUpdateTimer: null,
   pendingPositionUpdates: [],
 
@@ -105,6 +115,8 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
   setColumns: (columns) => set({ columns }),
   setPendingPositionUpdates: (updates) =>
     set({ pendingPositionUpdates: updates }),
+  setError: (error) => set({ error }),
+  setLoading: (isLoading) => set({ isLoading }),
 
   createTask: async (listId, taskData) => {
     const state = get();
@@ -124,13 +136,14 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         position,
       });
 
-      // Simulate the basic task object that would be returned from the API
+      // Create task object for UI
       const taskForUI: Task = {
         id: newTask.id,
         title: newTask.title,
         description: newTask.description || "",
         status: column.title.toLowerCase().replace(/\s+/g, "-"),
         dueDate: newTask.dueDate,
+        position: newTask.position,
         assignees: [],
         labels: [],
       };
@@ -140,11 +153,16 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         columns: state.columns.map((col) =>
           col.id === listId ? { ...col, tasks: [...col.tasks, taskForUI] } : col
         ),
+        isLoading: false,
       });
 
       return taskForUI;
     } catch (error) {
       console.error("Failed to create task:", error);
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to create task",
+      });
       return null;
     }
   },
@@ -159,6 +177,8 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
 
       const task = sourceColumn.tasks.find((t) => t.id === taskId);
       if (!task) return state;
+
+      // TODO: Implement API call to move task between lists
 
       // Create a simulation of the API call that would happen
       console.log("API call: Moving task", {
@@ -198,15 +218,25 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
     const state = get();
     if (!state.board) return null;
 
+    set({ isLoading: true, error: null });
+
     try {
       const updatedBoard = await updateBoard(state.board.id, {
         name,
         description,
       });
-      set({ board: { ...state.board, ...updatedBoard } });
+      set({
+        board: { ...state.board, ...updatedBoard },
+        isLoading: false,
+      });
       return updatedBoard;
     } catch (error) {
       console.error("Failed to update board:", error);
+      set({
+        isLoading: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update board",
+      });
       return null;
     }
   },
@@ -215,6 +245,8 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
   createList: async (name, position) => {
     const state = get();
     if (!state.board) return null;
+
+    set({ isLoading: true, error: null });
 
     try {
       // Use provided position or calculate it as the length of current columns
@@ -234,10 +266,17 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         tasks: [],
       };
 
-      set({ columns: [...state.columns, newColumn] });
+      set({
+        columns: [...state.columns, newColumn],
+        isLoading: false,
+      });
       return newColumn;
     } catch (error) {
       console.error("Failed to create list:", error);
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to create list",
+      });
       return null;
     }
   },
@@ -246,9 +285,14 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
     const state = get();
     if (!state.board) return false;
 
+    set({ isLoading: true, error: null });
+
     try {
       const columnToUpdate = state.columns.find((col) => col.id === listId);
-      if (!columnToUpdate) return false;
+      if (!columnToUpdate) {
+        set({ isLoading: false });
+        return false;
+      }
 
       await updateBoardList(listId, {
         name,
@@ -260,17 +304,23 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         columns: state.columns.map((col) =>
           col.id === listId ? { ...col, title: name } : col
         ),
+        isLoading: false,
       });
 
       return true;
     } catch (error) {
       console.error("Failed to update list:", error);
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to update list",
+      });
       return false;
     }
   },
 
   deleteList: async (listId) => {
     const state = get();
+    set({ isLoading: true, error: null });
 
     try {
       await deleteBoardList(listId);
@@ -278,11 +328,16 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       // Update local state
       set({
         columns: state.columns.filter((col) => col.id !== listId),
+        isLoading: false,
       });
 
       return true;
     } catch (error) {
       console.error("Failed to delete list:", error);
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to delete list",
+      });
       return false;
     }
   },
@@ -323,7 +378,7 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
 
     const newTimer = setTimeout(() => {
       get().processPendingPositionUpdates();
-    }, 3000);
+    }, 30000);
 
     set({ boardListPositionUpdateTimer: newTimer });
   },
@@ -332,14 +387,25 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
     const { pendingPositionUpdates } = get();
     if (pendingPositionUpdates.length === 0) return;
 
+    set({ isLoading: true, error: null });
+
     try {
       await updateBoardListPositions(pendingPositionUpdates);
       set({
         pendingPositionUpdates: [],
         boardListPositionUpdateTimer: null,
+        isLoading: false,
       });
     } catch (error) {
       console.error("Failed to update board list positions:", error);
+      set({
+        isLoading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update list positions",
+        boardListPositionUpdateTimer: null,
+      });
     }
   },
 
@@ -347,6 +413,8 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
   createLabel: async (name, color) => {
     const state = get();
     if (!state.board) return null;
+
+    set({ isLoading: true, error: null });
 
     try {
       const newLabel = await createBoardLabel({
@@ -362,19 +430,35 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
             ...state.board,
             boardLabels: [...state.board.boardLabels, newLabel],
           },
+          isLoading: false,
+        });
+      } else {
+        set({
+          board: {
+            ...state.board,
+            boardLabels: [newLabel],
+          },
+          isLoading: false,
         });
       }
 
       return newLabel;
     } catch (error) {
       console.error("Failed to create label:", error);
+      set({
+        isLoading: false,
+        error:
+          error instanceof Error ? error.message : "Failed to create label",
+      });
       return null;
     }
   },
 
   updateLabel: async (labelId, name, color) => {
     const state = get();
-    if (!state.board || !state.board.boardLabels) return null;
+    if (!state.board) return null;
+
+    set({ isLoading: true, error: null });
 
     try {
       const updatedLabel = await updateBoardLabel(labelId, {
@@ -383,19 +467,27 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         boardId: state.board.id,
       });
 
-      // Update local state
-      set({
-        board: {
-          ...state.board,
-          boardLabels: state.board.boardLabels.map((label) =>
-            label.id === labelId ? { ...label, name, color } : label
-          ),
-        },
-      });
+      // Update local state if boardLabels exists
+      if (state.board.boardLabels) {
+        set({
+          board: {
+            ...state.board,
+            boardLabels: state.board.boardLabels.map((label) =>
+              label.id === labelId ? { ...label, name, color } : label
+            ),
+          },
+          isLoading: false,
+        });
+      }
 
       return updatedLabel;
     } catch (error) {
       console.error("Failed to update label:", error);
+      set({
+        isLoading: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update label",
+      });
       return null;
     }
   },
@@ -403,6 +495,8 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
   deleteLabel: async (labelId) => {
     const state = get();
     if (!state.board || !state.board.boardLabels) return false;
+
+    set({ isLoading: true, error: null });
 
     try {
       await deleteBoardLabel(labelId);
@@ -415,11 +509,17 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
             (label) => label.id !== labelId
           ),
         },
+        isLoading: false,
       });
 
       return true;
     } catch (error) {
       console.error("Failed to delete label:", error);
+      set({
+        isLoading: false,
+        error:
+          error instanceof Error ? error.message : "Failed to delete label",
+      });
       return false;
     }
   },
@@ -451,6 +551,8 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         ...task,
         position: index, // Update position property for each task
       }));
+
+      // TODO: Implement API call to update task positions
 
       // Create simulation of API call to update positions
       console.log("API call: Reordering tasks in column", {
