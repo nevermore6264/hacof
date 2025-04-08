@@ -51,9 +51,10 @@ interface ChatDetailsProps {
     chatId: string;
     chats: Chat[];
     users: ChatUser[];
+    onSendMessage: (content: string) => void;
 }
 
-const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
+const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users, onSendMessage }) => {
     const chat = chats.find((chat) => chat.id === chatId);
     const [message, setMessage] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -63,7 +64,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
     useEffect(() => {
         if (file) {
             console.log('File state changed to:', file);
-            handleSendMessage();
+            handleSendMessage(message);
         }
     }, [file]);
 
@@ -80,49 +81,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
-    const handleSendMessage = async () => {
-        console.log('Sending message with file:', file);
-        if (message.trim() || file) {
-            try {
-                // Encode emoji before sending
-                const encodedMessage = message ? encodeURIComponent(message) : '';
+    const handleSendMessage = async (content: string) => {
+        if (!content.trim()) return;
 
-                const response = await fetch(`/api/messages/${chatId}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-                    },
-                    body: JSON.stringify({
-                        content: encodedMessage,
-                        fileUrls: file ? [file] : [],
-                    }),
-                });
-
-                if (!user) return;
-
-                if (response.ok) {
-                    const newMessage = await response.json();
-                    // Thêm tin nhắn mới vào danh sách theo cấu trúc backend
-                    chat.messages.push({
-                        id: newMessage.data.id,
-                        conversationId: chatId,
-                        content: message, // Keep original message for display
-                        fileUrls: newMessage.data.fileUrls || [],
-                        reactions: [],
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                        createdByUserName: user.username || `${user.firstName} ${user.lastName}`,
-                        deleted: false
-                    });
-
-                    setMessage('');
-                    setFile(null);
-                    setShowEmojiPicker(false);
-                }
-            } catch {
-                toast.error("Error sending message");
-            }
+        try {
+            onSendMessage(content);
+            setMessage('');
+        } catch (error) {
+            console.error('Error sending message:', error);
+            toast.error('Failed to send message');
         }
     };
 
@@ -378,12 +345,12 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, users }) => {
                         placeholder="Say Something..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(message)}
                         className="flex-1 rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
 
                     <button
-                        onClick={handleSendMessage}
+                        onClick={() => handleSendMessage(message)}
                         className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
                     >
                         Send

@@ -2,12 +2,16 @@
 // app/chat/ChatClient.tsx
 "use client";
 import { useState, useEffect } from "react";
-import ChatList from "./ChatList";
-import ChatDetails from "./ChatDetails";
-import CreateChatModal from "./CreateChatModal";
+import dynamic from 'next/dynamic';
 import { useAuth } from "@/hooks/useAuth_v0";
 import { User as BaseUser } from "@/types/entities/user";
 import { toast } from "sonner";
+import { useWebSocket } from '@/contexts/WebSocketContext';
+
+// Dynamic imports to avoid hydration issues
+const ChatList = dynamic(() => import("./ChatList"), { ssr: false });
+const ChatDetails = dynamic(() => import("./ChatDetails"), { ssr: false });
+const CreateChatModal = dynamic(() => import("./CreateChatModal"), { ssr: false });
 
 interface ChatUser extends BaseUser {
   name: string;
@@ -41,6 +45,7 @@ interface ChatListItem {
   avatarUrl: string;
   lastMessage?: string;
   lastMessageTime?: string;
+  isUnread: boolean;
 }
 
 interface Chat {
@@ -56,12 +61,19 @@ interface Chat {
 }
 
 export default function ChatClient() {
+  const [mounted, setMounted] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [isCreateChatModalOpen, setIsCreateChatModalOpen] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatListItems, setChatListItems] = useState<ChatListItem[]>([]);
   const [users, setUsers] = useState<ChatUser[]>([]);
   const { user } = useAuth();
+  const { client, isConnected } = useWebSocket();
+
+  // Handle mounting to avoid hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch user's chats
   useEffect(() => {
@@ -83,7 +95,8 @@ export default function ChatClient() {
             name: chat.name,
             avatarUrl: chat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg",
             lastMessage: chat.messages[chat.messages.length - 1]?.content,
-            lastMessageTime: chat.messages[chat.messages.length - 1]?.createdAt
+            lastMessageTime: chat.messages[chat.messages.length - 1]?.createdAt,
+            isUnread: false // Thêm trường isUnread
           }));
           setChatListItems(items);
         } else {
@@ -97,6 +110,91 @@ export default function ChatClient() {
 
     fetchChats();
   }, [user?.id]);
+
+  // Subscribe to chat messages when connected
+  useEffect(() => {
+    if (!client || !isConnected || !selectedChatId) return;
+
+    console.log('Subscribing to chat:', selectedChatId);
+    const subscription = client.subscribe(
+      `/topic/conversations/${selectedChatId}`,
+      (message: { body: string }) => {
+        console.log('Received message:', message);
+        try {
+          const messageData = JSON.parse(message.body);
+          console.log('Parsed message data:', messageData);
+
+          // Ensure we have the required data
+          if (!messageData?.content) {
+            console.error('Invalid message format:', messageData);
+            return;
+          }
+
+          // Update chats state
+          setChats(prevChats => {
+            return prevChats.map(chat => {
+              if (chat.id === selectedChatId) {
+                return {
+                  ...chat,
+                  messages: [...chat.messages, messageData]
+                };
+              }
+              return chat;
+            });
+          });
+
+          // Update chatListItems state
+          setChatListItems(prevItems => {
+            return prevItems.map(item => {
+              if (item.id.toString() === selectedChatId) {
+                return {
+                  ...item,
+                  lastMessage: messageData.content,
+                  lastMessageTime: messageData.createdAt,
+                  isUnread: false
+                };
+              }
+              return item;
+            });
+          });
+        } catch (error) {
+          console.error('Error processing message:', error);
+          toast.error('Error processing message');
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [client, isConnected, selectedChatId]);
+
+  // Send message through WebSocket
+  const sendMessage = async (content: string) => {
+    if (!client || !isConnected || !selectedChatId) {
+      console.log('Cannot send message:', { client, isConnected, selectedChatId });
+      return;
+    }
+
+    try {
+      console.log('Sending message to:', `/app/chat/${selectedChatId}`);
+      const messageBody = {
+        content: content,
+        fileUrls: [],
+        username: user?.username // Get username from user object
+      };
+      console.log('Message body:', messageBody);
+
+      client.publish({
+        destination: `/app/chat/${selectedChatId}`,
+        body: JSON.stringify(messageBody)
+      });
+      console.log('Message sent successfully');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
+    }
+  };
 
   // Hàm tạo cuộc hội thoại mới bằng API - CHỈ CÒN SINGLE CHAT
   const handleCreateChat = async (selectedUser: any) => {
@@ -129,7 +227,8 @@ export default function ChatClient() {
             name: newChat.name,
             avatarUrl: newChat.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg",
             lastMessage: newChat.messages?.[newChat.messages.length - 1]?.content,
-            lastMessageTime: newChat.messages?.[newChat.messages.length - 1]?.createdAt
+            lastMessageTime: newChat.messages?.[newChat.messages.length - 1]?.createdAt,
+            isUnread: false
           };
           return [...prevItems, newChatListItem];
         });
@@ -181,8 +280,12 @@ export default function ChatClient() {
     fetchUsers();
   }, []);
 
+  if (!mounted) {
+    return null; // or a loading spinner
+  }
+
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100" suppressHydrationWarning>
       {/* Left Side - Chat List */}
       <ChatList
         chats={chatListItems}
@@ -192,7 +295,12 @@ export default function ChatClient() {
 
       {/* Right Side - Chat Details */}
       {selectedChatId ? (
-        <ChatDetails chatId={selectedChatId} chats={chats} users={users as ChatUser[]} />
+        <ChatDetails
+          chatId={selectedChatId}
+          chats={chats}
+          users={users as ChatUser[]}
+          onSendMessage={sendMessage}
+        />
       ) : (
         <div className="w-2/3 flex items-center justify-center bg-gray-50">
           <p className="text-gray-500">Select a chat to start messaging</p>

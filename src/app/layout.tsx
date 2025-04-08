@@ -9,6 +9,7 @@ import "../styles/index.css";
 import { useAuth } from "@/hooks/useAuth_v0";
 import { useEffect } from "react";
 import { Toaster } from "sonner";
+import { WebSocketProvider } from '@/contexts/WebSocketContext';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,13 +35,15 @@ export default function RootLayout({
       <body
         className={`pt-[142px] bg-[#FCFCFC] dark:bg-black ${inter.className}`}
       >
-        <Providers>
-          <Header />
-          {children}
-          <Toaster position="top-center" richColors />
-          <Footer />
-          <ScrollToTop />
-        </Providers>
+        <WebSocketProvider>
+          <Providers>
+            <Header />
+            {children}
+            <Toaster position="top-center" richColors />
+            <Footer />
+            <ScrollToTop />
+          </Providers>
+        </WebSocketProvider>
       </body>
     </html>
   );

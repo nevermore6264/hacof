@@ -7,6 +7,7 @@ interface Chat {
     avatarUrl: string;
     lastMessage?: string;
     lastMessageTime?: string;
+    isUnread: boolean;
 }
 
 interface ChatListProps {
@@ -95,19 +96,19 @@ const ChatList: React.FC<ChatListProps> = ({ chats, onChatSelect, onCreateNewCha
                 {filteredChats.map((chat) => (
                     <div
                         key={chat.id}
-                        className="p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                        className={`p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer ${chat.isUnread ? 'bg-blue-50 font-semibold' : ''}`}
                         onClick={() => onChatSelect(chat.id)}
                     >
                         <div className="flex items-center">
                             <img src={chat?.avatarUrl || "https://randomuser.me/api/portraits/men/99.jpg"} alt={chat.name} className="w-10 h-10 rounded-full" />
                             <div className="ml-3 flex-1 min-w-0">
                                 <div className="flex justify-between items-center">
-                                    <p className="text-sm font-medium text-gray-900 truncate">{chat.name}</p>
+                                    <p className={`text-sm ${chat.isUnread ? 'font-semibold' : 'font-medium'} text-gray-900 truncate`}>{chat.name}</p>
                                     <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
                                         {formatMessageTime(chat?.lastMessageTime)}
                                     </span>
                                 </div>
-                                <p className="text-sm text-gray-500 truncate">
+                                <p className={`text-sm ${chat.isUnread ? 'font-medium' : ''} text-gray-500 truncate`}>
                                     {chat?.lastMessage ? decodeURIComponent(chat.lastMessage) : ''}
                                 </p>
                             </div>
