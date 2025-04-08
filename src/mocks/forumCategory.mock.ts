@@ -3,7 +3,7 @@ import { ForumCategory } from "@/types/entities/forumCategory";
 
 export const mockForumCategories: ForumCategory[] = [
   {
-    id: "category1",
+    id: "1",
     name: "General Discussion",
     description: "Talk about anything related to our community.",
     section: "General",
