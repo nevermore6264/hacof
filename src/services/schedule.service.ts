@@ -154,6 +154,34 @@ class ScheduleService {
     }
   }
 
+  async getSchedulesByTeamIdAndHackathonId(
+    teamId: string,
+    hackathonId: string
+  ): Promise<{ data: Schedule[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<Schedule[]>(
+        `/communication-service/api/v1/schedules/by-team-and-hackathon?teamId=${teamId}&hackathonId=${hackathonId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error(
+          "Failed to retrieve schedules by team ID and hackathon ID"
+        );
+      }
+
+      return {
+        data: response.data,
+        message: response.message,
+      };
+    } catch (error: any) {
+      return handleApiError<Schedule[]>(
+        error,
+        [],
+        "[Schedule Service] Error getting schedules by team ID and hackathon ID:"
+      );
+    }
+  }
+
   async getSchedulesByCreatedByUsernameAndHackathonId(
     createdByUsername: string,
     hackathonId: string

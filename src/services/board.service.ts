@@ -50,6 +50,34 @@ class BoardService {
     }
   }
 
+  async getBoardsByTeamIdAndHackathonId(
+    teamId: string,
+    hackathonId: string
+  ): Promise<{ data: Board[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<Board[]>(
+        `/communication-service/api/v1/boards/by-team-and-hackathon?teamId=${teamId}&hackathonId=${hackathonId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error(
+          "Failed to retrieve boards by team ID and hackathon ID"
+        );
+      }
+
+      return {
+        data: response.data,
+        message: response.message,
+      };
+    } catch (error: any) {
+      return handleApiError<Board[]>(
+        error,
+        [],
+        "[Board Service] Error getting boards by team ID and hackathon ID:"
+      );
+    }
+  }
+
   async createBoard(data: {
     name: string;
     description?: string;
