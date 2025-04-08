@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
@@ -53,7 +54,7 @@ interface Chat {
 interface ChatDetailsProps {
     chatId: string;
     chats: Chat[];
-    onSendMessage: (content: string) => void;
+    onSendMessage: (content: string, messageData?: any) => void;
 }
 
 const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage }) => {
@@ -111,6 +112,18 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    const getFileName = (fileUrl: string) => {
+        // Trích xuất tên file từ URL
+        const decodedUrl = decodeURIComponent(fileUrl);
+        const parts = decodedUrl.split('/');
+        const lastPart = parts[parts.length - 1];
+        // Nếu có UUID trong tên file (format: uuid_filename)
+        if (lastPart.includes('_')) {
+            return lastPart.split('_').slice(1).join('_');
+        }
+        return lastPart;
+    };
+
     const handleSendMessage = async (content: string) => {
         if (!content.trim()) return;
 
@@ -118,7 +131,6 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
             onSendMessage(content);
             setMessage('');
         } catch (error) {
-            console.error('Error sending message:', error);
             toast.error('Failed to send message');
         }
     };
@@ -144,42 +156,17 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
                 if (response.ok) {
                     const res = await response.json();
                     const fileUrl = res?.data[0]?.fileUrl;
-                    console.log('File URL from upload:', fileUrl);
                     if (fileUrl) {
-                        // Gửi tin nhắn ngay sau khi upload file thành công
-                        const messageResponse = await fetch(`/api/messages/${chatId}`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-                            },
-                            body: JSON.stringify({
-                                content: '',
-                                fileUrls: [fileUrl],
-                                createdByUserName: user?.username,
-                            }),
-                        });
+                        // Sử dụng WebSocket để gửi tin nhắn có file
+                        const messageBody = {
+                            content: '',
+                            fileUrls: [fileUrl],
+                            createdByUserName: user?.username
+                        };
 
-                        if (messageResponse.ok) {
-                            const newMessage = await messageResponse.json();
-                            if (!user) return;
-
-                            // Thêm tin nhắn mới vào danh sách
-                            chat.messages.push({
-                                id: newMessage.data.id,
-                                conversationId: chatId,
-                                content: '',
-                                fileUrls: [fileUrl],
-                                reactions: [],
-                                createdAt: new Date().toISOString(),
-                                updatedAt: new Date().toISOString(),
-                                createdByUserName: user.username || `${user.firstName} ${user.lastName}`,
-                                deleted: false
-                            });
-
-                            setFile(null);
-                            toast.success("File uploaded and sent successfully");
-                        }
+                        onSendMessage('', messageBody);
+                        setFile(null);
+                        toast.success("File uploaded successfully");
                     }
                 } else {
                     const errorData = await response.json();
@@ -289,9 +276,10 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
                                                 <a
                                                     href={fileUrl}
                                                     download
-                                                    className={`${isCurrentUser ? 'text-white' : 'text-blue-600'} underline`}
+                                                    className={`${isCurrentUser ? 'text-white' : 'text-blue-600'} underline flex items-center gap-2`}
                                                 >
-                                                    Download File
+                                                    <FaPaperclip size={16} />
+                                                    {getFileName(fileUrl)}
                                                 </a>
                                             )}
                                         </div>

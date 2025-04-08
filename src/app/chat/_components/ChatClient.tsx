@@ -122,8 +122,6 @@ export default function ChatClient() {
         try {
           const messageData = JSON.parse(message.body);
 
-          if (!messageData?.content) return;
-
           // Update chats state
           setChats(prevChats => {
             return prevChats.map(chat => {
@@ -143,7 +141,7 @@ export default function ChatClient() {
               if (item.id.toString() === selectedChatId) {
                 return {
                   ...item,
-                  lastMessage: messageData.content,
+                  lastMessage: messageData.fileUrls?.length > 0 ? "Sent an attachment" : messageData.content,
                   lastMessageTime: messageData.createdAt,
                   isUnread: false
                 };
@@ -163,17 +161,15 @@ export default function ChatClient() {
   }, [client, isConnected, selectedChatId]);
 
   // Send message through WebSocket
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, messageData?: any) => {
     if (!client || !isConnected || !selectedChatId) return;
 
     try {
-      console.log('DEBUG - User data when sending:', { username: user?.username, firstName: user?.firstName, lastName: user?.lastName });
-      const messageBody = {
+      const messageBody = messageData || {
         content: content,
         fileUrls: [],
         createdByUserName: user?.username
       };
-      console.log('DEBUG - Message body:', messageBody);
 
       client.publish({
         destination: `/app/chat/${selectedChatId}`,
