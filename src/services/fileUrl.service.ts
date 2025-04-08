@@ -67,7 +67,7 @@ class FileUrlService {
 
       const responseData = await response.json();
 
-      if (!responseData || responseData.code !== 1000) {
+      if (!responseData || !responseData.data) {
         throw new Error(responseData?.message || "Failed to upload files");
       }
 
@@ -111,7 +111,7 @@ class FileUrlService {
 
       const responseData = await response.json();
 
-      if (!responseData || responseData.code !== 1000) {
+      if (!responseData || !responseData.data) {
         throw new Error(responseData?.message || "Failed to upload files");
       }
 
