@@ -1,6 +1,7 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_components/KanbanTask.tsx
 import { useState, useRef } from "react";
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { format, isPast } from "date-fns";
 import TaskEditModal from "./TaskEdit/TaskEditModal";
 import { Task } from "@/types/entities/task";
@@ -15,10 +16,24 @@ export default function KanbanTask({ task }: KanbanTaskProps) {
   const isDragging = useRef(false);
   const clickStartPosition = useRef({ x: 0, y: 0 });
 
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isDraggingNow,
+  } = useSortable({
     id: task.id,
     data: { task },
   });
+
+  // Apply CSS transform from dnd-kit
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDraggingNow ? 0.5 : 1,
+  };
 
   // Format date and check if past due
   const formattedDate = task.dueDate
@@ -63,11 +78,7 @@ export default function KanbanTask({ task }: KanbanTaskProps) {
         {...listeners}
         {...attributes}
         className="bg-white p-4 rounded-lg shadow-md cursor-pointer space-y-2"
-        style={{
-          transform: transform
-            ? `translate(${transform.x}px, ${transform.y}px)`
-            : undefined,
-        }}
+        style={style}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

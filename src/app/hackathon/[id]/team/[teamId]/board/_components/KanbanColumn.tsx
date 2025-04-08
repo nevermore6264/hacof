@@ -4,6 +4,10 @@
 import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import KanbanTask from "./KanbanTask";
 import { Column } from "@/store/kanbanStore";
@@ -172,7 +176,14 @@ export default function KanbanColumn({
           </>
         ) : (
           // Actual tasks
-          column.tasks.map((task) => <KanbanTask key={task.id} task={task} />)
+          <SortableContext
+            items={column.tasks.map((task) => task.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {column.tasks.map((task) => (
+              <KanbanTask key={task.id} task={task} />
+            ))}
+          </SortableContext>
         )}
       </div>
 

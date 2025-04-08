@@ -23,6 +23,7 @@ export type Task = {
   dueDate?: string;
   assignees?: any[];
   labels?: any[];
+  position: number;
 };
 
 export type Column = {
@@ -39,7 +40,11 @@ interface KanbanState {
   // Column operations
   setColumns: (columns: Column[]) => void;
   moveTask: (taskId: string, from: string, to: string) => void;
-
+  reorderTasksInColumn: (
+    columnId: string,
+    taskId: string,
+    newPosition: number
+  ) => void;
   createTask: (
     listId: string,
     taskData: {
@@ -412,5 +417,54 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       console.error("Failed to delete label:", error);
       return false;
     }
+  },
+
+  reorderTasksInColumn: (
+    columnId: string,
+    taskId: string,
+    newPosition: number
+  ) => {
+    set((state) => {
+      const column = state.columns.find((col) => col.id === columnId);
+      if (!column) return state;
+
+      // Find the task and its current index
+      const taskIndex = column.tasks.findIndex((t) => t.id === taskId);
+      if (taskIndex === -1) return state;
+
+      // Create a copy of tasks array
+      const newTasks = [...column.tasks];
+
+      // Remove the task from its current position
+      const [removedTask] = newTasks.splice(taskIndex, 1);
+
+      // Insert the task at the new position
+      newTasks.splice(newPosition, 0, removedTask);
+
+      // Update positions for all tasks in the column
+      const updatedTasks = newTasks.map((task, index) => ({
+        ...task,
+        position: index, // Update position property for each task
+      }));
+
+      // Create simulation of API call to update positions
+      console.log("API call: Reordering tasks in column", {
+        columnId,
+        tasks: updatedTasks.map((task) => ({
+          id: task.id,
+          position: task.position,
+        })),
+      });
+
+      // In a real app, you would call an API here to persist the position changes
+      // For example: updateTaskPositions(columnId, updatedTasks.map(t => ({ id: t.id, position: t.position })));
+
+      // Update the columns with the new task order
+      const updatedColumns = state.columns.map((col) =>
+        col.id === columnId ? { ...col, tasks: updatedTasks } : col
+      );
+
+      return { columns: updatedColumns };
+    });
   },
 }));

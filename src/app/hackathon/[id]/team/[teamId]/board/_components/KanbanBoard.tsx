@@ -193,12 +193,91 @@ export default function KanbanBoard({
     setActiveId(active.id as string);
   };
 
-  // Handle drag over event
+  // Update the handleDragOver function
   const handleDragOver = (event: DragOverEvent) => {
-    // This would be used for column sorting if needed
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Check if this is a column being dragged over
+    const isActiveColumn = useKanbanStore
+      .getState()
+      .columns.some((col) => col.id === activeId);
+
+    const isOverColumn = useKanbanStore
+      .getState()
+      .columns.some((col) => col.id === overId);
+
+    // If we're dragging a column over another column, it's handled elsewhere
+    if (isActiveColumn && isOverColumn) return;
+
+    // Find the active task
+    const activeTask = useKanbanStore
+      .getState()
+      .columns.flatMap((col) => col.tasks)
+      .find((task) => task.id === activeId);
+
+    // Find the task or column we're dragging over
+    const overTask = useKanbanStore
+      .getState()
+      .columns.flatMap((col) => col.tasks)
+      .find((task) => task.id === overId);
+
+    // If the target is not a task (might be a column), return
+    if (!activeTask) return;
+
+    // If we're dragging over a column directly
+    if (isOverColumn) {
+      // Move the task to the end of the target column
+      const sourceColumnId = useKanbanStore
+        .getState()
+        .columns.find((column) =>
+          column.tasks.some((task) => task.id === activeId)
+        )?.id;
+
+      if (sourceColumnId && sourceColumnId !== overId) {
+        useKanbanStore.getState().moveTask(activeId, sourceColumnId, overId);
+      }
+      return;
+    }
+
+    // If we're not dragging over another task, return
+    if (!overTask) return;
+
+    // Find the columns for both tasks
+    const overColumn = useKanbanStore
+      .getState()
+      .columns.find((col) => col.tasks.some((task) => task.id === overId));
+
+    const activeColumn = useKanbanStore
+      .getState()
+      .columns.find((col) => col.tasks.some((task) => task.id === activeId));
+
+    if (!overColumn || !activeColumn) return;
+
+    // If tasks are in different columns, move the task to the new column
+    if (activeColumn.id !== overColumn.id) {
+      useKanbanStore
+        .getState()
+        .moveTask(activeId, activeColumn.id, overColumn.id);
+      return;
+    }
+
+    // If tasks are in the same column, reorder tasks
+    const overTaskIndex = overColumn.tasks.findIndex(
+      (task) => task.id === overId
+    );
+
+    // Reorder tasks in the column
+    useKanbanStore
+      .getState()
+      .reorderTasksInColumn(overColumn.id, activeId, overTaskIndex);
   };
 
-  // Handle drag end event
+  // Update the handleDragEnd function to include task sorting
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
@@ -225,15 +304,33 @@ export default function KanbanBoard({
       return;
     }
 
-    // This is a task being dragged
-    const sourceColumnId = useKanbanStore
+    // Find the active task
+    const activeTask = useKanbanStore
       .getState()
-      .columns.find((column) =>
-        column.tasks.some((task) => task.id === activeId)
-      )?.id;
+      .columns.flatMap((col) => col.tasks)
+      .find((task) => task.id === activeId);
 
-    if (sourceColumnId && sourceColumnId !== overId) {
-      moveTask(activeId, sourceColumnId, overId);
+    if (!activeTask) return;
+
+    // Check if we're dropping on a column
+    const isOverColumn = useKanbanStore
+      .getState()
+      .columns.some((col) => col.id === overId);
+
+    if (isOverColumn) {
+      // This is a task being dragged to a column
+      const sourceColumnId = useKanbanStore
+        .getState()
+        .columns.find((column) =>
+          column.tasks.some((task) => task.id === activeId)
+        )?.id;
+
+      if (sourceColumnId && sourceColumnId !== overId) {
+        moveTask(activeId, sourceColumnId, overId);
+      }
+    } else {
+      // This is a task being dragged over another task
+      // The reordering is handled in handleDragOver
     }
   };
 
