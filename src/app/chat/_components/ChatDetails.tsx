@@ -4,7 +4,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { FaPaperclip, FaSmile } from 'react-icons/fa';
+import { FaPaperclip, FaSmile, FaFile, FaFileWord, FaFilePdf, FaFileExcel, FaFileImage, FaFileAlt, FaFileAudio, FaFileVideo, FaFileArchive } from 'react-icons/fa';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useAuth } from "@/hooks/useAuth_v0";
 import { toast } from "sonner";
@@ -122,6 +122,41 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
             return lastPart.split('_').slice(1).join('_');
         }
         return lastPart;
+    };
+
+    const getFileIcon = (fileUrl: string) => {
+        const extension = fileUrl.split('.').pop()?.toLowerCase();
+        switch (extension) {
+            case 'doc':
+            case 'docx':
+                return <FaFileWord size={16} />;
+            case 'pdf':
+                return <FaFilePdf size={16} />;
+            case 'xls':
+            case 'xlsx':
+                return <FaFileExcel size={16} />;
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'gif':
+                return <FaFileImage size={16} />;
+            case 'mp3':
+            case 'wav':
+            case 'ogg':
+                return <FaFileAudio size={16} />;
+            case 'mp4':
+            case 'avi':
+            case 'mov':
+                return <FaFileVideo size={16} />;
+            case 'zip':
+            case 'rar':
+            case '7z':
+                return <FaFileArchive size={16} />;
+            case 'txt':
+                return <FaFileAlt size={16} />;
+            default:
+                return <FaFile size={16} />;
+        }
     };
 
     const handleSendMessage = async (content: string) => {
@@ -278,7 +313,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
                                                     download
                                                     className={`${isCurrentUser ? 'text-white' : 'text-blue-600'} underline flex items-center gap-2`}
                                                 >
-                                                    <FaPaperclip size={16} />
+                                                    {getFileIcon(fileUrl)}
                                                     {getFileName(fileUrl)}
                                                 </a>
                                             )}
