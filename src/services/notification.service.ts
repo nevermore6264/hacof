@@ -27,18 +27,19 @@ type NotificationPayload = {
 };
 
 type BulkUpdateReadStatusRequest = {
-  notificationIds: string[];
+  notificationIds: string[]; //NotificationDelivery id
   isRead: boolean;
 };
+
 class NotificationService {
   async createNotification(data: {
     type: string;
     content: string;
     metadata: string;
     notificationDeliveryRequest: {
-      recipientIds: string[];
-      role: string;
-      method: string;
+      recipientIds?: string[];
+      role?: string;
+      method?: string;
     };
   }): Promise<{ data: any; message?: string }> {
     try {
@@ -131,8 +132,8 @@ class NotificationService {
   }
 
   async updateReadStatusBulk(data: {
-    notificationIds: string[];
-    isRead: boolean;
+    notificationIds: string[]; //NotificationDelivery id BE: //deliveryIds
+    read: boolean; //this is isRead in entity
   }): Promise<{ message?: string }> {
     try {
       const response = await apiService.auth.put(
