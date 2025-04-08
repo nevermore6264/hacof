@@ -167,11 +167,13 @@ export default function ChatClient() {
     if (!client || !isConnected || !selectedChatId) return;
 
     try {
+      console.log('DEBUG - User data when sending:', { username: user?.username, firstName: user?.firstName, lastName: user?.lastName });
       const messageBody = {
         content: content,
         fileUrls: [],
         createdByUserName: user?.username
       };
+      console.log('DEBUG - Message body:', messageBody);
 
       client.publish({
         destination: `/app/chat/${selectedChatId}`,

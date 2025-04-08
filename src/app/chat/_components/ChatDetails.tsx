@@ -8,6 +8,15 @@ import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useAuth } from "@/hooks/useAuth_v0";
 import { toast } from "sonner";
 
+interface User {
+    id: string;
+    username: string;
+    firstName?: string;
+    lastName?: string;
+    image?: string;
+    name?: string;
+}
+
 interface ConversationUser {
     id: string;
     userId: string;
@@ -53,7 +62,34 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [file, setFile] = useState<string | null>(null);
     const { user } = useAuth();
+    const [users, setUsers] = useState<User[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Fetch users list
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await fetch("/api/user", {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                    },
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setUsers(data);
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+        fetchUsers();
+    }, []);
+
+    // Function to get user's full name
+    const getUserFullName = (username: string) => {
+        const foundUser = users.find(u => u.username == username);
+        return foundUser ? `${foundUser?.name} ` : username;
+    };
 
     useEffect(() => {
         if (file) {
@@ -120,6 +156,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
                             body: JSON.stringify({
                                 content: '',
                                 fileUrls: [fileUrl],
+                                createdByUserName: user?.username,
                             }),
                         });
 
@@ -224,22 +261,21 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {chat.messages.map((message) => {
-                    const isCurrentUser = message?.createdByUserName == user?.username;
+                    const isCurrentUser = message?.createdByUserName === user?.username;
 
                     return (
                         <div
                             key={message.id}
                             className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                         >
-
                             <div className={`max-w-[70%] group relative ${isCurrentUser
-                                ? 'bg-blue-500 text-white rounded-l-lg rounded-tr-lg'
-                                : 'bg-gray-200 text-gray-800 rounded-r-lg rounded-tl-lg'
+                                ? 'bg-blue-500 text-white rounded-2xl rounded-br-none'
+                                : 'bg-gray-200 text-gray-800 rounded-2xl rounded-bl-none'
                                 } p-3 shadow`}
                             >
                                 {!isCurrentUser && (
                                     <p className="text-xs text-gray-600 font-semibold mb-1">
-                                        {message.createdByUserName}
+                                        {getUserFullName(message.createdByUserName)}
                                     </p>
                                 )}
 
@@ -343,12 +379,12 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage 
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 p-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                        className="flex-1 p-3 border rounded-full focus:outline-none focus:border-blue-500"
                     />
 
                     <button
                         type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                        className="bg-blue-500 text-white px-6 py-3 rounded-full hover:bg-blue-600 transition-colors"
                     >
                         Send
                     </button>
