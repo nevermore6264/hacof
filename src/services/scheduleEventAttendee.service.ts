@@ -8,6 +8,7 @@ class ScheduleEventAttendeeService {
   async addAttendeeToScheduleEvent(data: {
     scheduleEventId: string;
     userId: string;
+    status?: string;
   }): Promise<{ data: ScheduleEventAttendee; message?: string }> {
     try {
       const response = await apiService.auth.post<ScheduleEventAttendee>(
@@ -39,6 +40,7 @@ class ScheduleEventAttendeeService {
     data: {
       scheduleEventId: string;
       userId: string;
+      status?: string;
     }
   ): Promise<{ data: ScheduleEventAttendee; message?: string }> {
     try {
