@@ -8,8 +8,6 @@ import Pagination from "./_components/Pagination";
 import { Hackathon } from "@/types/entities/hackathon";
 import { useQuery } from "@tanstack/react-query";
 import { hackathonService } from "@/services/hackathon.service";
-import ApiResponseModal from "@/components/common/ApiResponseModal";
-import { useApiModal } from "@/hooks/useApiModal";
 
 // TODO: {lv2} Research: add Metadata solution for client components
 // export const metadata: Metadata = {
@@ -20,11 +18,9 @@ import { useApiModal } from "@/hooks/useApiModal";
 
 //NOTE: This page is client component, client side data fetching, client side pagination and filtering
 // TODO: {Lv2} Check optimization, check logic position
-async function getHackathons(): Promise<{
-  data: Hackathon[];
-  message?: string;
-}> {
-  return await hackathonService.getAllHackathons();
+async function getHackathons(): Promise<Hackathon[]> {
+  const response = await hackathonService.getAllHackathons();
+  return response.data;
 }
 
 const ITEMS_PER_PAGE = 6; // Limit items per page
@@ -41,38 +37,17 @@ export default function HackathonPage() {
     organizations: [],
   });
   const [page, setPage] = useState(1);
-  const { modalState, hideModal, showError, showSuccess, showInfo } =
-    useApiModal();
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const {
-    data: hackathonResponse,
+    data: hackathons = [],
     error,
     isLoading,
-  } = useQuery<{ data: Hackathon[]; message?: string }>({
+  } = useQuery<Hackathon[]>({
     queryKey: ["hackathons"],
     queryFn: getHackathons,
     staleTime: 60 * 1000, // 1 minute before refetch
     refetchOnWindowFocus: false, // Disable automatic refetching when the window regains focus to avoid unnecessary API calls
   });
-
-  const hackathons = hackathonResponse?.data || [];
-
-  // Show API messages
-  useEffect(() => {
-    if (hackathonResponse?.message) {
-      showInfo("Hackathon Information", hackathonResponse.message);
-    }
-  }, [hackathonResponse?.message]);
-
-  // Show errors
-  useEffect(() => {
-    if (error) {
-      showError(
-        "Error",
-        error instanceof Error ? error.message : "Failed to load hackathons"
-      );
-    }
-  }, [error]);
 
   // Apply Filters & Memoize the Computation
   const filteredHackathons = useMemo(() => {
@@ -108,6 +83,7 @@ export default function HackathonPage() {
   useMemo(() => setPage(1), [filters]);
 
   if (isLoading) return <p>Loading hackathons...</p>;
+  if (error) return <p>Failed to load hackathons.</p>;
 
   return (
     <div className="container mx-auto p-4">
@@ -130,15 +106,6 @@ export default function HackathonPage() {
           />
         </div>
       </div>
-
-      {/* API Response Modal */}
-      <ApiResponseModal
-        isOpen={modalState.isOpen}
-        onClose={hideModal}
-        title={modalState.title}
-        message={modalState.message}
-        type={modalState.type}
-      />
     </div>
   );
 }
