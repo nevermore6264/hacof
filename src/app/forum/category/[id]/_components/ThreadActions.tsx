@@ -1,4 +1,4 @@
-// src/app/forum/category/[id]/components/ThreadActions.tsx
+// src/app/forum/category/[id]/_components/ThreadActions.tsx
 "use client";
 
 import { useState, useRef } from "react";

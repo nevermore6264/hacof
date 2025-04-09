@@ -1,4 +1,4 @@
-// src/app/forum/category/[id]/components/CreateThreadModal.tsx
+// src/app/forum/category/[id]/_components/CreateThreadModal.tsx
 "use client";
 
 import { useState } from "react";

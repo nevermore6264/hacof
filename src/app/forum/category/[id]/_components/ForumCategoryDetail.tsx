@@ -1,4 +1,4 @@
-// src/app/forum/category/[id]/components/ForumCategoryDetail.tsx
+// src/app/forum/category/[id]/_components/ForumCategoryDetail.tsx
 "use client";
 
 import { useEffect, useState } from "react";
