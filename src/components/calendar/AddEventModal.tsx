@@ -54,6 +54,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
     setEventLabel("primary");
   };
 
+  // Inside AddEventModal.tsx, handleSubmit function
   const handleSubmit = () => {
     if (!eventName || !eventStartDate) {
       alert("Please fill in all required fields");
@@ -64,7 +65,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       name: eventName,
       startDate: eventStartDate,
       endDate: eventEndDate || eventStartDate,
-      eventLabel: eventLabel,
+      eventLabel, // Passing the state variable directly
       description: eventDescription,
       location: eventLocation,
     });

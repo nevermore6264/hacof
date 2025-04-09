@@ -1,5 +1,7 @@
 // src/services/scheduleEventService.ts
 import { ScheduleEventLabel } from "@/types/entities/scheduleEvent";
+import { scheduleEventService } from "@/services/scheduleEvent.service";
+import { CalendarEvent } from "@/components/calendar/Calendar";
 
 interface CreateScheduleEventRequest {
   name: string;
@@ -11,18 +13,6 @@ interface CreateScheduleEventRequest {
   scheduleId: string; // The ID of the schedule this event belongs to
 }
 
-interface ScheduleEvent {
-  id: string;
-  name: string;
-  description: string;
-  location: string;
-  startTime: string;
-  endTime: string;
-  eventLabel?: ScheduleEventLabel;
-  scheduleId: string;
-  createdAt: string;
-}
-
 /**
  * Creates a new schedule event
  * @param scheduleId - The ID of the schedule to add the event to
@@ -32,34 +22,39 @@ interface ScheduleEvent {
 export async function createScheduleEvent(
   scheduleId: string,
   eventData: Omit<CreateScheduleEventRequest, "scheduleId">
-): Promise<ScheduleEvent> {
+) {
   try {
-    // In a real application, this would be an API call
-    // For now, we'll mock the creation of an event
-
     // Validate required fields
-    if (!eventData.name || !eventData.startTime || !eventData.endTime) {
-      throw new Error("Name, start time, and end time are required");
+    if (!eventData.name || !eventData.startTime) {
+      throw new Error("Name and start time are required");
     }
 
     // Validate that end time is after start time
-    if (new Date(eventData.endTime) <= new Date(eventData.startTime)) {
+    if (
+      eventData.endTime &&
+      new Date(eventData.endTime) <= new Date(eventData.startTime)
+    ) {
       throw new Error("End time must be after start time");
     }
 
-    // Create the event with generated ID and current timestamp
-    const newEvent: ScheduleEvent = {
-      id: `event-${Date.now()}`, // Generate a unique ID
-      ...eventData,
+    // Call the real service - making sure to pass eventLabel
+    const response = await scheduleEventService.createScheduleEvent({
       scheduleId,
-      eventLabel: eventData.eventLabel || "primary", // Default to "primary" if not specified
-      createdAt: new Date().toISOString(),
-    };
+      name: eventData.name,
+      description: eventData.description || "",
+      location: eventData.location || "",
+      startTime: eventData.startTime,
+      endTime: eventData.endTime || eventData.startTime, // Default to start time if not provided
+      eventLabel: eventData.eventLabel, // Pass the eventLabel to the service
+      isRecurring: false, // Default to false
+      recurrenceRule: undefined, // Default to undefined
+    });
 
-    // In a real application, you would save this to your backend
-    console.log("Created new schedule event:", newEvent);
+    if (!response || !response.data) {
+      throw new Error(response?.message || "Failed to create schedule event");
+    }
 
-    return newEvent;
+    return response.data;
   } catch (error) {
     console.error("Failed to create schedule event:", error);
     throw error;
@@ -74,21 +69,23 @@ export async function createScheduleEvent(
  */
 export async function addEventToCalendar(
   scheduleId: string,
-  eventData: Omit<CreateScheduleEventRequest, "scheduleId">
-): Promise<{
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  allDay: boolean;
-  extendedProps: {
-    calendar: string;
-    scheduleId: string;
+  eventData: {
+    name: string;
     description: string;
     location: string;
-  };
-}> {
-  const createdEvent = await createScheduleEvent(scheduleId, eventData);
+    startTime: string;
+    endTime: string;
+    eventLabel?: ScheduleEventLabel;
+  }
+): Promise<CalendarEvent> {
+  const createdEvent = await createScheduleEvent(scheduleId, {
+    name: eventData.name,
+    description: eventData.description,
+    location: eventData.location,
+    startTime: eventData.startTime,
+    endTime: eventData.endTime,
+    eventLabel: eventData.eventLabel,
+  });
 
   // Transform to the format expected by the Calendar component
   return {
@@ -99,7 +96,7 @@ export async function addEventToCalendar(
     allDay: false,
     extendedProps: {
       calendar: createdEvent.eventLabel || "primary",
-      scheduleId: createdEvent.scheduleId,
+      scheduleId: createdEvent.scheduleId || scheduleId,
       description: createdEvent.description,
       location: createdEvent.location,
     },

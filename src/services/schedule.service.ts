@@ -35,7 +35,6 @@ class ScheduleService {
   async updateSchedule(
     id: string,
     data: {
-      teamId: string;
       name: string;
       description: string;
     }

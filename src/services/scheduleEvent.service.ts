@@ -11,6 +11,7 @@ class ScheduleEventService {
     location: string;
     startTime: string;
     endTime: string;
+    eventLabel?: string;
     isRecurring?: boolean;
     recurrenceRule?: string;
   }): Promise<{ data: ScheduleEvent; message?: string }> {
@@ -46,6 +47,7 @@ class ScheduleEventService {
       location: string;
       startTime: string;
       endTime: string;
+      eventLabel?: string;
       isRecurring?: boolean;
       recurrenceRule?: string;
       fileUrls: string[];

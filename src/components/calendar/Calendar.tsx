@@ -14,17 +14,18 @@ import {
 import { useModal } from "@/hooks/useModal";
 import AddEventModal from "./AddEventModal";
 import EditEventModal from "./EditEventModal";
-import { fetchMockSchedules } from "@/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockSchedules";
-import { fetchMockScheduleEvents } from "@/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockScheduleEvents";
 import { Schedule } from "@/types/entities/schedule";
 import { useParams } from "next/navigation";
 import { addEventToCalendar } from "@/services/scheduleEventService";
 import ScheduleMembers from "./ScheduleMembers";
-import { fetchMockTeams } from "@/app/hackathon/[id]/_mock/fetchMockTeams";
 import { User } from "@/types/entities/user";
 import { FileUrl } from "@/types/entities/fileUrl";
 import { ScheduleEventAttendee } from "@/types/entities/scheduleEventAttendee";
 import { ScheduleEventReminder } from "@/types/entities/scheduleEventReminder";
+import { scheduleService } from "@/services/schedule.service";
+import { scheduleEventService } from "@/services/scheduleEvent.service";
+import { teamService } from "@/services/team.service";
+
 export interface CalendarEvent extends EventInput {
   extendedProps: {
     calendar: string;
@@ -78,16 +79,13 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
       if (!currentTeamId || !currentHackathonId) return;
 
       try {
-        // Mock user ID for fetching teams
-        const mockUserId = "user123";
-        const teams = await fetchMockTeams(mockUserId, currentHackathonId);
+        setLoading(true);
+        // Use the real service call instead of mock
+        const { data: team } = await teamService.getTeamById(currentTeamId);
 
-        // Find the current team
-        const currentTeam = teams.find((team) => team.id === currentTeamId);
-
-        if (currentTeam) {
+        if (team && team.teamMembers) {
           // Extract users from team members
-          const users = currentTeam.teamMembers
+          const users = team.teamMembers
             .filter((member) => member.user)
             .map((member) => member.user);
 
@@ -95,6 +93,8 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
         }
       } catch (error) {
         console.error("Failed to fetch team members", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -104,18 +104,23 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
   // Load basic schedule data when component mounts
   useEffect(() => {
     const loadBasicScheduleData = async () => {
-      if (!currentTeamId) return;
+      if (!currentTeamId || !currentHackathonId) return;
 
       setLoading(true);
       try {
-        const fetchedSchedule = await fetchMockSchedules(
-          currentTeamId,
-          currentHackathonId
-        );
-        // Wrap in array if it's a single object since our component expects an array
-        const schedulesArray = Array.isArray(fetchedSchedule)
-          ? fetchedSchedule
-          : [fetchedSchedule];
+        // Use the real service call instead of mock
+        const { data: fetchedSchedules } =
+          await scheduleService.getSchedulesByTeamIdAndHackathonId(
+            currentTeamId,
+            currentHackathonId
+          );
+
+        // Ensure we have an array
+        const schedulesArray = Array.isArray(fetchedSchedules)
+          ? fetchedSchedules
+          : fetchedSchedules
+            ? [fetchedSchedules]
+            : [];
 
         setSchedules(schedulesArray);
 
@@ -143,7 +148,9 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
 
       // For each schedule, fetch its events
       for (const schedule of schedules) {
-        const scheduleEvents = await fetchMockScheduleEvents(schedule.id);
+        // Use the real service call instead of mock
+        const { data: scheduleEvents } =
+          await scheduleEventService.getScheduleEventsByScheduleId(schedule.id);
 
         // Transform schedule events into calendar events
         const calendarEvents: CalendarEvent[] = scheduleEvents.map((event) => ({
@@ -193,7 +200,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     name: string;
     startDate: string;
     endDate: string;
-    level: string;
+    eventLabel: string;
     description: string;
     location: string;
   }) => {
@@ -203,25 +210,32 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
     }
 
     try {
-      // Create event using our service
+      setLoading(true);
+
+      // Create event using our service with the real implementation
       const newCalendarEvent = await addEventToCalendar(activeScheduleId, {
         name: eventData.name,
         description: eventData.description,
         location: eventData.location,
         startTime: eventData.startDate,
         endTime: eventData.endDate,
-        eventLabel: eventData.level as any,
+        eventLabel: eventData.eventLabel as ScheduleEventLabel,
       });
 
       // Add the new event to the state
       setEvents((prevEvents) => [...prevEvents, newCalendarEvent]);
+
+      // Refresh events from server to ensure we have the latest data
+      await loadScheduleEvents();
+
       closeAddModal();
     } catch (error) {
       console.error("Failed to add event:", error);
       alert("Failed to add event. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
-
   const handleUpdateEvent = (eventData: {
     name: string;
     startDate: string;
