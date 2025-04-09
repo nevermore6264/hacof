@@ -1,7 +1,7 @@
 // src/app/forum/category/[id]/_components/ThreadActions.tsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ForumThread } from "@/types/entities/forumThread";
 
 interface ThreadActionsProps {
@@ -24,19 +24,24 @@ export default function ThreadActions({
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // Close menu when clicking outside
-  const handleClickOutside = (e: MouseEvent) => {
-    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-      setIsMenuOpen(false);
+  // Handle clicks outside the menu to close it
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
     }
-  };
 
-  // Add click listener when menu opens
-  if (isMenuOpen) {
-    document.addEventListener("mousedown", handleClickOutside);
-  } else {
-    document.removeEventListener("mousedown", handleClickOutside);
-  }
+    // Add event listener only when menu is open
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    // Clean up event listener when component unmounts or menu closes
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const handleDelete = () => {
     if (

@@ -25,7 +25,7 @@ export default function ThreadPage() {
       const response = await threadPostService.getAllThreadPosts();
       // Filter posts to show only posts from this thread
       const postsForThread = response.data.filter(
-        (post) => post.forumThreadId === threadId && !post.isDeleted
+        (post) => post.forumThread.id === threadId && !post.isDeleted
       );
       setThreadPosts(postsForThread);
     } catch (error) {

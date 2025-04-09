@@ -17,28 +17,41 @@ export default function CategoryPage() {
 
   useEffect(() => {
     const fetchCategory = async () => {
-      if (!params.id) return;
+      setLoading(true); // Ensure loading state is set
+      setError(null); // Reset any previous errors
+
+      if (!params.id) {
+        console.log("No ID found in params");
+        return;
+      }
 
       try {
         const categoryId = Array.isArray(params.id) ? params.id[0] : params.id;
+        console.log("Fetching category with ID:", categoryId);
+
         const { data } =
           await forumCategoryService.getForumCategoryById(categoryId);
+
         if (!data || !data.id) {
           setError("Category not found");
-          return;
+          setCategory(null);
+        } else {
+          setCategory(data);
+          setError(null);
         }
-        setCategory(data);
       } catch (err) {
         console.error("Error fetching category:", err);
         setError("Failed to load category. Please try again.");
+        setCategory(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCategory();
+    if (params.id) {
+      fetchCategory();
+    }
   }, [params.id]);
-
   if (loading) {
     return <CategorySkeleton />;
   }

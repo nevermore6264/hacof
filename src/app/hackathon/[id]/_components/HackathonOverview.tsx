@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import { useAuth } from "@/hooks/useAuth_v0"; // Added the new auth hook
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { Team } from "@/types/entities/team";
@@ -42,7 +43,13 @@ export default function HackathonOverview({
   maximumTeamMembers,
 }: HackathonOverviewProps) {
   const { user } = useAuthStore(); // Get current user
+  const { user: authUser } = useAuth(); // Get user with roles from new auth hook
   const router = useRouter();
+
+  // Check if the user has TEAM_MEMBER role
+  const isTeamMember = authUser?.userRoles?.some(
+    (userRole) => userRole.role.name === "TEAM_MEMBER"
+  );
 
   // Use our API modal hook for error and success handling
   const { modalState, hideModal, showError, showSuccess, showInfo } =
@@ -262,13 +269,25 @@ export default function HackathonOverview({
             >
               Loading...
             </button>
-          ) : (
+          ) : isTeamMember ? (
             <button
               className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition"
               onClick={() => setIsModalOpen(true)}
             >
               {buttonTitle}
             </button>
+          ) : (
+            <div>
+              <button
+                className="bg-gray-400 text-white font-bold py-2 px-6 rounded-full cursor-not-allowed"
+                disabled
+              >
+                {buttonTitle}
+              </button>
+              <p className="text-sm text-red-500 mt-1">
+                Only team members can enroll in hackathons
+              </p>
+            </div>
           )}
 
           {!isLoading && teams.length > 0 && (
@@ -295,38 +314,46 @@ export default function HackathonOverview({
         </p>
       </div>
 
-      <EnrollmentModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        individualRegistrations={individualRegistrations}
-        teamRequests={teamRequests}
-        teams={teams}
-        hackathonId={id}
-        minimumTeamMembers={minimumTeamMembers}
-        maximumTeamMembers={maximumTeamMembers}
-        onDataUpdate={() => {
-          // Refetch data when enrollment changes
-          if (user) {
-            Promise.all([
-              individualRegistrationRequestService.getIndividualRegistrationRequestsByUserAndHackathon(
-                user.username,
-                id
-              ),
-              teamRequestService.getTeamRequestsByHackathonAndUser(id, user.id),
-              teamService.getTeamsByUserAndHackathon(user.id, id),
-            ])
-              .then(([indivRegs, teamReqs, teams]) => {
-                setIndividualRegistrations(indivRegs.data);
-                setTeamRequests(teamReqs.data);
-                setTeams(teams.data);
-              })
-              .catch((error) => {
-                console.error("Failed to update enrollment data:", error);
-                showError("Update Error", "Failed to refresh enrollment data.");
-              });
-          }
-        }}
-      />
+      {isTeamMember && (
+        <EnrollmentModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          individualRegistrations={individualRegistrations}
+          teamRequests={teamRequests}
+          teams={teams}
+          hackathonId={id}
+          minimumTeamMembers={minimumTeamMembers}
+          maximumTeamMembers={maximumTeamMembers}
+          onDataUpdate={() => {
+            // Refetch data when enrollment changes
+            if (user) {
+              Promise.all([
+                individualRegistrationRequestService.getIndividualRegistrationRequestsByUserAndHackathon(
+                  user.username,
+                  id
+                ),
+                teamRequestService.getTeamRequestsByHackathonAndUser(
+                  id,
+                  user.id
+                ),
+                teamService.getTeamsByUserAndHackathon(user.id, id),
+              ])
+                .then(([indivRegs, teamReqs, teams]) => {
+                  setIndividualRegistrations(indivRegs.data);
+                  setTeamRequests(teamReqs.data);
+                  setTeams(teams.data);
+                })
+                .catch((error) => {
+                  console.error("Failed to update enrollment data:", error);
+                  showError(
+                    "Update Error",
+                    "Failed to refresh enrollment data."
+                  );
+                });
+            }
+          }}
+        />
+      )}
 
       <MentorshipModal
         isOpen={isMentorshipModalOpen}
