@@ -9,41 +9,75 @@ import { ThreadPostLike } from "@/types/entities/threadPostLike";
 interface LikeButtonProps {
   threadPostId: string;
   initialLikes?: ThreadPostLike[];
+  likes?: ThreadPostLike[];
+  isLoading?: boolean;
+  currentUsername?: string;
+  onLikeAdded?: () => void;
+  onLikeRemoved?: () => void;
 }
 
 export default function LikeButton({
   threadPostId,
   initialLikes = [],
+  likes: externalLikes,
+  isLoading: externalLoading,
+  currentUsername,
+  onLikeAdded,
+  onLikeRemoved,
 }: LikeButtonProps) {
   const { user } = useAuth();
-  const [likes, setLikes] = useState<ThreadPostLike[]>(initialLikes);
-  const [loading, setLoading] = useState(false);
+  const [likes, setLikes] = useState<ThreadPostLike[]>(
+    initialLikes || externalLikes || []
+  );
+  const [loading, setLoading] = useState(externalLoading || false);
   const [userLike, setUserLike] = useState<ThreadPostLike | null>(null);
 
   useEffect(() => {
+    if (externalLikes) {
+      setLikes(externalLikes);
+    }
+  }, [externalLikes]);
+
+  useEffect(() => {
     const fetchLikes = async () => {
+      if (initialLikes.length > 0 || externalLikes) {
+        // Use the provided likes
+        const currentUserName = currentUsername || user?.username;
+        if (currentUserName) {
+          const existingLike = likes.find(
+            (like) => like.createdByUserName === currentUserName
+          );
+          setUserLike(existingLike || null);
+        }
+        return;
+      }
+
       try {
+        setLoading(true);
         const response =
           await threadPostLikeService.getLikesByThreadPostId(threadPostId);
         setLikes(response.data);
 
         // Check if current user has liked this post
-        if (user) {
+        const currentUserName = currentUsername || user?.username;
+        if (currentUserName) {
           const currentUserLike = response.data.find(
-            (like) => like.createdByUserName === user.username
+            (like) => like.createdByUserName === currentUserName
           );
           setUserLike(currentUserLike || null);
         }
       } catch (error) {
         console.error("Failed to fetch likes:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchLikes();
-  }, [threadPostId, user]);
+  }, [threadPostId, user, currentUsername, initialLikes, likes, externalLikes]);
 
   const handleLikeToggle = async () => {
-    if (!user) return;
+    if (!user && !currentUsername) return;
 
     setLoading(true);
     try {
@@ -52,6 +86,7 @@ export default function LikeButton({
         await threadPostLikeService.deleteThreadPostLike(userLike.id);
         setLikes((prev) => prev.filter((like) => like.id !== userLike.id));
         setUserLike(null);
+        if (onLikeRemoved) onLikeRemoved();
       } else {
         // Like: add a new like
         const response = await threadPostLikeService.createThreadPostLike({
@@ -61,6 +96,7 @@ export default function LikeButton({
         if (response.data) {
           setLikes((prev) => [...prev, response.data]);
           setUserLike(response.data);
+          if (onLikeAdded) onLikeAdded();
         }
       }
     } catch (error) {
@@ -70,16 +106,18 @@ export default function LikeButton({
     }
   };
 
+  const activeUsername = currentUsername || user?.username;
+
   return (
     <button
       onClick={handleLikeToggle}
-      disabled={loading || !user}
+      disabled={loading || !activeUsername}
       className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-colors ${
         userLike
           ? "text-blue-600 bg-blue-50 hover:bg-blue-100"
           : "text-gray-600 hover:bg-gray-100"
-      } ${!user ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
-      title={user ? "Like this post" : "Sign in to like posts"}
+      } ${!activeUsername ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+      title={activeUsername ? "Like this post" : "Sign in to like posts"}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

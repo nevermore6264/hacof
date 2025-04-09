@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth_v0";
 import { threadPostService } from "@/services/threadPost.service";
+import { ThreadPost } from "@/types/entities/threadPost";
 
 interface PostFormProps {
   forumThreadId: string;
@@ -12,6 +13,8 @@ interface PostFormProps {
   initialContent?: string;
   onCancel?: () => void;
   isEditing?: boolean;
+  currentUsername?: string;
+  post?: ThreadPost;
 }
 
 export default function PostForm({
@@ -21,8 +24,10 @@ export default function PostForm({
   initialContent = "",
   onCancel,
   isEditing = false,
+  currentUsername,
+  post,
 }: PostFormProps) {
-  const [content, setContent] = useState(initialContent);
+  const [content, setContent] = useState(initialContent || post?.content || "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -38,24 +43,36 @@ export default function PostForm({
     setError(null);
 
     try {
-      if (isEditing && postId) {
+      let updatedPost;
+
+      if (isEditing && (postId || post?.id)) {
         // Update existing post
-        await threadPostService.updateThreadPost(postId, {
-          forumThreadId,
-          content,
-          isDeleted: false,
-        });
+        const response = await threadPostService.updateThreadPost(
+          postId || post?.id || "",
+          {
+            forumThreadId,
+            content,
+            isDeleted: false,
+          }
+        );
+        updatedPost = response.data;
       } else {
         // Create new post
-        await threadPostService.createThreadPost({
+        const response = await threadPostService.createThreadPost({
           forumThreadId,
           content,
           isDeleted: false,
         });
+        updatedPost = response.data;
       }
 
-      setContent("");
+      // Reset form if it's a new post
+      if (!isEditing) {
+        setContent("");
+      }
+
       onPostSaved();
+
       if (onCancel && isEditing) {
         onCancel();
       }
@@ -66,7 +83,8 @@ export default function PostForm({
     }
   };
 
-  if (!user) {
+  // If user isn't authenticated, show a message
+  if (!user && !currentUsername) {
     return (
       <div className="bg-yellow-50 p-4 rounded-md">
         <p className="text-yellow-700">
