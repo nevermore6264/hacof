@@ -89,7 +89,7 @@ class ForumThreadService {
   ): Promise<{ data: ForumThread[]; message?: string }> {
     try {
       const response = await apiService.auth.get<ForumThread[]>(
-        `/communication-service/api/v1/forum-threads/by-category/${forumCategoryId}`
+        `/communication-service/api/v1/forum-threads/category/${forumCategoryId}`
       );
 
       if (!response || !response.data) {
