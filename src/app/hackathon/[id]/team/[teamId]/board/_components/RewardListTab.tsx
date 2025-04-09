@@ -13,133 +13,146 @@ interface RewardListTabProps {
 export default function RewardListTab({ hackathonId }: RewardListTabProps) {
   const [results, setResults] = useState<HackathonResult[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Use the API modal hook for error handling
   const { showError } = useApiModal();
 
   useEffect(() => {
-    const fetchHackathonResults = async () => {
-      setLoading(true);
+    const fetchResults = async () => {
       try {
-        // Use the real service instead of mock data
-        const response =
+        setLoading(true);
+        const { data, message } =
           await hackathonResultService.getHackathonResultsByHackathonId(
             hackathonId
           );
 
-        if (response.data) {
-          setResults(response.data);
-        } else {
-          throw new Error(
-            response.message || "Failed to fetch reward recipients"
+        if (data && data.length > 0) {
+          // Sort results by totalScore (highest to lowest)
+          const sortedResults = [...data].sort(
+            (a, b) => b.totalScore - a.totalScore
           );
+          setResults(sortedResults);
+        } else {
+          setResults([]);
         }
-      } catch (error) {
-        console.error("Error fetching hackathon results:", error);
+      } catch (err) {
+        console.error("Error fetching hackathon results:", err);
         showError(
-          "Failed to Load Rewards",
-          error instanceof Error
-            ? error.message
-            : "An unknown error occurred while fetching reward data"
+          "Results Error",
+          "Failed to load hackathon results. Please try again later."
         );
-        // Initialize with empty array on error
-        setResults([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (hackathonId) {
-      fetchHackathonResults();
-    }
+    fetchResults();
   }, [hackathonId, showError]);
 
-  // Add a sort function to ensure results are displayed in order of placement
-  const sortedResults = [...results].sort(
-    (a, b) => (a.placement || 999) - (b.placement || 999)
-  );
-
   if (loading) {
-    return <p className="text-gray-500">Loading rewards...</p>;
+    return <div className="flex justify-center py-8">Loading results...</div>;
   }
 
   return (
-    <div className="mt-4">
-      <h2 className="text-lg font-semibold mb-4">Reward Recipient List</h2>
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-2xl font-bold mb-6">Hackathon Results</h2>
 
-      {sortedResults.length > 0 ? (
+      {results.length === 0 ? (
+        <div className="bg-gray-50 p-4 rounded-lg text-center">
+          <p className="text-gray-500">
+            No results available for this hackathon yet.
+          </p>
+          <p className="text-sm text-gray-400 mt-1">
+            Results will be published after judging is completed.
+          </p>
+        </div>
+      ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full bg-white">
+            <thead className="bg-gray-100">
               <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Rank
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Team
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Score
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Award
-                </th>
+                <th className="py-3 px-4 text-left">Placement</th>
+                <th className="py-3 px-4 text-left">Team</th>
+                <th className="py-3 px-4 text-left">Team Lead</th>
+                <th className="py-3 px-4 text-left">Members</th>
+                <th className="py-3 px-4 text-left">Score</th>
+                <th className="py-3 px-4 text-left">Award</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {sortedResults.map((result, index) => (
-                <tr
-                  key={result.id || index}
-                  className={index < 3 ? "bg-blue-50" : ""}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {result.placement || index + 1}
-                      {result.placement === 1 && " 🥇"}
-                      {result.placement === 2 && " 🥈"}
-                      {result.placement === 3 && " 🥉"}
+            <tbody className="divide-y divide-gray-200">
+              {results.map((result) => (
+                <tr key={result.id} className="hover:bg-gray-50">
+                  <td className="py-4 px-4">
+                    <div className="flex items-center">
+                      <span
+                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full 
+                        ${
+                          result.placement === 1
+                            ? "bg-yellow-100 text-yellow-800"
+                            : result.placement === 2
+                              ? "bg-gray-100 text-gray-800"
+                              : result.placement === 3
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {result.placement}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {result.team?.name || "Unknown Team"}
-                    </div>
+                  <td className="py-4 px-4 font-medium">
+                    {result.team?.name || "Unknown Team"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {result.totalScore?.toFixed(1) || 0}
-                    </div>
+                  <td className="py-4 px-4">
+                    {result.team?.teamLeader ? (
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 mr-3 rounded-full bg-gray-200 overflow-hidden">
+                          {result.team.teamLeader.avatarUrl && (
+                            <img
+                              src={result.team.teamLeader.avatarUrl}
+                              alt={`${result.team.teamLeader.firstName} ${result.team.teamLeader.lastName}`}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <div>
+                          <div>{`${result.team.teamLeader.firstName} ${result.team.teamLeader.lastName}`}</div>
+                          <div className="text-sm text-gray-500">
+                            {result.team.teamLeader.email}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-gray-500 text-sm">
+                        Not available
+                      </span>
+                    )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                  <td className="py-4 px-4">
+                    {result.team?.teamMembers?.length ? (
+                      <div className="flex flex-col space-y-1">
+                        {result.team.teamMembers.map((member) => (
+                          <div key={member.id} className="text-sm">
+                            {`${member.user.firstName} ${member.user.lastName}`}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-500 text-sm">
+                        No additional members
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-4 px-4 font-semibold">
+                    {result.totalScore?.toFixed(1) || 0}
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       {result.award || "No award"}
-                    </div>
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      ) : (
-        <div className="bg-gray-50 p-4 rounded-lg text-center">
-          <p className="text-gray-500">
-            No reward recipients available for this hackathon yet.
-          </p>
-          <p className="text-sm text-gray-400 mt-1">
-            Results will be published after judging is completed.
-          </p>
         </div>
       )}
     </div>

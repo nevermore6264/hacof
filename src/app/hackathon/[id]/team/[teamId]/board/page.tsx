@@ -7,13 +7,13 @@ import KanbanBoard from "./_components/KanbanBoard";
 import Calendar from "@/components/calendar/Calendar";
 import SubmissionAndResultTab from "./_components/SubmissionAndResultTab";
 import { Round } from "@/types/entities/round";
-import { fetchMockRounds } from "./_mock/fetchMockRounds";
-import { fetchMockTeams } from "./_mock/fetchMockTeams";
 import { Team } from "@/types/entities/team";
 import { Board } from "@/types/entities/board";
-import { fetchMockBoard } from "./_mock/fetchMockBoard";
 import ApiResponseModal from "@/components/common/ApiResponseModal";
 import { useApiModal } from "@/hooks/useApiModal";
+import { roundService } from "@/services/round.service";
+import { teamService } from "@/services/team.service";
+import { boardService } from "@/services/board.service";
 
 const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
 
@@ -35,7 +35,6 @@ export default function HackathonBoardPage() {
   // Use the API modal hook
   const { modalState, hideModal, showError } = useApiModal();
 
-  // Only fetch the basic board data initially
   useEffect(() => {
     if (!hackathonId || !teamIdValue) return;
 
@@ -45,14 +44,21 @@ export default function HackathonBoardPage() {
 
       try {
         // Fetch team data
-        const teamsData = await fetchMockTeams(teamIdValue);
-        if (teamsData.length > 0) {
-          setTeam(teamsData[0]);
+        const teamResponse = await teamService.getTeamById(teamIdValue);
+        if (teamResponse.data) {
+          setTeam(teamResponse.data);
         }
 
-        // Fetch basic board data (without detailed lists and tasks)
-        const boardsData = await fetchMockBoard(teamIdValue, hackathonId);
-        setBoards(boardsData);
+        // Fetch boards using the new method
+        const boardsResponse =
+          await boardService.getBoardsByTeamIdAndHackathonId(
+            teamIdValue,
+            hackathonId
+          );
+        if (boardsResponse.data) {
+          setBoards(boardsResponse.data);
+        }
+
         setBoardLoading(false);
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -74,8 +80,13 @@ export default function HackathonBoardPage() {
     ) {
       const fetchRounds = async () => {
         try {
-          const data = await fetchMockRounds(hackathonId);
-          setRounds(data);
+          const response =
+            await roundService.getRoundsByHackathonId(hackathonId);
+          if (response.data) {
+            setRounds(response.data);
+          } else {
+            throw new Error(response.message || "Failed to fetch rounds");
+          }
         } catch (error) {
           console.error("Error fetching rounds:", error);
           showError("Error", "Failed to load rounds data");
