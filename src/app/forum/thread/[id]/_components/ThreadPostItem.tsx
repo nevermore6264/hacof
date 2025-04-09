@@ -1,220 +1,180 @@
 // src/app/forum/thread/[id]/_components/ThreadPostItem.tsx
+"use client";
 import { useState } from "react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth_v0";
 import { ThreadPost } from "@/types/entities/threadPost";
-import { fetchMockThreadPostLikes } from "../_mock/fetchMockThreadPostLikes";
-import { fetchMockThreadPostReports } from "../_mock/fetchMockThreadPostReports";
-import PostForm from "./PostForm";
+import { threadPostService } from "@/services/threadPost.service";
+import UserInfo from "./UserInfo";
 import LikeButton from "./LikeButton";
 import ReportButton from "./ReportButton";
+import PostForm from "./PostForm";
 
 interface ThreadPostItemProps {
   post: ThreadPost;
-  currentUsername?: string;
   onPostUpdated: (post: ThreadPost) => void;
   onPostDeleted: (postId: string) => void;
+  refreshPosts: () => void;
 }
 
 export default function ThreadPostItem({
   post,
-  currentUsername,
   onPostUpdated,
   onPostDeleted,
+  refreshPosts,
 }: ThreadPostItemProps) {
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [likes, setLikes] = useState(post.threadPostLikes || []);
-  const [reports, setReports] = useState(post.threadPostReports || []);
-  const [isLoadingLikes, setIsLoadingLikes] = useState(false);
-  const [isLoadingReports, setIsLoadingReports] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Check if current user is the author of the post
-  const isAuthor = currentUsername === post.createdByUserName;
+  const isPostOwner = user?.username === post.createdByUserName;
 
-  // Load likes and reports data when needed (lazy loading)
-  const loadLikes = async () => {
-    if (likes.length === 0 && !isLoadingLikes) {
-      setIsLoadingLikes(true);
-      try {
-        const postLikes = await fetchMockThreadPostLikes(post.id);
-        setLikes(postLikes);
-      } catch (error) {
-        console.error("Failed to load likes:", error);
-      } finally {
-        setIsLoadingLikes(false);
-      }
-    }
-  };
-
-  const loadReports = async () => {
-    if (reports.length === 0 && !isLoadingReports) {
-      setIsLoadingReports(true);
-      try {
-        const postReports = await fetchMockThreadPostReports(post.id);
-        setReports(postReports);
-      } catch (error) {
-        console.error("Failed to load reports:", error);
-      } finally {
-        setIsLoadingReports(false);
-      }
-    }
-  };
-
-  // Handle post edit save
-  const handlePostSaved = () => {
-    setIsEditing(false);
-    // In a real app, you would fetch the updated post or update it locally
-    loadLikes();
-    loadReports();
-  };
-
-  // Handle post deletion
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this post?")) {
-      setIsDeleting(true);
-      try {
-        // Mock delete request
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        console.log("Deleting post:", post.id);
-        onPostDeleted(post.id);
-      } catch (error) {
-        console.error("Failed to delete post:", error);
-      } finally {
-        setIsDeleting(false);
-      }
+    if (
+      !isPostOwner ||
+      !window.confirm("Are you sure you want to delete this post?")
+    )
+      return;
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      await threadPostService.deleteThreadPost(post.id);
+      onPostDeleted(post.id);
+    } catch (err: any) {
+      setError(err.message || "Failed to delete post. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
-  };
-
-  // Like handlers
-  const handleLikeAdded = () => {
-    // In a real app, you would update the likes state with the new like
-    loadLikes();
-  };
-
-  const handleLikeRemoved = () => {
-    // In a real app, you would update the likes state by removing the like
-    loadLikes();
-  };
-
-  // Report handlers
-  const handleReportAdded = () => {
-    // In a real app, you would update the reports state with the new report
-    loadReports();
   };
 
   return (
-    <div
-      className="bg-white p-6 shadow-md rounded-lg flex space-x-4"
-      onMouseEnter={() => {
-        loadLikes();
-        loadReports();
-      }}
-    >
-      {/* Avatar */}
-      <div className="flex-shrink-0">
-        <div className="relative h-12 w-12 rounded-full bg-gray-200 overflow-hidden">
-          <Image
-            src="/default-avatar.png"
-            alt={post.createdByUserName || "User"}
-            fill
-            className="object-cover"
+    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+      {/* Post Header */}
+      <div className="p-4 bg-gray-50 border-b border-gray-200">
+        {post.createdByUserName && (
+          <UserInfo
+            username={post.createdByUserName}
+            createdAt={post.createdAt}
           />
-        </div>
+        )}
       </div>
 
-      <div className="flex-1">
-        {/* Author Name & Timestamp */}
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <p className="text-gray-900 font-semibold">
-              {post.createdByUserName || "Anonymous"}
-            </p>
-            <p className="text-sm text-gray-500">
-              {new Date(post.createdAt || Date.now()).toLocaleString()}
-            </p>
-          </div>
-
-          {/* Post Actions (Edit/Delete) - Only for author */}
-          {isAuthor && !post.isDeleted && (
-            <div className="space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-                disabled={isDeleting}
-              >
-                {isEditing ? "Cancel" : "Edit"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-red-600 hover:bg-red-50"
-                onClick={handleDelete}
-                disabled={isDeleting || isEditing}
-              >
-                {isDeleting ? (
-                  <span className="flex items-center">
-                    <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-solid border-red-600 border-r-transparent"></div>
-                    Deleting
-                  </span>
-                ) : (
-                  "Delete"
-                )}
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Post Content */}
+      {/* Post Content */}
+      <div className="p-6">
         {isEditing ? (
           <PostForm
             forumThreadId={post.forumThreadId || ""}
-            post={post}
-            onPostSaved={handlePostSaved}
-            currentUsername={currentUsername}
+            onPostSaved={() => {
+              refreshPosts();
+              setIsEditing(false);
+            }}
+            postId={post.id}
+            initialContent={post.content}
+            onCancel={() => setIsEditing(false)}
+            isEditing={true}
           />
         ) : (
-          <div className="prose prose-sm max-w-none mb-4">
+          <div className="prose max-w-none">
             {post.isDeleted ? (
               <p className="italic text-gray-400">
                 This post has been deleted.
               </p>
             ) : (
-              <div dangerouslySetInnerHTML={{ __html: post.content }} />
+              <p className="text-gray-800 whitespace-pre-wrap">
+                {post.content}
+              </p>
             )}
+            {error && <p className="text-red-500 mt-2">{error}</p>}
           </div>
-        )}
-
-        {/* Post Stats & Actions */}
-        {!post.isDeleted && !isEditing && (
-          <div className="mt-4 flex items-center text-sm text-gray-500 space-x-6">
-            <LikeButton
-              postId={post.id}
-              likes={likes}
-              isLoading={isLoadingLikes}
-              currentUsername={currentUsername}
-              onLikeAdded={handleLikeAdded}
-              onLikeRemoved={handleLikeRemoved}
-            />
-
-            <ReportButton
-              postId={post.id}
-              reports={reports}
-              isLoading={isLoadingReports}
-              currentUsername={currentUsername}
-              onReportAdded={handleReportAdded}
-            />
-          </div>
-        )}
-
-        {/* If post is deleted - show deletion info */}
-        {post.isDeleted && post.deletedBy && (
-          <p className="text-red-500 text-sm mt-2">
-            Deleted by {post.deletedBy.firstName} {post.deletedBy.lastName}
-          </p>
         )}
       </div>
+
+      {/* Post Actions */}
+      {!post.isDeleted && (
+        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <LikeButton
+              threadPostId={post.id}
+              initialLikes={post.threadPostLikes}
+            />
+
+            <ReportButton threadPostId={post.id} />
+          </div>
+          {isPostOwner && !isEditing && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-gray-600 hover:text-blue-600 flex items-center space-x-1 px-2 py-1 rounded"
+                title="Edit post"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <span>Edit</span>
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="text-gray-600 hover:text-red-600 flex items-center space-x-1 px-2 py-1 rounded"
+                title="Delete post"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <svg
+                    className="animate-spin h-4 w-4 mr-1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                  </svg>
+                )}
+                <span>Delete</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

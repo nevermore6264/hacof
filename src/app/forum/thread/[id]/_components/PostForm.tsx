@@ -1,96 +1,136 @@
 // src/app/forum/thread/[id]/_components/PostForm.tsx
+"use client";
+
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ThreadPost } from "@/types/entities/threadPost";
+import { useAuth } from "@/hooks/useAuth_v0";
+import { threadPostService } from "@/services/threadPost.service";
 
 interface PostFormProps {
   forumThreadId: string;
-  post?: ThreadPost;
   onPostSaved: () => void;
-  currentUsername?: string;
+  postId?: string;
+  initialContent?: string;
+  onCancel?: () => void;
+  isEditing?: boolean;
 }
 
 export default function PostForm({
   forumThreadId,
-  post,
   onPostSaved,
-  currentUsername,
+  postId,
+  initialContent = "",
+  onCancel,
+  isEditing = false,
 }: PostFormProps) {
-  const [content, setContent] = useState(post?.content || "");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [content, setContent] = useState(initialContent);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!content.trim()) {
+      setError("Post content cannot be empty");
+      return;
+    }
 
-    if (!content.trim()) return;
-
-    setIsSubmitting(true);
+    setSubmitting(true);
+    setError(null);
 
     try {
-      if (post) {
+      if (isEditing && postId) {
         // Update existing post
-        const updatedPost = {
-          ...post,
-          content,
-        };
-
-        // Mock update request
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        console.log("Updating post:", updatedPost);
-      } else {
-        // Create new post
-        const newPost = {
+        await threadPostService.updateThreadPost(postId, {
           forumThreadId,
           content,
           isDeleted: false,
-          createdByUserName: currentUsername || "Anonymous User",
-        };
-
-        // Mock create request
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        console.log("Creating post:", newPost);
+        });
+      } else {
+        // Create new post
+        await threadPostService.createThreadPost({
+          forumThreadId,
+          content,
+          isDeleted: false,
+        });
       }
 
-      // Reset form and notify parent
       setContent("");
       onPostSaved();
-    } catch (error) {
-      console.error("Failed to save post:", error);
+      if (onCancel && isEditing) {
+        onCancel();
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to save post. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
+  if (!user) {
+    return (
+      <div className="bg-yellow-50 p-4 rounded-md">
+        <p className="text-yellow-700">
+          Please sign in to participate in this discussion.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
+    <form onSubmit={handleSubmit}>
+      <div className="mb-4">
         <textarea
+          id="content"
+          name="content"
+          rows={4}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 min-h-32"
-          placeholder="Write your thoughts here..."
+          placeholder="Share your thoughts..."
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          disabled={submitting}
         />
+        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
       </div>
-
-      <div className="flex justify-end">
-        <Button
+      <div className="flex justify-end space-x-2">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+        )}
+        <button
           type="submit"
-          disabled={!content.trim() || isSubmitting}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          className="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors flex items-center"
+          disabled={submitting}
         >
-          {isSubmitting ? (
-            <>
-              <span className="mr-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent"></div>
-              </span>
-              {post ? "Updating..." : "Posting..."}
-            </>
-          ) : post ? (
-            "Update Post"
-          ) : (
-            "Post"
+          {submitting && (
+            <svg
+              className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
           )}
-        </Button>
+          {isEditing ? "Update" : "Post"}
+        </button>
       </div>
     </form>
   );

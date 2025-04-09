@@ -3,11 +3,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { fetchMockThreadPosts } from "./_mock/fetchMockThreadPosts";
 import { ThreadPost } from "@/types/entities/threadPost";
 import { useAuth } from "@/hooks/useAuth_v0";
 import PostForm from "./_components/PostForm";
 import ThreadPostItem from "./_components/ThreadPostItem";
+import { threadPostService } from "@/services/threadPost.service";
 
 export default function ThreadPage() {
   const params = useParams();
@@ -21,8 +21,13 @@ export default function ThreadPage() {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const posts = await fetchMockThreadPosts(threadId);
-      setThreadPosts(posts);
+      // Replace mock call with real service call
+      const response = await threadPostService.getAllThreadPosts();
+      // Filter posts to show only posts from this thread
+      const postsForThread = response.data.filter(
+        (post) => post.forumThreadId === threadId && !post.isDeleted
+      );
+      setThreadPosts(postsForThread);
     } catch (error) {
       console.error("Failed to fetch thread posts:", error);
     } finally {
@@ -59,16 +64,14 @@ export default function ThreadPage() {
         </h1>
 
         {/* New Post Form */}
-        <div className="bg-white p-6 shadow-md rounded-lg mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Start a New Discussion
-          </h2>
-          <PostForm
-            forumThreadId={threadId}
-            onPostSaved={handlePostSaved}
-            currentUsername={user?.username}
-          />
-        </div>
+        {user && (
+          <div className="bg-white p-6 shadow-md rounded-lg mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Start a New Discussion
+            </h2>
+            <PostForm forumThreadId={threadId} onPostSaved={handlePostSaved} />
+          </div>
+        )}
 
         {/* Discussion Posts */}
         <div className="space-y-6">
@@ -82,9 +85,9 @@ export default function ThreadPage() {
               <ThreadPostItem
                 key={post.id}
                 post={post}
-                currentUsername={user?.username}
                 onPostUpdated={handlePostUpdated}
                 onPostDeleted={handlePostDeleted}
+                refreshPosts={fetchPosts}
               />
             ))
           ) : (
