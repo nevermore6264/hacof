@@ -12,7 +12,7 @@ type SessionRequestsTabProps = {
       endTime?: string;
       location?: string;
       description?: string;
-      status?: "pending" | "deleted";
+      status?: "PENDING" | "DELETED";
     }
   ) => Promise<void>;
 };
@@ -34,7 +34,7 @@ export default function SessionRequestsTab({
 
   const handleDelete = async (sessionId: string) => {
     if (confirm("Are you sure you want to cancel this session request?")) {
-      await onUpdateRequest(sessionId, { status: "deleted" });
+      await onUpdateRequest(sessionId, { status: "DELETED" });
     }
   };
 
@@ -97,13 +97,13 @@ export default function SessionRequestsTab({
 
                 <span
                   className={`px-2 py-0.5 text-xs rounded-full ${
-                    session.status === "approved"
+                    session.status === "APPROVED"
                       ? "bg-green-100 text-green-700"
-                      : session.status === "rejected"
+                      : session.status === "REJECTED"
                         ? "bg-red-100 text-red-700"
-                        : session.status === "deleted"
+                        : session.status === "DELETED"
                           ? "bg-gray-100 text-gray-700"
-                          : session.status === "completed"
+                          : session.status === "COMPLETED"
                             ? "bg-blue-100 text-blue-700"
                             : "bg-yellow-100 text-yellow-700"
                   }`}
@@ -123,7 +123,7 @@ export default function SessionRequestsTab({
               )}
 
               <div className="mt-3 flex justify-end gap-2">
-                {session.status === "pending" && (
+                {session.status === "PENDING" && (
                   <>
                     <button
                       className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
@@ -139,7 +139,7 @@ export default function SessionRequestsTab({
                     </button>
                   </>
                 )}
-                {session.status === "approved" && (
+                {session.status === "APPROVED" && (
                   <button className="text-sm px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
                     Join Session
                   </button>

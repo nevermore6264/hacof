@@ -231,6 +231,7 @@ export default function MentorshipModal({
               <Tab.Panel>
                 <MentorTeamsTab
                   mentorTeams={mentorTeams}
+                  mentorshipSessionRequests={mentorshipSessionRequests}
                   onCreateSessionRequest={handleCreateSessionRequest}
                 />
               </Tab.Panel>

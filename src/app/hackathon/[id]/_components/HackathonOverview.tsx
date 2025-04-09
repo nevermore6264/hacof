@@ -128,26 +128,23 @@ export default function HackathonOverview({
         setMentorTeams(allMentorTeams);
         setMentorshipRequests(allMentorshipRequests);
 
-        if (allMentorTeams.length === 0) {
-          setIsLoading(false);
-          return;
+        // Now fetch session requests separately for each mentor team
+        if (allMentorTeams.length > 0) {
+          const sessionRequestsPromises = allMentorTeams.map((mentorTeam) =>
+            mentorshipSessionRequestService.getMentorshipSessionRequestsByMentorTeamId(
+              mentorTeam.id
+            )
+          );
+
+          const sessionRequestsResults = await Promise.all(
+            sessionRequestsPromises
+          );
+          const allSessionRequests = sessionRequestsResults.flatMap(
+            (result) => result.data
+          );
+
+          setMentorshipSessionRequests(allSessionRequests);
         }
-
-        // If mentor teams exist, fetch session requests
-        const mentorshipSessionPromises = allMentorTeams.map((mentorTeam) =>
-          mentorshipSessionRequestService.getMentorshipSessionRequestsByMentorTeamId(
-            mentorTeam.id
-          )
-        );
-
-        const mentorshipSessionResults = await Promise.all(
-          mentorshipSessionPromises
-        );
-        const allMentorshipSessions = mentorshipSessionResults.flatMap(
-          (result) => result.data
-        );
-
-        setMentorshipSessionRequests(allMentorshipSessions);
       } catch (error) {
         console.error("Failed to fetch hackathon data:", error);
         showError(
@@ -218,23 +215,23 @@ export default function HackathonOverview({
       setMentorTeams(allMentorTeams);
       setMentorshipRequests(allMentorshipRequests);
 
-      if (allMentorTeams.length === 0) return;
+      // Now fetch session requests separately for each mentor team
+      if (allMentorTeams.length > 0) {
+        const sessionRequestsPromises = allMentorTeams.map((mentorTeam) =>
+          mentorshipSessionRequestService.getMentorshipSessionRequestsByMentorTeamId(
+            mentorTeam.id
+          )
+        );
 
-      // If mentor teams exist, fetch session requests
-      const mentorshipSessionPromises = allMentorTeams.map((mentorTeam) =>
-        mentorshipSessionRequestService.getMentorshipSessionRequestsByMentorTeamId(
-          mentorTeam.id
-        )
-      );
+        const sessionRequestsResults = await Promise.all(
+          sessionRequestsPromises
+        );
+        const allSessionRequests = sessionRequestsResults.flatMap(
+          (result) => result.data
+        );
 
-      const mentorshipSessionResults = await Promise.all(
-        mentorshipSessionPromises
-      );
-      const allMentorshipSessions = mentorshipSessionResults.flatMap(
-        (result) => result.data
-      );
-
-      setMentorshipSessionRequests(allMentorshipSessions);
+        setMentorshipSessionRequests(allSessionRequests);
+      }
 
       showSuccess(
         "Data Updated",
