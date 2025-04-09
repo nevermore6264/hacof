@@ -13,6 +13,8 @@ import EventInformationSection from "./event/EventInformationSection";
 import EventFilesSection from "./event/EventFilesSection";
 import EventAttendeesSection from "./event/EventAttendeesSection";
 import EventRemindersSection from "./event/EventRemindersSection";
+import { scheduleEventService } from "@/services/scheduleEvent.service";
+import { fileUrlService } from "@/services/fileUrl.service";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -29,6 +31,7 @@ interface EditEventModalProps {
     attendees: ScheduleEventAttendee[];
     reminders: ScheduleEventReminder[];
   }) => void;
+  onDeleteEvent: (eventId: string) => void;
   teamMembers: User[];
 }
 
@@ -37,6 +40,7 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   onClose,
   selectedEvent,
   onUpdateEvent,
+  onDeleteEvent,
   teamMembers,
 }) => {
   const { user } = useAuth();
@@ -48,18 +52,36 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
   const [eventStartDate, setEventStartDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
   const [eventLabel, setEventLabel] = useState<ScheduleEventLabel>("primary");
+  const [scheduleId, setScheduleId] = useState<string>("");
 
   // Event additional data
   const [files, setFiles] = useState<FileUrl[]>([]);
   const [attendees, setAttendees] = useState<ScheduleEventAttendee[]>([]);
   const [reminders, setReminders] = useState<ScheduleEventReminder[]>([]);
 
+  // Loading state
+  const [isLoading, setIsLoading] = useState(false);
+
   // Current tab
   const [activeTab, setActiveTab] = useState("information");
 
+  // Load event files
+  const loadEventFiles = async () => {
+    if (!selectedEvent?.id) return;
+
+    try {
+      const { data } = await fileUrlService.getFileUrlsByScheduleEventId(
+        selectedEvent.id
+      );
+      setFiles(data);
+    } catch (error) {
+      console.error("Failed to load event files", error);
+    }
+  };
+
   useEffect(() => {
-    // Populate modal fields when selectedEvent changes
-    if (selectedEvent) {
+    // Populate modal fields when selectedEvent changes and modal is open
+    if (isOpen && selectedEvent) {
       // Basic event info
       setEventName(selectedEvent.title || "");
 
@@ -81,27 +103,65 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
       setEventDescription(selectedEvent.extendedProps?.description || "");
       setEventLocation(selectedEvent.extendedProps?.location || "");
 
+      // Set schedule ID
+      setScheduleId(selectedEvent.extendedProps?.scheduleId || "");
+
+      // Load event files via API
+      loadEventFiles();
+
       // For demo purposes, we'll initialize these arrays
       // In a real app, you would fetch this data from your backend
-      setFiles(selectedEvent.extendedProps?.files || []);
       setAttendees(selectedEvent.extendedProps?.attendees || []);
       setReminders(selectedEvent.extendedProps?.reminders || []);
     }
   }, [selectedEvent, isOpen]);
 
-  const handleSubmit = () => {
-    onUpdateEvent({
-      name: eventName,
-      startDate: eventStartDate,
-      endDate: eventEndDate || eventStartDate,
-      eventLabel: eventLabel,
-      description: eventDescription,
-      location: eventLocation,
-      files,
-      attendees,
-      reminders,
-    });
-    onClose();
+  const handleSubmit = async () => {
+    if (!selectedEvent?.id || !scheduleId) {
+      console.error("Missing event ID or schedule ID");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Extract file URLs for the API request
+      const fileUrls = files.map((file) => file.fileUrl);
+
+      // Call the API to update the event
+      const { data: updatedEvent } =
+        await scheduleEventService.updateScheduleEvent(selectedEvent.id, {
+          scheduleId: scheduleId,
+          name: eventName,
+          description: eventDescription,
+          location: eventLocation,
+          startTime: eventStartDate,
+          endTime: eventEndDate || eventStartDate,
+          eventLabel: eventLabel,
+          isRecurring: false,
+          recurrenceRule: undefined,
+          fileUrls: fileUrls,
+        });
+
+      // Update UI via the callback
+      onUpdateEvent({
+        name: eventName,
+        startDate: eventStartDate,
+        endDate: eventEndDate || eventStartDate,
+        eventLabel: eventLabel,
+        description: eventDescription,
+        location: eventLocation,
+        files: files,
+        attendees: attendees,
+        reminders: reminders,
+      });
+
+      onClose();
+    } catch (error) {
+      console.error("Failed to update event:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Tab navigation
@@ -191,21 +251,33 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
+        <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-between">
           <button
-            onClick={onClose}
+            onClick={() => onDeleteEvent(selectedEvent.id as string)}
             type="button"
-            className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
+            className="flex justify-center rounded-lg border border-red-300 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-100 dark:border-red-700 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
+            disabled={isLoading}
           >
-            Cancel
+            Delete Event
           </button>
-          <button
-            onClick={handleSubmit}
-            type="button"
-            className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
-          >
-            Update Event
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              type="button"
+              className="flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              type="button"
+              className="btn btn-success btn-update-event flex justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600"
+              disabled={isLoading}
+            >
+              {isLoading ? "Updating..." : "Update Event"}
+            </button>
+          </div>
         </div>
       </div>
     </Modal>

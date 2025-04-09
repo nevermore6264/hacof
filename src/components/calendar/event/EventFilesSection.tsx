@@ -1,6 +1,7 @@
 // src/components/calendar/event/EventFilesSection.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FileUrl } from "@/types/entities/fileUrl";
+import { fileUrlService } from "@/services/fileUrl.service";
 
 interface EventFilesSectionProps {
   files: FileUrl[];
@@ -14,35 +15,60 @@ const EventFilesSection: React.FC<EventFilesSectionProps> = ({
   scheduleEventId,
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(50); // Mock progress value
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    // Fetch files when component mounts and scheduleEventId is available
+    if (scheduleEventId) {
+      loadFiles();
+    }
+  }, [scheduleEventId]);
+
+  const loadFiles = async () => {
+    if (!scheduleEventId) return;
+
+    try {
+      const { data: fileUrls } =
+        await fileUrlService.getFileUrlsByScheduleEventId(scheduleEventId);
+      setFiles(fileUrls);
+    } catch (error) {
+      console.error("Failed to load event files:", error);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
-    if (!selectedFiles) return;
+    if (!selectedFiles || selectedFiles.length === 0) return;
 
     setUploading(true);
 
-    // Mock file upload - in a real app, you would upload to your server
-    setTimeout(() => {
-      const newFiles: FileUrl[] = Array.from(selectedFiles).map(
-        (file, index) => ({
-          id: `file-${Date.now()}-${index}`,
-          fileName: file.name,
-          fileUrl: URL.createObjectURL(file),
-          fileType: file.type,
-          fileSize: file.size,
-          scheduleEventId: scheduleEventId,
-          createdAt: new Date().toISOString(),
-          createdBy: "currentUser",
-        })
-      );
+    try {
+      // Convert FileList to File array
+      const filesArray = Array.from(selectedFiles);
 
-      setFiles([...files, ...newFiles]);
+      // Call real API to upload files
+      const { data: uploadedFiles } =
+        await fileUrlService.uploadMultipleFilesCommunication(filesArray);
+
+      // Update files state with newly uploaded files
+      setFiles([...files, ...uploadedFiles]);
+    } catch (error) {
+      console.error("Error uploading files:", error);
+    } finally {
       setUploading(false);
-    }, 1000);
+    }
   };
 
-  const handleRemoveFile = (fileId: string) => {
-    setFiles(files.filter((file) => file.id !== fileId));
+  const handleRemoveFile = async (fileId: string) => {
+    try {
+      // Call API to delete file
+      await fileUrlService.deleteFileUrl(fileId);
+
+      // Update local state
+      setFiles(files.filter((file) => file.id !== fileId));
+    } catch (error) {
+      console.error("Error removing file:", error);
+    }
   };
 
   return (
@@ -91,7 +117,10 @@ const EventFilesSection: React.FC<EventFilesSectionProps> = ({
       {uploading && (
         <div className="my-4">
           <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-            <div className="bg-brand-500 h-2.5 rounded-full w-1/2"></div>
+            <div
+              className="bg-brand-500 h-2.5 rounded-full"
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
           </div>
           <p className="text-xs text-gray-500 mt-1">Uploading...</p>
         </div>

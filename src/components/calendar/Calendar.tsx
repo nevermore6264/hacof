@@ -236,7 +236,8 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
       setLoading(false);
     }
   };
-  const handleUpdateEvent = (eventData: {
+  // Update the handleUpdateEvent function in Calendar.tsx
+  const handleUpdateEvent = async (eventData: {
     name: string;
     startDate: string;
     endDate: string;
@@ -249,28 +250,61 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
   }) => {
     if (!selectedEvent) return;
 
-    setEvents((prevEvents) =>
-      prevEvents.map((event) =>
-        event.id === selectedEvent.id
-          ? {
-              ...event,
-              title: eventData.name,
-              startDate: eventData.startDate,
-              endDate: eventData.endDate,
-              extendedProps: {
-                ...event.extendedProps,
-                calendar: eventData.eventLabel,
-                description: eventData.description,
-                location: eventData.location,
-                files: eventData.files,
-                attendees: eventData.attendees,
-                reminders: eventData.reminders,
-              },
-            }
-          : event
-      )
-    );
-    closeEditModal();
+    try {
+      setLoading(true);
+
+      // Update local state first for immediate feedback
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === selectedEvent.id
+            ? {
+                ...event,
+                title: eventData.name,
+                start: new Date(eventData.startDate),
+                end: new Date(eventData.endDate),
+                extendedProps: {
+                  ...event.extendedProps,
+                  calendar: eventData.eventLabel,
+                  description: eventData.description,
+                  location: eventData.location,
+                  files: eventData.files,
+                  attendees: eventData.attendees,
+                  reminders: eventData.reminders,
+                },
+              }
+            : event
+        )
+      );
+
+      // Refresh events from server to ensure we have the latest data
+      await loadScheduleEvents();
+
+      closeEditModal();
+    } catch (error) {
+      console.error("Failed to update event:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      setLoading(true);
+
+      // Call the API to delete the event
+      await scheduleEventService.deleteScheduleEvent(eventId);
+
+      // Update local state
+      setEvents((prevEvents) =>
+        prevEvents.filter((event) => event.id !== eventId)
+      );
+
+      closeEditModal();
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const labelColorMap = {
@@ -459,6 +493,7 @@ const Calendar: React.FC<CalendarProps> = ({ teamId, hackathonId }) => {
           onClose={closeEditModal}
           selectedEvent={selectedEvent}
           onUpdateEvent={handleUpdateEvent}
+          onDeleteEvent={handleDeleteEvent}
           teamMembers={teamMembers}
         />
       )}

@@ -43,14 +43,14 @@ class ScheduleEventService {
     data: {
       scheduleId: string;
       name: string;
-      description: string;
+      description?: string;
       location: string;
       startTime: string;
       endTime: string;
       eventLabel?: string;
       isRecurring?: boolean;
       recurrenceRule?: string;
-      fileUrls: string[];
+      fileUrls?: string[];
     }
   ): Promise<{ data: ScheduleEvent; message?: string }> {
     try {
