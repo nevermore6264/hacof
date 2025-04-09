@@ -23,7 +23,6 @@ export default function RewardListTab({ hackathonId }: RewardListTabProps) {
           await hackathonResultService.getHackathonResultsByHackathonId(
             hackathonId
           );
-
         if (data && data.length > 0) {
           // Sort results by totalScore (highest to lowest)
           const sortedResults = [...data].sort(
@@ -50,7 +49,6 @@ export default function RewardListTab({ hackathonId }: RewardListTabProps) {
   if (loading) {
     return <div className="flex justify-center py-8">Loading results...</div>;
   }
-
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-2xl font-bold mb-6">Hackathon Results</h2>

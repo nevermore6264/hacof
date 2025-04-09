@@ -1,22 +1,22 @@
 // src/app/hackathon/[id]/_components/IndividualRegistrationsTab.tsx
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { TeamRequest } from "@/types/entities/teamRequest";
-import { useState } from "react";
-import { Trash2, Plus } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Trash2, Plus, AlertCircle } from "lucide-react";
 import { individualRegistrationRequestService } from "@/services/individualRegistrationRequest.service";
 import { useApiModal } from "@/hooks/useApiModal";
 import { useAuthStore } from "@/store/authStore";
 
 type IndividualRegistrationsTabProps = {
   individualRegistrations: IndividualRegistrationRequest[];
-  teamRequests: TeamRequest[]; // Added this prop
+  teamRequests: TeamRequest[];
   hackathonId: string;
   onDataUpdate: () => void;
 };
 
 export default function IndividualRegistrationsTab({
   individualRegistrations,
-  teamRequests, // Added this prop
+  teamRequests,
   hackathonId,
   onDataUpdate,
 }: IndividualRegistrationsTabProps) {
@@ -24,34 +24,50 @@ export default function IndividualRegistrationsTab({
   const { showError, showSuccess } = useApiModal();
   const { user } = useAuthStore();
 
+  // Check for active individual registrations and team requests
+  const activeRegistration = useMemo(
+    () =>
+      individualRegistrations.find(
+        (reg) =>
+          reg.status === "PENDING" ||
+          reg.status === "APPROVED" ||
+          reg.status === "UNDER_REVIEW"
+      ),
+    [individualRegistrations]
+  );
+
+  const activeTeamRequest = useMemo(
+    () =>
+      teamRequests.find(
+        (req) =>
+          req.status.toLowerCase() === "pending" ||
+          req.status.toLowerCase() === "under_review" ||
+          req.status.toLowerCase() === "approved"
+      ),
+    [teamRequests]
+  );
+
+  // Determine if registration button should be disabled
+  const isRegistrationDisabled = useMemo(
+    () => !!activeRegistration || !!activeTeamRequest || isLoading,
+    [activeRegistration, activeTeamRequest, isLoading]
+  );
+
   // Create individual registration
   const createIndividualRegistration = async () => {
-    // Check if user already has an individual registration that's not rejected
-    const activeRegistration = individualRegistrations.find(
-      (reg) => reg.status === "PENDING" || reg.status === "APPROVED"
-    );
-
-    // Check if user has an active team request
-    const activeTeamRequest = teamRequests.find(
-      (req) =>
-        req.status.toLowerCase() === "pending" ||
-        req.status.toLowerCase() === "under_review" ||
-        req.status.toLowerCase() === "approved"
-    );
-
-    if (activeRegistration) {
-      showError(
-        "Registration Error",
-        `You already have an individual registration for this hackathon with status: ${activeRegistration.status}.`
-      );
-      return;
-    }
-
-    if (activeTeamRequest) {
-      showError(
-        "Team Request Exists",
-        `You already have a team request for this hackathon with status: ${activeTeamRequest.status}. Please cancel it first to register as an individual.`
-      );
+    if (isRegistrationDisabled) {
+      // Show appropriate error message based on the reason
+      if (activeRegistration) {
+        showError(
+          "Registration Error",
+          `You already have an individual registration for this hackathon with status: ${activeRegistration.status}.`
+        );
+      } else if (activeTeamRequest) {
+        showError(
+          "Team Request Exists",
+          `You already have a team request for this hackathon with status: ${activeTeamRequest.status}. Please cancel it first to register as an individual.`
+        );
+      }
       return;
     }
 
@@ -127,29 +143,48 @@ export default function IndividualRegistrationsTab({
     }
   };
 
+  // Generate the warning message based on what's preventing registration
+  const getDisabledMessage = () => {
+    if (activeRegistration) {
+      return `You already have an individual registration with status: ${activeRegistration.status}`;
+    }
+    if (activeTeamRequest) {
+      return `You already have a team request with status: ${activeTeamRequest.status}`;
+    }
+    return "";
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h4 className="font-medium">Your Individual Registrations</h4>
-        {/* Always show the register button */}
-        <button
-          onClick={createIndividualRegistration}
-          className={`flex items-center gap-1 ${
-            isLoading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600"
-          } text-white px-3 py-1 rounded`}
-          disabled={isLoading}
-        >
-          <Plus size={16} />{" "}
-          {isLoading ? "Processing..." : "Register as Individual"}
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          {isRegistrationDisabled && !isLoading && (
+            <div className="flex items-center text-amber-600 text-sm">
+              <AlertCircle size={14} className="mr-1" />
+              {getDisabledMessage()}
+            </div>
+          )}
+          <button
+            onClick={createIndividualRegistration}
+            className={`flex items-center gap-1 ${
+              isRegistrationDisabled
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
+            } text-white px-3 py-1 rounded`}
+            disabled={isRegistrationDisabled}
+          >
+            <Plus size={16} />{" "}
+            {isLoading ? "Processing..." : "Register as Individual"}
+          </button>
+        </div>
       </div>
 
       {individualRegistrations.length === 0 ? (
         <p className="text-gray-500 italic mb-4">
-          No individual enrollments found. Click the button above to register as
-          an individual.
+          No individual enrollments found.{" "}
+          {!isRegistrationDisabled &&
+            "Click the button above to register as an individual."}
         </p>
       ) : (
         <ul className="space-y-3">

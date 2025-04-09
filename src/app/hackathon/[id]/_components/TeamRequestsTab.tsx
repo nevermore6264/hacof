@@ -1,8 +1,7 @@
-// src/app/hackathon/[id]/_components/TeamRequestsTab.tsx
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
 import { useState, useEffect } from "react";
-import { Trash2, X, Plus, User } from "lucide-react";
+import { Trash2, X, Plus, User, AlertCircle } from "lucide-react";
 import { useApiModal } from "@/hooks/useApiModal";
 import { teamRequestService } from "@/services/teamRequest.service";
 import { userService } from "@/services/user.service";
@@ -51,12 +50,35 @@ export default function TeamRequestsTab({
   const [isSearching, setIsSearching] = useState(false);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const { user: currentUser } = useAuth();
+  const [showTooltip, setShowTooltip] = useState(false);
 
   // Use our API modal hook for error and success handling
   const { showError, showSuccess, showInfo } = useApiModal();
 
   // Add current user when creating a new team request
   const handleCreateTeamRequest = () => {
+    // Check if user can create a new team request
+    const canCreateNewRequest =
+      !hasActiveTeamRequest() && !hasActiveIndividualRegistration();
+
+    if (!canCreateNewRequest) {
+      // Show appropriate message based on what's preventing creation
+      if (hasActiveTeamRequest()) {
+        const activeRequest = getActiveTeamRequest();
+        showInfo(
+          "Request Already Exists",
+          `You already have a team request for this hackathon with status: ${activeRequest?.status}.`
+        );
+      } else if (hasActiveIndividualRegistration()) {
+        const activeReg = getActiveIndividualRegistration();
+        showInfo(
+          "Individual Registration Exists",
+          `You already have an individual registration for this hackathon with status: ${activeReg?.status}. Please cancel it first to create a team request.`
+        );
+      }
+      return;
+    }
+
     setIsCreating(true);
     // Add current user to the selected members
     if (currentUser && currentUser.id && currentUser.email) {
@@ -69,6 +91,55 @@ export default function TeamRequestsTab({
       ]);
     }
   };
+
+  // Helper functions to check active requests/registrations
+  const hasActiveTeamRequest = () => {
+    return teamRequests.some(
+      (req) =>
+        req.status.toLowerCase() === "pending" ||
+        req.status.toLowerCase() === "under_review" ||
+        req.status.toLowerCase() === "approved"
+    );
+  };
+
+  const getActiveTeamRequest = () => {
+    return teamRequests.find(
+      (req) =>
+        req.status.toLowerCase() === "pending" ||
+        req.status.toLowerCase() === "under_review" ||
+        req.status.toLowerCase() === "approved"
+    );
+  };
+
+  const hasActiveIndividualRegistration = () => {
+    return individualRegistrations.some(
+      (reg) => reg.status === "PENDING" || reg.status === "APPROVED"
+    );
+  };
+
+  const getActiveIndividualRegistration = () => {
+    return individualRegistrations.find(
+      (reg) => reg.status === "PENDING" || reg.status === "APPROVED"
+    );
+  };
+
+  // Get the reason why the user can't create a team request
+  const getDisabledReason = () => {
+    if (hasActiveTeamRequest()) {
+      const activeRequest = getActiveTeamRequest();
+      return `You already have a team request with status: ${activeRequest?.status}`;
+    } else if (hasActiveIndividualRegistration()) {
+      const activeReg = getActiveIndividualRegistration();
+      return `You have an individual registration with status: ${activeReg?.status}. Please cancel it first.`;
+    }
+    return "";
+  };
+
+  // Check if user can create a new team request
+  const canCreateTeamRequest =
+    !hasActiveTeamRequest() && !hasActiveIndividualRegistration();
+  // Get the reason why the button is disabled
+  const disabledReason = getDisabledReason();
 
   // Fetch all team members when component mounts
   useEffect(() => {
@@ -153,32 +224,24 @@ export default function TeamRequestsTab({
 
   // Create team request
   const createTeamRequest = async () => {
-    // Check if user already has a non-rejected team request
-    const activeRequest = teamRequests.find(
-      (req) =>
-        req.status.toLowerCase() === "pending" ||
-        req.status.toLowerCase() === "under_review" ||
-        req.status.toLowerCase() === "approved"
-    );
+    // Double-check if user can create a new team request
+    if (hasActiveTeamRequest() || hasActiveIndividualRegistration()) {
+      // Show appropriate message
+      if (hasActiveTeamRequest()) {
+        const activeRequest = getActiveTeamRequest();
+        showInfo(
+          "Request Already Exists",
+          `You already have a team request for this hackathon with status: ${activeRequest?.status}.`
+        );
+      } else if (hasActiveIndividualRegistration()) {
+        const activeReg = getActiveIndividualRegistration();
+        showInfo(
+          "Individual Registration Exists",
+          `You already have an individual registration for this hackathon with status: ${activeReg?.status}. Please cancel it first to create a team request.`
+        );
+      }
 
-    // Check if user has an active individual registration
-    const activeIndividualRegistration = individualRegistrations.find(
-      (reg) => reg.status === "PENDING" || reg.status === "APPROVED"
-    );
-
-    if (activeRequest) {
-      showInfo(
-        "Request Already Exists",
-        `You already have a team request for this hackathon with status: ${activeRequest.status}.`
-      );
-      return;
-    }
-
-    if (activeIndividualRegistration) {
-      showInfo(
-        "Individual Registration Exists",
-        `You already have an individual registration for this hackathon with status: ${activeIndividualRegistration.status}. Please cancel it first to create a team request.`
-      );
+      setIsCreating(false);
       return;
     }
 
@@ -281,109 +344,51 @@ export default function TeamRequestsTab({
       <div className="flex justify-between items-center mb-4">
         <h4 className="font-medium">Your Team Requests</h4>
         {!isCreating && (
-          <button
-            onClick={handleCreateTeamRequest}
-            className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-          >
-            <Plus size={16} /> Create Team Request
-          </button>
+          <div className="relative">
+            {/* Tooltip that appears when hovering over a disabled button */}
+            {!canCreateTeamRequest && showTooltip && (
+              <div className="absolute bottom-full mb-2 right-0 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 shadow-lg">
+                {disabledReason}
+              </div>
+            )}
+            <button
+              onClick={
+                canCreateTeamRequest ? handleCreateTeamRequest : undefined
+              }
+              className={`flex items-center gap-1 px-3 py-1 rounded transition-colors ${
+                canCreateTeamRequest
+                  ? "bg-blue-500 hover:bg-blue-600 text-white"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={!canCreateTeamRequest}
+              aria-label={
+                canCreateTeamRequest ? "Create Team Request" : disabledReason
+              }
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            >
+              <Plus size={16} /> Create Team Request
+              {!canCreateTeamRequest && (
+                <AlertCircle size={16} className="ml-1 text-gray-500" />
+              )}
+            </button>
+          </div>
         )}
       </div>
 
-      {teamRequests.length === 0 && !isCreating ? (
-        <p className="text-gray-500 italic mb-4">
-          No team requests found. Click the button above to create a new team
-          request.
-        </p>
-      ) : teamRequests.length > 0 ? (
-        <ul className="space-y-3">
-          {teamRequests.map((request) => (
-            <li
-              key={request.id}
-              className="border p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex justify-between">
-                    <div>
-                      <h5 className="font-semibold">
-                        Team name: {request.name}
-                      </h5>
-                      <p className="text-sm text-gray-600 mt-1">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            request.status.toLowerCase() === "approved"
-                              ? "bg-green-100 text-green-800"
-                              : request.status.toLowerCase() === "rejected"
-                                ? "bg-red-100 text-red-800"
-                                : request.status.toLowerCase() ===
-                                    "under_review"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          Status: {request.status}
-                        </span>
-                      </p>
-                    </div>
-                    {/* Only show delete for pending or under_review status */}
-                    {(request.status.toLowerCase() === "pending" ||
-                      request.status.toLowerCase() === "under_review") && (
-                      <button
-                        onClick={() =>
-                          deleteTeamRequest(request.id, request.status)
-                        }
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                        title="Delete request"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 mt-2">
-                    <span className="font-medium">Deadline:</span>{" "}
-                    {new Date(
-                      request.confirmationDeadline
-                    ).toLocaleDateString()}
-                  </p>
-                  {request.note && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      <span className="font-medium">Note:</span> {request.note}
-                    </p>
-                  )}
-                  <div className="mt-3">
-                    <p className="text-sm font-medium text-gray-600">
-                      Team Members:
-                    </p>
-                    <ul className="mt-1 space-y-1">
-                      {request.teamRequestMembers.map((member) => (
-                        <li
-                          key={member.id}
-                          className="text-sm flex items-center"
-                        >
-                          <span
-                            className={`w-2 h-2 rounded-full mr-2 ${
-                              member.status.toLowerCase() === "approved"
-                                ? "bg-green-500"
-                                : member.status.toLowerCase() === "rejected"
-                                  ? "bg-red-500"
-                                  : "bg-yellow-500"
-                            }`}
-                          ></span>
-                          {member.user.firstName} {member.user.lastName}
-                          <span className="ml-2 text-xs text-gray-500">
-                            ({member.status})
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
+      {/* Display a message explaining why the user can't create a team request */}
+      {!isCreating && !canCreateTeamRequest && (
+        <div className="bg-gray-50 border border-gray-200 rounded p-3 mb-4 flex items-start">
+          <AlertCircle
+            className="text-gray-500 mr-2 mt-0.5 flex-shrink-0"
+            size={18}
+          />
+          <p className="text-sm text-gray-600">{disabledReason}</p>
+        </div>
+      )}
+
+      {/* Show creation form when isCreating is true */}
+      {isCreating ? (
         <div className="border p-4 rounded-lg">
           <h5 className="font-medium mb-2">Create Team Request</h5>
 
@@ -495,6 +500,101 @@ export default function TeamRequestsTab({
             </button>
           </div>
         </div>
+      ) : teamRequests.length === 0 ? (
+        <p className="text-gray-500 italic mb-4">
+          No team requests found.{" "}
+          {canCreateTeamRequest
+            ? "Click the button above to create a new team request."
+            : ""}
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {teamRequests.map((request) => (
+            <li
+              key={request.id}
+              className="border p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex justify-between">
+                    <div>
+                      <h5 className="font-semibold">
+                        Team name: {request.name}
+                      </h5>
+                      <p className="text-sm text-gray-600 mt-1">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            request.status.toLowerCase() === "approved"
+                              ? "bg-green-100 text-green-800"
+                              : request.status.toLowerCase() === "rejected"
+                                ? "bg-red-100 text-red-800"
+                                : request.status.toLowerCase() ===
+                                    "under_review"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                          }`}
+                        >
+                          Status: {request.status}
+                        </span>
+                      </p>
+                    </div>
+                    {/* Only show delete for pending or under_review status */}
+                    {(request.status.toLowerCase() === "pending" ||
+                      request.status.toLowerCase() === "under_review") && (
+                      <button
+                        onClick={() =>
+                          deleteTeamRequest(request.id, request.status)
+                        }
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                        title="Delete request"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    <span className="font-medium">Deadline:</span>{" "}
+                    {new Date(
+                      request.confirmationDeadline
+                    ).toLocaleDateString()}
+                  </p>
+                  {request.note && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      <span className="font-medium">Note:</span> {request.note}
+                    </p>
+                  )}
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-gray-600">
+                      Team Members:
+                    </p>
+                    <ul className="mt-1 space-y-1">
+                      {request.teamRequestMembers.map((member) => (
+                        <li
+                          key={member.id}
+                          className="text-sm flex items-center"
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full mr-2 ${
+                              member.status.toLowerCase() === "approved"
+                                ? "bg-green-500"
+                                : member.status.toLowerCase() === "rejected"
+                                  ? "bg-red-500"
+                                  : "bg-yellow-500"
+                            }`}
+                          ></span>
+                          {member.user.firstName} {member.user.lastName}
+                          <span className="ml-2 text-xs text-gray-500">
+                            ({member.status})
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
