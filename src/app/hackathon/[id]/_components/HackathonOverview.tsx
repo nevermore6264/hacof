@@ -31,6 +31,7 @@ type HackathonOverviewProps = {
   enrollmentCount: number;
   minimumTeamMembers: number;
   maximumTeamMembers: number;
+  endDate: string;
 };
 
 export default function HackathonOverview({
@@ -41,6 +42,7 @@ export default function HackathonOverview({
   enrollmentCount,
   minimumTeamMembers,
   maximumTeamMembers,
+  endDate,
 }: HackathonOverviewProps) {
   const { user } = useAuthStore(); // Get current user
   const { user: authUser } = useAuth(); // Get user with roles from new auth hook
@@ -50,6 +52,20 @@ export default function HackathonOverview({
   const isTeamMember = authUser?.userRoles?.some(
     (userRole) => userRole.role.name === "TEAM_MEMBER"
   );
+  const [isHackathonEnded, setIsHackathonEnded] = useState(false);
+
+  useEffect(() => {
+    // Check if current date is after end date
+    if (endDate) {
+      const currentDate = new Date();
+      const hackathonEndDate = new Date(endDate);
+      setIsHackathonEnded(currentDate > hackathonEndDate);
+    }
+  }, [endDate]);
+
+  const handleGoToFeedback = () => {
+    router.push(`/hackathon/${id}/feedback`);
+  };
 
   // Use our API modal hook for error and success handling
   const { modalState, hideModal, showError, showSuccess, showInfo } =
@@ -304,6 +320,14 @@ export default function HackathonOverview({
               >
                 Go to board
               </button>
+              {isHackathonEnded && (
+                <button
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full transition"
+                  onClick={handleGoToFeedback}
+                >
+                  Feedback
+                </button>
+              )}
             </>
           )}
         </div>

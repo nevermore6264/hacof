@@ -31,6 +31,7 @@ export default function SubmissionTab({
   const [roundStatus, setRoundStatus] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResubmitting, setIsResubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use the API modal hook for error handling
@@ -84,13 +85,25 @@ export default function SubmissionTab({
   }, [roundStartTime, roundEndTime]);
 
   const handleFileSelect = () => {
+    // Set resubmitting state to true when starting the resubmit process
+    if (existingSubmission) {
+      setIsResubmitting(true);
+    }
+
+    // Reset selected files when starting a new selection
+    setSelectedFiles([]);
+
+    // Trigger the file input click
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+    if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      setSelectedFiles(newFiles); // Replace with new files instead of appending
+
+      // Reset the file input value so the same file can be selected again if needed
+      e.target.value = "";
     }
   };
 
@@ -138,6 +151,8 @@ export default function SubmissionTab({
         // Success - update UI with response
         onSubmissionComplete(response.data);
         setSelectedFiles([]);
+        setIsResubmitting(false); // Reset resubmitting state
+
         showSuccess(
           "Submission Successful",
           existingSubmission
@@ -162,6 +177,12 @@ export default function SubmissionTab({
     }
   };
 
+  // Cancel resubmission process and go back to showing existing submission
+  const cancelResubmit = () => {
+    setIsResubmitting(false);
+    setSelectedFiles([]);
+  };
+
   if (loading) return <p>Loading submission...</p>;
 
   return (
@@ -170,7 +191,7 @@ export default function SubmissionTab({
         <p className="text-blue-500 font-semibold">{roundStatus}</p>
       ) : (
         <>
-          {existingSubmission ? (
+          {existingSubmission && !isResubmitting ? (
             <div>
               <h2 className="text-lg font-semibold">
                 Your team has submitted successfully
@@ -232,7 +253,9 @@ export default function SubmissionTab({
           ) : (
             <div>
               <h2 className="text-lg font-semibold mb-4">
-                Submit your work for {round}
+                {isResubmitting
+                  ? `Resubmit your work for ${round}`
+                  : `Submit your work for ${round}`}
               </h2>
 
               {/* File Selection UI */}
@@ -282,16 +305,31 @@ export default function SubmissionTab({
                   </div>
                 )}
 
-                {/* Submit Button */}
-                {selectedFiles.length > 0 && (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300"
-                  >
-                    {isSubmitting ? "Submitting..." : "Submit"}
-                  </button>
-                )}
+                {/* Submit Buttons */}
+                <div className="mt-4 flex space-x-4">
+                  {isResubmitting && (
+                    <button
+                      onClick={cancelResubmit}
+                      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
+
+                  {selectedFiles.length > 0 && (
+                    <button
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300"
+                    >
+                      {isSubmitting
+                        ? "Submitting..."
+                        : isResubmitting
+                          ? "Resubmit"
+                          : "Submit"}
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Timer */}

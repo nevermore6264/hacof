@@ -67,6 +67,7 @@ export default function HackathonDetail() {
         id={id}
         minimumTeamMembers={hackathon.minimumTeamMembers}
         maximumTeamMembers={hackathon.maximumTeamMembers}
+        endDate={hackathon.endDate}
       />
       <HackathonTabs
         content={{
