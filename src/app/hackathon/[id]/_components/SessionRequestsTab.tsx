@@ -32,9 +32,16 @@ export default function SessionRequestsTab({
     setEditingSession(null);
   };
 
-  const handleDelete = async (sessionId: string) => {
+  const handleDelete = async (session: MentorshipSessionRequest) => {
     if (confirm("Are you sure you want to cancel this session request?")) {
-      await onUpdateRequest(sessionId, { status: "DELETED" });
+      await onUpdateRequest(session.id, {
+        mentorTeamId: session.mentorTeamId,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        location: session.location,
+        description: session.description,
+        status: "DELETED",
+      });
     }
   };
 
@@ -45,7 +52,11 @@ export default function SessionRequestsTab({
     description: string;
   }) => {
     if (editingSession) {
-      await onUpdateRequest(editingSession.id, data);
+      await onUpdateRequest(editingSession.id, {
+        ...data,
+        mentorTeamId: editingSession.mentorTeamId,
+        status: editingSession.status, // Maintain the current status unless you want to change it
+      });
       setEditingSession(null);
     }
   };
@@ -127,7 +138,7 @@ export default function SessionRequestsTab({
                   <>
                     <button
                       className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                      onClick={() => handleDelete(session.id)}
+                      onClick={() => handleDelete(session)}
                     >
                       Cancel
                     </button>

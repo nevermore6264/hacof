@@ -13,7 +13,7 @@ class MentorshipRequestService {
   }): Promise<{ data: MentorshipRequest; message?: string }> {
     try {
       const response = await apiService.auth.post<MentorshipRequest>(
-        "/hackathon-service/api/v1/mentors/request",
+        "/hackathon-service/api/v1/mentorships",
         data
       );
 
@@ -123,7 +123,7 @@ class MentorshipRequestService {
   async deleteMentorshipRequest(id: string): Promise<{ message?: string }> {
     try {
       const response = await apiService.auth.delete(
-        `/hackathon-service/api/v1/mentorship/${id}`
+        `/hackathon-service/api/v1/mentorships/${id}`
       );
 
       return {

@@ -9,12 +9,8 @@ class MentorTeamService {
     teamId: string
   ): Promise<{ data: MentorTeam[]; message?: string }> {
     try {
-      const response = await apiService.auth.post<MentorTeam[]>(
-        "/hackathon-service/api/v1/mentor-teams/filter-by-hackathon-and-team",
-        {
-          hackathonId: hackathonId,
-          teamId: teamId,
-        }
+      const response = await apiService.auth.get<MentorTeam[]>(
+        `/hackathon-service/api/v1/mentor-teams/filter-by-hackathon-and-team?hackathonId=${hackathonId}&teamId=${teamId}`
       );
 
       if (!response || !response.data) {
