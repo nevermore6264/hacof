@@ -201,6 +201,42 @@ class FeedbackDetailService {
       );
     }
   }
+
+  async updateBulkFeedbackDetails(
+    feedbackId: string,
+    details: Array<{
+      id?: string;
+      content: string;
+      maxRating: number;
+      rate: number;
+      note?: string;
+    }>
+  ): Promise<{ data: FeedbackDetail[]; message?: string }> {
+    try {
+      const response = await apiService.auth.put<FeedbackDetail[]>(
+        `/feedback-service/api/v1/feedback-details/bulk?feedbackId=${feedbackId}`,
+        { details }
+      );
+
+      if (!response || !response.data) {
+        throw new Error(
+          response?.message || "Failed to update bulk feedback details"
+        );
+      }
+
+      return {
+        data: response.data,
+        message:
+          response.message || "Bulk feedback details updated successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<FeedbackDetail[]>(
+        error,
+        [],
+        "[FeedbackDetail Service] Error updating bulk feedback details:"
+      );
+    }
+  }
 }
 
 export const feedbackDetailService = new FeedbackDetailService();

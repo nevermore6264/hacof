@@ -1,10 +1,14 @@
 // src/app/hackathon/[id]/feedback/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth_v0";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { feedbackService } from "@/services/feedback.service";
+import { feedbackDetailService } from "@/services/feedbackDetail.service";
+import { Feedback } from "@/types/entities/feedback";
+import { FeedbackDetail } from "@/types/entities/feedbackDetail";
 
 type FeedbackCategory = {
   title: string;
@@ -19,10 +23,19 @@ type FeedbackCategory = {
 export default function HackathonFeedback() {
   const { user } = useAuth();
   const router = useRouter();
+  const params = useParams();
+  const hackathonId = params.id as string;
 
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [existingFeedback, setExistingFeedback] = useState<Feedback | null>(
+    null
+  );
+  const [existingFeedbackDetails, setExistingFeedbackDetails] = useState<
+    FeedbackDetail[]
+  >([]);
 
   const feedbackCategories: FeedbackCategory[] = [
     {
@@ -90,6 +103,70 @@ export default function HackathonFeedback() {
     },
   ];
 
+  // Fetch existing feedback if available
+  useEffect(() => {
+    const fetchUserFeedback = async () => {
+      if (!user || !user.email || !hackathonId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Get username from email (assuming email is used as username)
+        const username = user.email.split("@")[0];
+
+        // Get feedbacks by username and hackathon ID
+        const { data: userFeedbacks } =
+          await feedbackService.getFeedbacksByCreatedByUserName(username);
+
+        // Filter feedbacks by hackathon ID
+        const hackathonFeedbacks = userFeedbacks.filter(
+          (feedback) => feedback.hackathonId === hackathonId
+        );
+
+        // Sort by creation date to get the latest feedback
+        const sortedFeedbacks = hackathonFeedbacks.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        if (sortedFeedbacks.length > 0) {
+          const latestFeedback = sortedFeedbacks[0];
+          setExistingFeedback(latestFeedback);
+
+          // Fetch feedback details for this feedback
+          const { data: feedbackDetails } =
+            await feedbackDetailService.getFeedbackDetailsByFeedbackId(
+              latestFeedback.id
+            );
+
+          setExistingFeedbackDetails(feedbackDetails);
+
+          // Populate the form with existing feedback
+          const feedbackRatings: Record<string, number> = {};
+          const feedbackNotes: Record<string, string> = {};
+
+          feedbackDetails.forEach((detail) => {
+            feedbackRatings[detail.content] = detail.rate;
+            feedbackNotes[detail.content] = detail.note || "";
+          });
+
+          setFeedback(feedbackRatings);
+          setNotes(feedbackNotes);
+        }
+      } catch (error) {
+        console.error("Error fetching user feedback:", error);
+        toast.error(
+          "Failed to load your previous feedback. Starting with a new form."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserFeedback();
+  }, [user, hackathonId]);
+
   const handleRatingChange = (questionId: string, rating: number) => {
     setFeedback({
       ...feedback,
@@ -108,35 +185,63 @@ export default function HackathonFeedback() {
     e.preventDefault();
     setSubmitting(true);
 
+    if (!user) {
+      toast.error("You must be logged in to submit feedback");
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      // Prepare the feedback data based on your types
-      const feedbackData = {
-        // Assuming hackathonId is passed as a parameter or from context
-        hackathonId: "your-hackathon-id", // Replace with actual ID
-        mentorId: "your-mentor-id", // Replace with actual ID
-        teamId: user?.teamId || "individual",
-        feedbackDetails: Object.keys(feedback).map((questionId) => ({
-          content: questionId,
-          maxRating: 5,
-          rate: feedback[questionId],
-          note: notes[questionId] || "",
-        })),
-      };
+      // Prepare the feedback details
+      const feedbackDetails = Object.keys(feedback).map((questionId) => ({
+        content: questionId,
+        maxRating: 5,
+        rate: feedback[questionId],
+        note: notes[questionId] || "",
+      }));
 
-      // Mock API call - replace with your actual API endpoint
-      console.log("Submitting feedback:", feedbackData);
+      if (existingFeedback) {
+        // Update existing feedback details in bulk
+        const { data, message } =
+          await feedbackDetailService.bulkCreateFeedbackDetails(
+            existingFeedback.id,
+            feedbackDetails
+          );
 
-      // Simulate API request
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+        toast.success(message || "Feedback updated successfully!");
+      } else {
+        // Create new feedback
+        const feedbackData = {
+          hackathonId,
+          teamId: user.teamId || "individual",
+          // If you have mentorId available, add it here
+          // mentorId: "your-mentor-id"
+        };
 
-      // Show success message
-      toast.success("Feedback submitted successfully!");
+        const { data: createdFeedback, message } =
+          await feedbackService.createFeedback(feedbackData);
 
-      // Redirect to dashboard or confirmation page
+        if (createdFeedback && createdFeedback.id) {
+          // Create feedback details in bulk
+          await feedbackDetailService.bulkCreateFeedbackDetails(
+            createdFeedback.id,
+            feedbackDetails
+          );
+
+          toast.success("Feedback submitted successfully!");
+          setExistingFeedback(createdFeedback);
+        } else {
+          throw new Error("Failed to create feedback");
+        }
+      }
+
+      // Redirect to dashboard or another appropriate page
       router.push("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting feedback:", error);
-      toast.error("Failed to submit feedback. Please try again.");
+      toast.error(
+        error.message || "Failed to submit feedback. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -171,6 +276,17 @@ export default function HackathonFeedback() {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent align-[-0.125em]"></div>
+          <p className="mt-2 text-gray-700">Loading your feedback...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 py-8">
       <div className="mx-auto w-full max-w-3xl px-4">
@@ -180,7 +296,10 @@ export default function HackathonFeedback() {
           </h1>
           <p className="mt-2 text-gray-600">
             Hello, {user ? `${user.firstName} ${user.lastName}` : "Participant"}
-            ! We appreciate your feedback.
+            !{" "}
+            {existingFeedback
+              ? "You can update your previous feedback below."
+              : "We appreciate your feedback."}
           </p>
         </div>
 
@@ -226,7 +345,11 @@ export default function HackathonFeedback() {
               disabled={submitting}
               className="rounded-md bg-blue-600 px-6 py-3 text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70"
             >
-              {submitting ? "Submitting..." : "Submit Feedback"}
+              {submitting
+                ? "Submitting..."
+                : existingFeedback
+                  ? "Update Feedback"
+                  : "Submit Feedback"}
             </button>
           </div>
         </form>
