@@ -15,7 +15,7 @@ import { roundService } from "@/services/round.service";
 import { teamService } from "@/services/team.service";
 import { boardService } from "@/services/board.service";
 
-const TABS = ["Task Board", "Submission and Result", "Schedule", "Analytics"];
+const TABS = ["Task Board", "Submission and Result", "Schedule"];
 
 export default function HackathonBoardPage() {
   const { id, teamId } = useParams();
@@ -143,7 +143,7 @@ export default function HackathonBoardPage() {
         {activeTab === "Schedule" && (
           <Calendar teamId={teamIdValue} hackathonId={hackathonId} />
         )}
-        {activeTab === "Analytics" && <p>Placeholder for analytics.</p>}
+        {/* {activeTab === "Analytics" && <p>Placeholder for analytics.</p>} */}
       </div>
 
       {/* API Response Modal */}
