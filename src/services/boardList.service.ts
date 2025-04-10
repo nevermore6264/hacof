@@ -52,6 +52,31 @@ class BoardListService {
     }
   }
 
+  async getBoardListsByBoardId(
+    boardId: string
+  ): Promise<{ data: BoardList[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<BoardList[]>(
+        `/communication-service/api/v1/board-lists/filter-by-board?boardId=${boardId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve board lists for the board ID");
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "Board lists retrieved successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<BoardList[]>(
+        error,
+        [],
+        "[Board List Service] Error getting board lists by board ID:"
+      );
+    }
+  }
+
   async createBoardList(data: {
     name: string;
     position: number;
