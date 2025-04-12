@@ -4,23 +4,47 @@
 import { useState } from "react";
 import { TaskComment } from "@/types/entities/taskComment";
 import { formatDistance } from "date-fns";
+import { taskCommentService } from "@/services/taskComment.service";
 
 interface TaskCommentsProps {
   comments: TaskComment[];
-  onAddComment: (content: string) => void;
+  taskId: string;
+  onAddComment?: (comment: TaskComment) => void;
+  onError?: (error: string) => void;
 }
 
 export default function TaskComments({
   comments,
+  taskId,
   onAddComment,
+  onError,
 }: TaskCommentsProps) {
   const [newComment, setNewComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newComment.trim()) {
-      onAddComment(newComment);
+    if (!newComment.trim() || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const { data: createdComment } =
+        await taskCommentService.createTaskComment({
+          taskId,
+          content: newComment.trim(),
+        });
+
+      if (createdComment && onAddComment) {
+        onAddComment(createdComment);
+      }
+
       setNewComment("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      if (onError) onError("Failed to add comment. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -38,14 +62,15 @@ export default function TaskComments({
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write a comment..."
           className="w-full p-2 border border-gray-300 rounded-md min-h-[80px] text-sm"
+          disabled={isSubmitting}
         />
         <div className="mt-2 flex justify-end">
           <button
             type="submit"
-            disabled={!newComment.trim()}
+            disabled={!newComment.trim() || isSubmitting}
             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
           >
-            Add Comment
+            {isSubmitting ? "Adding..." : "Add Comment"}
           </button>
         </div>
       </form>

@@ -1,22 +1,77 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_components/TaskEdit/TaskAttachments.tsx
 "use client";
 
-import { FileUrl } from "@/types/entities/task";
+import { useState } from "react";
+import { FileUrl } from "@/types/entities/fileUrl";
 import { formatDistance } from "date-fns";
+import { fileUrlService } from "@/services/fileUrl.service";
+import { taskService } from "@/services/task.service";
 
 interface TaskAttachmentsProps {
   files: FileUrl[];
-  onAddFile: (file: File) => void;
-  onRemoveFile: (fileId: string) => void;
+  taskId: string;
+  onAddFile?: (file: FileUrl) => void;
+  onRemoveFile?: (fileId: string) => void;
+  onError?: (error: string) => void;
 }
 
 export default function TaskAttachments({
   files,
+  taskId,
   onAddFile,
   onRemoveFile,
+  onError,
 }: TaskAttachmentsProps) {
-  // Only render if there are attachments or we want to show the section anyway
-  if (files.length === 0) return null;
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      setIsUploading(true);
+
+      // 1. Upload file to get FileUrl object
+      const { data: uploadedFiles, message } =
+        await fileUrlService.uploadMultipleFilesCommunication([file]);
+
+      if (!uploadedFiles || uploadedFiles.length === 0) {
+        throw new Error("Failed to upload file");
+      }
+
+      // 2. Get the fileUrl strings from the response
+      const fileUrls = uploadedFiles.map((file) => file.fileUrl);
+
+      // 3. Associate files with the task
+      const { data: attachedFiles } = await taskService.createTaskFiles(
+        taskId,
+        fileUrls
+      );
+
+      // 4. Notify parent component if callback is provided
+      if (attachedFiles && attachedFiles.length > 0 && onAddFile) {
+        onAddFile(attachedFiles[0]);
+      }
+
+      return attachedFiles;
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      if (onError) onError("Failed to upload file. Please try again.");
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveFile = async (fileId: string) => {
+    try {
+      await fileUrlService.deleteFileUrl(fileId);
+      if (onRemoveFile) onRemoveFile(fileId);
+    } catch (error) {
+      console.error("Error removing file:", error);
+      if (onError) onError("Failed to remove file. Please try again.");
+    }
+  };
+
+  // Don't render if there are no files and we're not uploading
+  if (files.length === 0 && !isUploading) return null;
 
   return (
     <div className="bg-gray-50 p-3 rounded-md">
@@ -69,7 +124,7 @@ export default function TaskAttachments({
                   Download
                 </a>
                 <button
-                  onClick={() => onRemoveFile(file.id)}
+                  onClick={() => handleRemoveFile(file.id)}
                   className="text-xs text-red-500 hover:underline"
                 >
                   Remove
@@ -78,6 +133,13 @@ export default function TaskAttachments({
             </div>
           </div>
         ))}
+
+        {isUploading && (
+          <div className="flex items-center justify-center py-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+            <span className="ml-2 text-sm text-gray-600">Uploading...</span>
+          </div>
+        )}
       </div>
 
       <div className="mt-3">
@@ -88,9 +150,10 @@ export default function TaskAttachments({
           <input
             type="file"
             className="hidden"
+            disabled={isUploading}
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) onAddFile(file);
+              if (file) handleFileUpload(file);
             }}
           />
         </label>

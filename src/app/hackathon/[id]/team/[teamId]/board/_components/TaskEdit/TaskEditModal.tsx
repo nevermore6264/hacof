@@ -16,7 +16,10 @@ import { useKanbanStore } from "@/store/kanbanStore";
 import { taskService } from "@/services/task.service";
 import { taskLabelService } from "@/services/taskLabel.service";
 import { taskAssigneeService } from "@/services/taskAssignee.service";
-
+import { taskCommentService } from "@/services/taskComment.service";
+import { FileUrl } from "@/types/entities/fileUrl";
+import { TaskComment } from "@/types/entities/taskComment";
+import { fileUrlService } from "@/services/fileUrl.service";
 interface TaskEditModalProps {
   task: Task;
   isOpen: boolean;
@@ -35,6 +38,18 @@ export default function TaskEditModal({
   const [updatedTask, setUpdatedTask] = useState<Task>(task);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [comments, setComments] = useState<TaskComment[]>(task.comments || []);
+  const [files, setFiles] = useState<FileUrl[]>(task.fileUrls || []);
+  const updateTask = useKanbanStore((state) => state.updateTask);
+  const removeTask = useKanbanStore((state) => state.removeTask);
+
+  // Fetch comments and files when the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchComments();
+      fetchFiles();
+    }
+  }, [isOpen, task.id]);
 
   // Handle escape key to close the modal
   useEffect(() => {
@@ -45,6 +60,30 @@ export default function TaskEditModal({
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [onClose]);
+
+  const fetchComments = async () => {
+    try {
+      const { data } = await taskCommentService.getTaskCommentsByTaskId(
+        task.id
+      );
+      if (data) {
+        setComments(data);
+      }
+    } catch (err) {
+      console.error("Error fetching comments:", err);
+    }
+  };
+
+  const fetchFiles = async () => {
+    try {
+      const { data } = await fileUrlService.getFileUrlsByTaskId(task.id);
+      if (data) {
+        setFiles(data);
+      }
+    } catch (err) {
+      console.error("Error fetching files:", err);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -63,6 +102,11 @@ export default function TaskEditModal({
           dueDate: updatedTask.dueDate || "",
         }
       );
+
+      if (updatedTaskData) {
+        // Update the task in the store
+        updateTask(updatedTaskData);
+      }
 
       // Close the modal
       onClose();
@@ -85,6 +129,9 @@ export default function TaskEditModal({
 
       await taskService.deleteTask(task.id);
 
+      // Remove the task from the store
+      removeTask(task.id);
+
       // Close the modal
       onClose();
     } catch (err) {
@@ -93,6 +140,22 @@ export default function TaskEditModal({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAddComment = (comment: TaskComment) => {
+    setComments((prevComments) => [...prevComments, comment]);
+  };
+
+  const handleAddFile = (file: FileUrl) => {
+    setFiles((prevFiles) => [...prevFiles, file]);
+  };
+
+  const handleRemoveFile = (fileId: string) => {
+    setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
+  };
+
+  const handleError = (errorMessage: string) => {
+    setError(errorMessage);
   };
 
   return (
@@ -134,15 +197,19 @@ export default function TaskEditModal({
 
               {/* Task Attachments */}
               <TaskAttachments
-                files={updatedTask.fileUrls || []}
-                onAddFile={() => {}}
-                onRemoveFile={() => {}}
+                files={files}
+                taskId={task.id}
+                onAddFile={handleAddFile}
+                onRemoveFile={handleRemoveFile}
+                onError={handleError}
               />
 
               {/* Task Comments */}
               <TaskComments
-                comments={updatedTask.comments || []}
-                onAddComment={() => {}}
+                comments={comments}
+                taskId={task.id}
+                onAddComment={handleAddComment}
+                onError={handleError}
               />
             </div>
 
@@ -161,9 +228,6 @@ export default function TaskEditModal({
                       .filter(Boolean) || []
                   }
                   availableLabels={boardLabels}
-                  onChange={(labels) => {
-                    // We'll handle this in the TaskLabels component
-                  }}
                   taskId={task.id}
                 />
 
@@ -182,9 +246,6 @@ export default function TaskEditModal({
                     []
                   }
                   availableMembers={teamMembers}
-                  onChange={(assignees) => {
-                    // We'll handle this in the TaskAssignees component
-                  }}
                   taskId={task.id}
                 />
               </div>

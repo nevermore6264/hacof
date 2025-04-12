@@ -20,6 +20,7 @@ export type Task = {
   id: string;
   title: string;
   status: string;
+  boardListId: string;
   description?: string;
   position: number;
   dueDate?: string;
@@ -63,6 +64,8 @@ interface KanbanState {
       dueDate?: string;
     }
   ) => Promise<Task | null>;
+  updateTask: (updatedTask: Task) => void;
+  removeTask: (taskId: string) => void;
 
   // Board operations
   setBoard: (board: Board) => void;
@@ -159,6 +162,71 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       });
       return null;
     }
+  },
+
+  // Update a task with new information
+  updateTask: (updatedTask) => {
+    set((state) => {
+      // Find which column contains this task
+      const columnId = updatedTask.boardListId;
+      if (!columnId) return state;
+
+      // Update the columns with the updated task
+      const updatedColumns = state.columns.map((column) => {
+        // If this column contains the task
+        if (column.id === columnId) {
+          // Update the task in this column
+          const updatedTasks = column.tasks.map((task) =>
+            task.id === updatedTask.id
+              ? {
+                  ...task,
+                  title: updatedTask.title,
+                  description: updatedTask.description || "",
+                  dueDate: updatedTask.dueDate,
+                  // Keep other task properties that might not be in the updated task object
+                  // but preserve all the new values from the updated task
+                  ...updatedTask,
+                  // Ensure status is maintained properly
+                  status: column.title.toLowerCase().replace(/\s+/g, "-"),
+                }
+              : task
+          );
+
+          return {
+            ...column,
+            tasks: updatedTasks,
+          };
+        }
+        return column;
+      });
+
+      return { columns: updatedColumns };
+    });
+  },
+
+  // Remove a task from the store
+  removeTask: (taskId) => {
+    set((state) => {
+      // Find which column contains this task
+      const columnWithTask = state.columns.find((column) =>
+        column.tasks.some((task) => task.id === taskId)
+      );
+
+      if (!columnWithTask) return state;
+
+      // Update the columns, removing the task from the appropriate column
+      const updatedColumns = state.columns.map((column) => {
+        if (column.id === columnWithTask.id) {
+          return {
+            ...column,
+            tasks: column.tasks.filter((task) => task.id !== taskId),
+          };
+        }
+        return column;
+      });
+
+      return { columns: updatedColumns };
+    });
   },
 
   // Task operations

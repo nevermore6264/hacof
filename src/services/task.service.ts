@@ -2,7 +2,7 @@
 import { apiService } from "@/services/apiService_v0";
 import { Task } from "@/types/entities/task";
 import { handleApiError } from "@/utils/errorHandler";
-
+import { FileUrl } from "@/types/entities/fileUrl";
 class TaskService {
   // Create a new Task
   async createTask(data: {
@@ -69,14 +69,42 @@ class TaskService {
     }
   }
 
+  // Create Task Files (associate fileUrls with a task)
+  async createTaskFiles(
+    taskId: string,
+    fileUrls: string[]
+  ): Promise<{ data: FileUrl[]; message?: string }> {
+    try {
+      const response = await apiService.auth.post<FileUrl[]>(
+        `/communication-service/api/v1/tasks/${taskId}/files`,
+        { fileUrls }
+      );
+
+      if (!response || !response.data) {
+        throw new Error(response?.message || "Failed to attach files to task");
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "Task files added successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<FileUrl[]>(
+        error,
+        [],
+        "[Task Service] Error creating task files:"
+      );
+    }
+  }
+
   // Used when update task information (title, description, boardListId, dueDate)
   async updateTaskInformation(
     id: string,
     data: {
-      title: string;
-      description: string;
+      title?: string;
+      description?: string;
       boardListId: string;
-      dueDate: string;
+      dueDate?: string;
     }
   ): Promise<{ data: Task; message?: string }> {
     try {
