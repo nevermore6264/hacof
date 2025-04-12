@@ -1,4 +1,4 @@
-// src/app/hackathon/[id]/team/[teamId]/board/_mock/fetchMockFeedback.ts
+// src/app/hackathon/[id]/feedback/_components/fetchMockFeedback.ts
 import { Feedback } from "@/types/entities/feedback";
 
 export const fetchMockFeedbackByCreatedUser = (
