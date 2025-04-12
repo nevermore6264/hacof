@@ -108,6 +108,32 @@ class TaskLabelService {
     }
   }
 
+  // Get Task Labels by Task ID
+  async getTaskLabelsByTaskId(
+    taskId: string
+  ): Promise<{ data: TaskLabel[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<TaskLabel[]>(
+        `/communication-service/api/v1/task-labels?taskId=${taskId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve task labels by task ID");
+      }
+
+      return {
+        data: response.data,
+        message: response.message,
+      };
+    } catch (error: any) {
+      return handleApiError<TaskLabel[]>(
+        error,
+        [],
+        "[TaskLabel Service] Error fetching task labels by task ID:"
+      );
+    }
+  }
+
   // Get all Task Labels
   async getAllTaskLabels(): Promise<{ data: TaskLabel[]; message?: string }> {
     try {

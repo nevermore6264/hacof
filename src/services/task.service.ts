@@ -69,6 +69,31 @@ class TaskService {
     }
   }
 
+  async getTasksByBoardListId(
+    boardListId: string
+  ): Promise<{ data: Task[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<Task[]>(
+        `/communication-service/api/v1/tasks?boardListId=${boardListId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve tasks by board list ID");
+      }
+
+      return {
+        data: response.data,
+        message: response.message,
+      };
+    } catch (error: any) {
+      return handleApiError<Task[]>(
+        error,
+        [],
+        "[Task Service] Error fetching tasks by board list ID:"
+      );
+    }
+  }
+
   // Delete a Task by its ID
   async deleteTask(id: string): Promise<{ message?: string }> {
     try {

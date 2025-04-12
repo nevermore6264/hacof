@@ -52,6 +52,33 @@ class BoardLabelService {
     }
   }
 
+  async getBoardLabelsByBoardId(
+    boardId: string
+  ): Promise<{ data: BoardLabel[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<BoardLabel[]>(
+        `/communication-service/api/v1/board-labels?boardId=${boardId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error(
+          response?.message || "Failed to retrieve board labels by board ID"
+        );
+      }
+
+      return {
+        data: response.data,
+        message: response.message,
+      };
+    } catch (error: any) {
+      return handleApiError<BoardLabel[]>(
+        error,
+        [],
+        "[Board Label Service] Error getting board labels by board ID:"
+      );
+    }
+  }
+
   async createBoardLabel(data: {
     name: string;
     color: string;
