@@ -187,3 +187,20 @@ export const deleteBoardLabel = async (
     return false;
   }
 };
+
+export const updateTaskPositions = async (
+  updates: { id: string; boardListId: string; position: number }[]
+): Promise<boolean> => {
+  try {
+    const response = await taskService.bulkUpdateTaskPositions(updates);
+
+    if (!response || !response.data) {
+      throw new Error("Failed to update task positions");
+    }
+
+    return true;
+  } catch (error) {
+    console.error("API error updating task positions:", error);
+    return false;
+  }
+};
