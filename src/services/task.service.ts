@@ -69,6 +69,38 @@ class TaskService {
     }
   }
 
+  async updateTaskInformation(
+    id: string,
+    data: {
+      title: string;
+      description: string;
+      boardListId: string;
+      dueDate: string;
+    }
+  ): Promise<{ data: Task; message?: string }> {
+    try {
+      const response = await apiService.auth.put<Task>(
+        `/communication-service/api/v1/tasks/${id}`,
+        data
+      );
+
+      if (!response || !response.data) {
+        throw new Error(response?.message || "Failed to update task");
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "Task updated successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<Task>(
+        error,
+        {} as Task,
+        "[Task Service] Error updating Task:"
+      );
+    }
+  }
+
   async getTasksByBoardListId(
     boardListId: string
   ): Promise<{ data: Task[]; message?: string }> {
