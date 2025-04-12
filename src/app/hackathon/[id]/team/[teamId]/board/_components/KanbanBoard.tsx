@@ -20,15 +20,15 @@ import BoardHeader from "./BoardHeader";
 import { useAuth } from "@/hooks/useAuth_v0";
 import BoardUserManagement from "./BoardUserManagement";
 import { useKanbanStore } from "@/store/kanbanStore";
-import { fetchMockBoardLabelsByBoardId } from "../_mock/fetchMockBoardLabels";
-import { fetchMockBoardListsByBoardId } from "../_mock/fetchMockBoardLists";
-import { fetchMockBoardUsers } from "../_mock/fetchMockBoardUsers";
-import { fetchMockTasksByBoardListId } from "../_mock/fetchMockTasks";
-import { fetchMockTaskFilesByTaskId } from "../_mock/fetchMockTaskFilesByTaskId";
-import { fetchMockTaskLabelsByTaskId } from "../_mock/fetchMockTaskLabels";
-import { fetchMockTaskCommentsByTaskId } from "../_mock/fetchMockTaskComments";
-import { fetchMockTaskAssigneesByTaskId } from "../_mock/fetchMockTaskAssignees";
 import { BoardLabel } from "@/types/entities/boardLabel";
+import { boardLabelService } from "@/services/boardLabel.service";
+import { boardListService } from "@/services/boardList.service";
+import { boardUserService } from "@/services/boardUser.service";
+import { taskService } from "@/services/task.service";
+import { fileUrlService } from "@/services/fileUrl.service";
+import { taskLabelService } from "@/services/taskLabel.service";
+import { taskCommentService } from "@/services/taskComment.service";
+import { taskAssigneeService } from "@/services/taskAssignee.service";
 
 interface KanbanBoardProps {
   board: Board | null;
@@ -78,14 +78,16 @@ export default function KanbanBoard({
         });
 
         // Load board users first (for header display)
-        const boardUsers = await fetchMockBoardUsers(board.id);
+        const { data: boardUsers } =
+          await boardUserService.getBoardUsersByBoardId(board.id);
         setBoard({
           ...board,
           boardUsers,
         });
 
         // Load board labels (needed for task labels)
-        const boardLabels = await fetchMockBoardLabelsByBoardId(board.id);
+        const { data: boardLabels } =
+          await boardLabelService.getBoardLabelsByBoardId(board.id);
         const boardLabelsMap = boardLabels.reduce(
           (map, label) => {
             map[label.id] = label;
@@ -95,7 +97,8 @@ export default function KanbanBoard({
         );
 
         // Load board lists (structure only)
-        const boardLists = await fetchMockBoardListsByBoardId(board.id);
+        const { data: boardLists } =
+          await boardListService.getBoardListsByBoardId(board.id);
 
         // Set initial columns with empty tasks (to show skeleton UI)
         const initialColumns = boardLists.map((list) => ({
@@ -110,7 +113,9 @@ export default function KanbanBoard({
         // Load tasks for each list progressively
         for (const list of boardLists) {
           setCurrentLoadingList(list.id);
-          const baseTasks = await fetchMockTasksByBoardListId(list.id);
+          const { data: baseTasks } = await taskService.getTasksByBoardListId(
+            list.id
+          );
 
           // Process tasks in smaller batches if there are many
           const batchSize = 5;
@@ -121,13 +126,17 @@ export default function KanbanBoard({
             const batchResults = await Promise.all(
               batch.map(async (task) => {
                 // Fetch detailed information for each task
-                const [fileUrls, taskLabels, comments, taskAssignees] =
-                  await Promise.all([
-                    fetchMockTaskFilesByTaskId(task.id),
-                    fetchMockTaskLabelsByTaskId(task.id),
-                    fetchMockTaskCommentsByTaskId(task.id),
-                    fetchMockTaskAssigneesByTaskId(task.id),
-                  ]);
+                const [
+                  { data: fileUrls },
+                  { data: taskLabels },
+                  { data: comments },
+                  { data: taskAssignees },
+                ] = await Promise.all([
+                  fileUrlService.getFileUrlsByTaskId(task.id),
+                  taskLabelService.getTaskLabelsByTaskId(task.id),
+                  taskCommentService.getTaskCommentsByTaskId(task.id),
+                  taskAssigneeService.getTaskAssigneesByTaskId(task.id),
+                ]);
 
                 // Enhance taskLabels with their associated boardLabel information
                 const enhancedTaskLabels = taskLabels.map((taskLabel) => ({
