@@ -13,7 +13,7 @@ export const fetchMockMentorshipSessionRequests = (
           endTime: new Date(Date.now() + 3600000).toISOString(),
           location: "Room A",
           description: "Session on project architecture",
-          status: "pending",
+          status: "PENDING",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -23,7 +23,7 @@ export const fetchMockMentorshipSessionRequests = (
           endTime: new Date(Date.now() + 7200000).toISOString(),
           location: "Room B",
           description: "Code review session",
-          status: "approved",
+          status: "APPROVED",
           evaluatedBy: {
             id: "admin789",
             firstName: "Alice",
@@ -50,7 +50,7 @@ export const fetchMockMentorshipSessionRequests = (
           endTime: new Date(Date.now() + 5400000).toISOString(),
           location: "Room C",
           description: "UI/UX design feedback",
-          status: "rejected",
+          status: "REJECTED",
           evaluatedBy: {
             id: "admin101",
             firstName: "Chris",

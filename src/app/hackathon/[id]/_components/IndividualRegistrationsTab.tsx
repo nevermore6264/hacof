@@ -1,51 +1,109 @@
 // src/app/hackathon/[id]/_components/IndividualRegistrationsTab.tsx
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
-import { useState } from "react";
-import { Trash2, Plus } from "lucide-react";
+import { TeamRequest } from "@/types/entities/teamRequest";
+import { useState, useMemo } from "react";
+import { Trash2, Plus, AlertCircle } from "lucide-react";
+import { individualRegistrationRequestService } from "@/services/individualRegistrationRequest.service";
+import { useApiModal } from "@/hooks/useApiModal";
+import { useAuthStore } from "@/store/authStore";
 
 type IndividualRegistrationsTabProps = {
   individualRegistrations: IndividualRegistrationRequest[];
+  teamRequests: TeamRequest[];
   hackathonId: string;
+  onDataUpdate: () => void;
 };
 
 export default function IndividualRegistrationsTab({
   individualRegistrations,
+  teamRequests,
   hackathonId,
+  onDataUpdate,
 }: IndividualRegistrationsTabProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const { showError, showSuccess } = useApiModal();
+  const { user } = useAuthStore();
+
+  // Check for active individual registrations and team requests
+  const activeRegistration = useMemo(
+    () =>
+      individualRegistrations.find(
+        (reg) =>
+          reg.status === "PENDING" ||
+          reg.status === "APPROVED" ||
+          reg.status === "UNDER_REVIEW"
+      ),
+    [individualRegistrations]
+  );
+
+  const activeTeamRequest = useMemo(
+    () =>
+      teamRequests.find(
+        (req) =>
+          req.status.toLowerCase() === "pending" ||
+          req.status.toLowerCase() === "under_review" ||
+          req.status.toLowerCase() === "approved"
+      ),
+    [teamRequests]
+  );
+
+  // Determine if registration button should be disabled
+  const isRegistrationDisabled = useMemo(
+    () => !!activeRegistration || !!activeTeamRequest || isLoading,
+    [activeRegistration, activeTeamRequest, isLoading]
+  );
+
   // Create individual registration
   const createIndividualRegistration = async () => {
-    // Check if user already has an individual registration that's not rejected
-    const activeRegistration = individualRegistrations.find(
-      (reg) => reg.status === "PENDING" || reg.status === "APPROVED"
-    );
-
-    if (activeRegistration) {
-      alert(
-        `You already have an individual registration for this hackathon with status: ${activeRegistration.status}.`
-      );
+    if (isRegistrationDisabled) {
+      // Show appropriate error message based on the reason
+      if (activeRegistration) {
+        showError(
+          "Registration Error",
+          `You already have an individual registration for this hackathon with status: ${activeRegistration.status}.`
+        );
+      } else if (activeTeamRequest) {
+        showError(
+          "Team Request Exists",
+          `You already have a team request for this hackathon with status: ${activeTeamRequest.status}. Please cancel it first to register as an individual.`
+        );
+      }
       return;
     }
 
     try {
-      console.log(
-        `Creating individual registration for hackathon: ${hackathonId}`
-      );
+      setIsLoading(true);
 
       const requestBody = {
         hackathonId,
         status: "PENDING",
       };
 
-      console.log("Request body:", requestBody);
+      const response =
+        await individualRegistrationRequestService.createIndividualRegistrationRequest(
+          requestBody
+        );
 
-      // Simulate successful creation
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      alert("Individual registration created successfully!");
-      // In a real implementation, you would refresh the data here
+      if (response.data && response.data.id) {
+        showSuccess(
+          "Registration Successful",
+          "Your individual registration has been submitted successfully."
+        );
+        onDataUpdate(); // Refresh data
+      } else {
+        showError(
+          "Registration Error",
+          "Failed to create individual registration. Please try again."
+        );
+      }
     } catch (error) {
       console.error("Error creating individual registration:", error);
-      alert("Failed to create individual registration");
+      showError(
+        "Registration Error",
+        "An unexpected error occurred while creating your registration."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,39 +113,78 @@ export default function IndividualRegistrationsTab({
   ) => {
     // Only allow deletion of PENDING registrations
     if (status !== "PENDING") {
-      alert(
+      showError(
+        "Deletion Error",
         `You can only delete registrations with PENDING status. Current status: ${status}`
       );
       return;
     }
 
     try {
-      console.log(`Deleting individual registration: ${registrationId}`);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      alert(`Individual registration ${registrationId} deleted successfully`);
+      setIsLoading(true);
+      const response =
+        await individualRegistrationRequestService.deleteIndividualRegistration(
+          registrationId
+        );
+
+      showSuccess(
+        "Registration Deleted",
+        "Your individual registration has been deleted successfully."
+      );
+      onDataUpdate(); // Refresh data
     } catch (error) {
       console.error("Error deleting individual registration:", error);
-      alert("Failed to delete individual registration");
+      showError(
+        "Deletion Error",
+        "Failed to delete individual registration. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Generate the warning message based on what's preventing registration
+  const getDisabledMessage = () => {
+    if (activeRegistration) {
+      return `You already have an individual registration with status: ${activeRegistration.status}`;
+    }
+    if (activeTeamRequest) {
+      return `You already have a team request with status: ${activeTeamRequest.status}`;
+    }
+    return "";
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h4 className="font-medium">Your Individual Registrations</h4>
-        {/* Always show the register button */}
-        <button
-          onClick={createIndividualRegistration}
-          className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-        >
-          <Plus size={16} /> Register as Individual
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          {isRegistrationDisabled && !isLoading && (
+            <div className="flex items-center text-amber-600 text-sm">
+              <AlertCircle size={14} className="mr-1" />
+              {getDisabledMessage()}
+            </div>
+          )}
+          <button
+            onClick={createIndividualRegistration}
+            className={`flex items-center gap-1 ${
+              isRegistrationDisabled
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
+            } text-white px-3 py-1 rounded`}
+            disabled={isRegistrationDisabled}
+          >
+            <Plus size={16} />{" "}
+            {isLoading ? "Processing..." : "Register as Individual"}
+          </button>
+        </div>
       </div>
 
       {individualRegistrations.length === 0 ? (
         <p className="text-gray-500 italic mb-4">
-          No individual enrollments found. Click the button above to register as
-          an individual.
+          No individual enrollments found.{" "}
+          {!isRegistrationDisabled &&
+            "Click the button above to register as an individual."}
         </p>
       ) : (
         <ul className="space-y-3">
@@ -134,8 +231,13 @@ export default function IndividualRegistrationsTab({
                     onClick={() =>
                       deleteIndividualRegistration(reg.id, reg.status)
                     }
-                    className="text-red-500 hover:text-red-700 transition-colors"
+                    className={`${
+                      isLoading
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-red-500 hover:text-red-700"
+                    } transition-colors`}
                     title="Delete registration"
+                    disabled={isLoading}
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>

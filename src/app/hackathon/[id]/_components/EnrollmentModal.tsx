@@ -9,6 +9,7 @@ import { useAuthStore } from "@/store/authStore";
 import TeamsTab from "./TeamsTab";
 import TeamRequestsTab from "./TeamRequestsTab";
 import IndividualRegistrationsTab from "./IndividualRegistrationsTab";
+import { useApiModal } from "@/hooks/useApiModal";
 
 type EnrollmentModalProps = {
   isOpen: boolean;
@@ -19,6 +20,7 @@ type EnrollmentModalProps = {
   hackathonId: string;
   minimumTeamMembers: number;
   maximumTeamMembers: number;
+  onDataUpdate: () => void;
 };
 
 export default function EnrollmentModal({
@@ -30,18 +32,29 @@ export default function EnrollmentModal({
   hackathonId,
   minimumTeamMembers,
   maximumTeamMembers,
+  onDataUpdate,
 }: EnrollmentModalProps) {
   const [activeTab, setActiveTab] = useState<
     "teams" | "teamRequests" | "individual"
   >("teams");
   const { user } = useAuthStore();
+  const { showError } = useApiModal();
 
-  // Reset state when modal closes
+  // Set initial active tab based on what data exists
   useEffect(() => {
-    if (!isOpen) {
-      // Reset any state needed
+    if (teams.length > 0) {
+      setActiveTab("teams");
+    } else if (teamRequests.length > 0) {
+      setActiveTab("teamRequests");
+    } else if (individualRegistrations.length > 0) {
+      setActiveTab("individual");
     }
-  }, [isOpen]);
+  }, [
+    teams.length,
+    teamRequests.length,
+    individualRegistrations.length,
+    isOpen,
+  ]);
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -89,22 +102,28 @@ export default function EnrollmentModal({
                 </button>
               </div>
 
-              {activeTab === "teams" && <TeamsTab teams={teams} />}
+              {activeTab === "teams" && (
+                <TeamsTab teams={teams} onDataUpdate={onDataUpdate} />
+              )}
 
               {activeTab === "teamRequests" && (
                 <TeamRequestsTab
                   teamRequests={teamRequests}
+                  individualRegistrations={individualRegistrations} // Pass this prop
                   hackathonId={hackathonId}
                   minimumTeamMembers={minimumTeamMembers}
                   maximumTeamMembers={maximumTeamMembers}
                   user={user}
+                  onDataUpdate={onDataUpdate}
                 />
               )}
 
               {activeTab === "individual" && (
                 <IndividualRegistrationsTab
                   individualRegistrations={individualRegistrations}
+                  teamRequests={teamRequests} // Pass this prop
                   hackathonId={hackathonId}
+                  onDataUpdate={onDataUpdate}
                 />
               )}
 

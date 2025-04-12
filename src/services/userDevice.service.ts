@@ -1,18 +1,17 @@
 // src/services/userDevice.service.ts
+import { apiService } from "@/services/apiService_v0";
 import { UserDevice } from "@/types/entities/userDevice";
-import { tokenService_v0 } from "@/services/token.service_v0";
-
-type UserDevicePayload = {
-  userId: string;
-  deviceId: string;
-  timeFrom: string;
-  timeTo: string;
-  status: "ASSIGNED" | "RETURNED" | "LOST" | "DAMAGED";
-  files: File[];
-};
+import { handleApiError } from "@/utils/errorHandler";
 
 class UserDeviceService {
-  async createUserDevice(data: UserDevicePayload): Promise<UserDevice> {
+  async createUserDevice(data: {
+    userId: string;
+    deviceId: string;
+    timeFrom: string;
+    timeTo: string;
+    status: "ASSIGNED" | "RETURNED" | "LOST" | "DAMAGED";
+    files: File[];
+  }): Promise<{ data: UserDevice; message?: string }> {
     try {
       const formData = new FormData();
 
@@ -26,28 +25,39 @@ class UserDeviceService {
         formData.append("files", file);
       });
 
-      const response = await fetch("/identity-service/api/v1/user-devices", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${tokenService_v0.getAccessToken()}`,
-        },
-        body: formData,
-      });
+      const response = await apiService.auth.post<UserDevice>(
+        "/identity-service/api/v1/user-devices",
+        formData
+      );
 
-      if (!response.ok) {
-        const errMsg = await response.text();
-        throw new Error(`Create failed: ${errMsg}`);
+      if (!response || !response.data) {
+        throw new Error(response?.message || "Failed to create user device");
       }
 
-      const dataResponse = await response.json();
-      return dataResponse as UserDevice;
-    } catch (error) {
-      console.error("Error creating UserDevice:", error);
-      throw error;
+      return {
+        data: response.data,
+        message: response.message || "User device created successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<UserDevice>(
+        error,
+        {} as UserDevice,
+        "[UserDevice Service] Error creating user device:"
+      );
     }
   }
 
-  async updateUserDevice(id: string, data: UserDevicePayload): Promise<UserDevice> {
+  async updateUserDevice(
+    id: string,
+    data: {
+      userId: string;
+      deviceId: string;
+      timeFrom: string;
+      timeTo: string;
+      status: "ASSIGNED" | "RETURNED" | "LOST" | "DAMAGED";
+      files: File[];
+    }
+  ): Promise<{ data: UserDevice; message?: string }> {
     try {
       const formData = new FormData();
 
@@ -61,24 +71,118 @@ class UserDeviceService {
         formData.append("files", file);
       });
 
-      const response = await fetch(`/identity-service/api/v1/user-devices/${id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${tokenService_v0.getAccessToken()}`,
-        },
-        body: formData,
-      });
+      const response = await apiService.auth.put<UserDevice>(
+        `/identity-service/api/v1/user-devices/${id}`,
+        formData
+      );
 
-      if (!response.ok) {
-        const errMsg = await response.text();
-        throw new Error(`Update failed: ${errMsg}`);
+      if (!response || !response.data) {
+        throw new Error(response?.message || "Failed to update user device");
       }
 
-      const dataResponse = await response.json();
-      return dataResponse as UserDevice;
-    } catch (error) {
-      console.error("Error updating UserDevice:", error);
-      throw error;
+      return {
+        data: response.data,
+        message: response.message || "User device updated successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<UserDevice>(
+        error,
+        {} as UserDevice,
+        "[UserDevice Service] Error updating user device:"
+      );
+    }
+  }
+
+  async getUserDeviceById(
+    id: string
+  ): Promise<{ data: UserDevice; message?: string }> {
+    try {
+      const response = await apiService.auth.get<UserDevice>(
+        `/identity-service/api/v1/user-devices/${id}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve user device");
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "User device retrieved successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<UserDevice>(
+        error,
+        {} as UserDevice,
+        "[UserDevice Service] Error fetching user device by ID:"
+      );
+    }
+  }
+
+  async getUserDevicesByDeviceId(
+    deviceId: string
+  ): Promise<{ data: UserDevice[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<UserDevice[]>(
+        `/identity-service/api/v1/user-devices?deviceId=${deviceId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve user devices");
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "User devices retrieved successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<UserDevice[]>(
+        error,
+        [],
+        "[UserDevice Service] Error fetching user devices by device ID:"
+      );
+    }
+  }
+
+  async getUserDevicesByUserId(
+    userId: string
+  ): Promise<{ data: UserDevice[]; message?: string }> {
+    try {
+      const response = await apiService.auth.get<UserDevice[]>(
+        `/identity-service/api/v1/user-devices?userId=${userId}`
+      );
+
+      if (!response || !response.data) {
+        throw new Error("Failed to retrieve user devices");
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "User devices retrieved successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<UserDevice[]>(
+        error,
+        [],
+        "[UserDevice Service] Error fetching user devices by user ID:"
+      );
+    }
+  }
+
+  async deleteUserDevice(id: string): Promise<{ message?: string }> {
+    try {
+      const response = await apiService.auth.delete<void>(
+        `/identity-service/api/v1/user-devices/${id}`
+      );
+
+      return {
+        message: response.message || "User device deleted successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<void>(
+        error,
+        undefined,
+        "[UserDevice Service] Error deleting user device:"
+      );
     }
   }
 }

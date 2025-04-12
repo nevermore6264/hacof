@@ -1,4 +1,4 @@
-// src/components/Common/ScrollUp.tsx
+// src/components/common/ScrollUp.tsx
 "use client";
 
 import { useEffect } from "react";

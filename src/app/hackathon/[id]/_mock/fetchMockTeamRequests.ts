@@ -10,7 +10,7 @@ export const fetchMockTeamRequests = (
       const mockTeamRequests: TeamRequest[] = [
         {
           id: "request1",
-          status: "pending",
+          status: "PENDING",
           confirmationDeadline: new Date().toISOString(),
           note: "Looking for team members",
           teamRequestMembers: [
@@ -63,7 +63,7 @@ export const fetchMockTeamRequests = (
         },
         {
           id: "request2",
-          status: "under_review",
+          status: "UNDER_REVIEW",
           confirmationDeadline: new Date().toISOString(),
           note: "Need a designer",
           teamRequestMembers: [

@@ -316,7 +316,7 @@ export default function ChatClient() {
 
     try {
       const reactionBody = {
-        messageId: messageId,
+        messageId: parseInt(messageId),
         reactionType: reactionType,
         createdByUserName: user.username
       };
@@ -324,7 +324,7 @@ export default function ChatClient() {
       console.log('Sending reaction with body:', reactionBody); // Debug log
 
       client.publish({
-        destination: `/app/reactions/${selectedChatId}`,
+        destination: `/app/reactions/${parseInt(messageId)}`,
         body: JSON.stringify(reactionBody)
       });
     } catch (error) {

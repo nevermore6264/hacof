@@ -1,7 +1,7 @@
 // src/components/Pricing/index.tsx
 "use client";
 import { useState } from "react";
-import SectionTitle from "../Common/SectionTitle";
+import SectionTitle from "../common/SectionTitle";
 import OfferList from "./OfferList";
 import PricingBox from "./PricingBox";
 

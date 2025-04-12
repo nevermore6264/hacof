@@ -2,7 +2,7 @@
 import { Metadata } from "next";
 import SingleBlog from "@/components/Blog/SingleBlog";
 import blogData from "@/components/Blog/blogData";
-import Breadcrumb from "@/components/Common/Breadcrumb";
+import Breadcrumb from "@/components/common/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "Help Page",

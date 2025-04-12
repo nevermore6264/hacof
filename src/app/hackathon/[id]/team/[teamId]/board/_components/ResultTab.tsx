@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Submission } from "@/types/entities/submission";
+import { useApiModal } from "@/hooks/useApiModal";
 
 interface ResultTabProps {
   roundId: string;
@@ -22,45 +23,57 @@ export default function ResultTab({
   const [activeJudgeTab, setActiveJudgeTab] = useState<string>("");
   const [judgeCount, setJudgeCount] = useState(0);
 
+  // Use API modal for any error handling
+  const { showError } = useApiModal();
+
   // Find the submitted submission
   const existingSubmission = submissions.find(
     (sub) => sub.status === "SUBMITTED"
   );
 
   useEffect(() => {
-    if (!submissions.length) return;
+    try {
+      if (!submissions.length) return;
 
-    // Extract judge submissions info
-    const judgeSubmissions = submissions
-      .flatMap((sub) => sub.judgeSubmissions || [])
-      .filter(Boolean);
+      // Extract judge submissions info
+      const judgeSubmissions = submissions
+        .flatMap((sub) => sub.judgeSubmissions || [])
+        .filter(Boolean);
 
-    setJudgeCount(judgeSubmissions.length);
+      setJudgeCount(judgeSubmissions.length);
 
-    // Calculate total score
-    let total = 0;
-    judgeSubmissions.forEach((js) => {
-      total += js.score || 0;
-    });
+      // Calculate total score
+      let total = 0;
+      judgeSubmissions.forEach((js) => {
+        total += js.score || 0;
+      });
 
-    // Extract criteria details
-    const extractedResults = submissions.flatMap(
-      (submission) =>
-        submission.judgeSubmissions?.flatMap(
-          (judgeSubmission) =>
-            judgeSubmission.judgeSubmissionDetails?.map((detail) => {
-              return {
-                criteria: detail.roundMarkCriterion?.name || "",
-                score: detail.score,
-                max: detail.roundMarkCriterion?.maxScore || 0,
-              };
-            }) || []
-        ) || []
-    );
+      // Extract criteria details
+      const extractedResults = submissions.flatMap(
+        (submission) =>
+          submission.judgeSubmissions?.flatMap(
+            (judgeSubmission) =>
+              judgeSubmission.judgeSubmissionDetails?.map((detail) => {
+                return {
+                  criteria: detail.roundMarkCriterion?.name || "",
+                  score: detail.score,
+                  max: detail.roundMarkCriterion?.maxScore || 0,
+                };
+              }) || []
+          ) || []
+      );
 
-    setTotalScore(total);
-    setResults(extractedResults);
-  }, [submissions]);
+      setTotalScore(total);
+      setResults(extractedResults);
+    } catch (error) {
+      showError(
+        "Error processing results",
+        error instanceof Error
+          ? error.message
+          : "Failed to process submission results"
+      );
+    }
+  }, [submissions, showError]);
 
   // Set active judge tab when submission data loads
   useEffect(() => {

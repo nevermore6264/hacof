@@ -8,7 +8,7 @@ export const fetchMockTasksByBoardListId = (
     setTimeout(() => {
       const mockTasks: Task[] = [
         {
-          id: "task1",
+          id: "1",
           title: "Set up project repository",
           description: "Initialize Git repository and configure CI/CD",
           position: 0,
@@ -70,7 +70,7 @@ export const fetchMockTasksByBoardListId = (
           createdByUserName: "johnsmith",
         },
         {
-          id: "task2",
+          id: "2",
           title: "Design database schema",
           description: "Create initial DB schema and migration scripts",
           position: 1,

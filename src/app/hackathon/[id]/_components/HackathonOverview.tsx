@@ -3,13 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { fetchMockIndividualRegistrations } from "../_mock/fetchMockIndividualRegistrations";
-import { fetchMockTeamRequests } from "../_mock/fetchMockTeamRequests";
-import { fetchMockTeams } from "../_mock/fetchMockTeams";
+import { useAuth } from "@/hooks/useAuth_v0"; // Added the new auth hook
 import { IndividualRegistrationRequest } from "@/types/entities/individualRegistrationRequest";
-import { fetchMockMentorTeams } from "../_mock/fetchMockMentorTeams";
-import { fetchMockMentorshipRequests } from "../_mock/fetchMockMentorshipRequests";
-import { fetchMockMentorshipSessionRequests } from "../_mock/fetchMockMentorshipSessionRequests";
 import { TeamRequest } from "@/types/entities/teamRequest";
 import { Team } from "@/types/entities/team";
 import { MentorTeam } from "@/types/entities/mentorTeam";
@@ -17,6 +12,16 @@ import { MentorshipRequest } from "@/types/entities/mentorshipRequest";
 import { MentorshipSessionRequest } from "@/types/entities/mentorshipSessionRequest";
 import EnrollmentModal from "./EnrollmentModal";
 import MentorshipModal from "./MentorshipModal";
+import ApiResponseModal from "@/components/common/ApiResponseModal";
+import { useApiModal } from "@/hooks/useApiModal";
+
+// Import real services
+import { individualRegistrationRequestService } from "@/services/individualRegistrationRequest.service";
+import { teamRequestService } from "@/services/teamRequest.service";
+import { teamService } from "@/services/team.service";
+import { mentorTeamService } from "@/services/mentorTeam.service";
+import { mentorshipRequestService } from "@/services/mentorshipRequest.service";
+import { mentorshipSessionRequestService } from "@/services/mentorshipSessionRequest.service";
 
 type HackathonOverviewProps = {
   id: string;
@@ -26,6 +31,7 @@ type HackathonOverviewProps = {
   enrollmentCount: number;
   minimumTeamMembers: number;
   maximumTeamMembers: number;
+  endDate: string;
 };
 
 export default function HackathonOverview({
@@ -36,10 +42,36 @@ export default function HackathonOverview({
   enrollmentCount,
   minimumTeamMembers,
   maximumTeamMembers,
+  endDate,
 }: HackathonOverviewProps) {
   const { user } = useAuthStore(); // Get current user
+  const { user: authUser } = useAuth(); // Get user with roles from new auth hook
   const router = useRouter();
 
+  // Check if the user has TEAM_MEMBER role
+  const isTeamMember = authUser?.userRoles?.some(
+    (userRole) => userRole.role.name === "TEAM_MEMBER"
+  );
+  const [isHackathonEnded, setIsHackathonEnded] = useState(false);
+
+  useEffect(() => {
+    // Check if current date is after end date
+    if (endDate) {
+      const currentDate = new Date();
+      const hackathonEndDate = new Date(endDate);
+      setIsHackathonEnded(currentDate > hackathonEndDate);
+    }
+  }, [endDate]);
+
+  const handleGoToFeedback = () => {
+    router.push(`/hackathon/${id}/feedback`);
+  };
+
+  // Use our API modal hook for error and success handling
+  const { modalState, hideModal, showError, showSuccess, showInfo } =
+    useApiModal();
+
+  const [isLoading, setIsLoading] = useState(true);
   const [individualRegistrations, setIndividualRegistrations] = useState<
     IndividualRegistrationRequest[]
   >([]);
@@ -61,50 +93,94 @@ export default function HackathonOverview({
 
     // Fetch all data
     const fetchData = async () => {
-      const [indivRegs, teamReqs, userTeams] = await Promise.all([
-        fetchMockIndividualRegistrations(user.id, id),
-        fetchMockTeamRequests(user.id, id),
-        fetchMockTeams(user.id, id),
-      ]);
+      setIsLoading(true);
+      try {
+        // Fetch individual registrations
+        const indivRegsResponse =
+          await individualRegistrationRequestService.getIndividualRegistrationRequestsByUserAndHackathon(
+            user.username, // Assuming username is what the API expects
+            id
+          );
 
-      setIndividualRegistrations(indivRegs);
-      setTeamRequests(teamReqs);
-      setTeams(userTeams);
+        // Fetch team requests
+        const teamReqsResponse =
+          await teamRequestService.getTeamRequestsByHackathonAndUser(
+            id,
+            user.id
+          );
 
-      if (userTeams.length === 0) return;
+        // Fetch teams
+        const teamsResponse = await teamService.getTeamsByUserAndHackathon(
+          user.id,
+          id
+        );
 
-      const mentorTeamPromises = userTeams.map((team) =>
-        fetchMockMentorTeams(id, team.id)
-      );
-      const mentorshipRequestPromises = userTeams.map((team) =>
-        fetchMockMentorshipRequests(id, team.id)
-      );
+        setIndividualRegistrations(indivRegsResponse.data);
+        setTeamRequests(teamReqsResponse.data);
+        setTeams(teamsResponse.data);
 
-      const mentorTeamsResults = await Promise.all(mentorTeamPromises);
-      const mentorshipRequestsResults = await Promise.all(
-        mentorshipRequestPromises
-      );
+        if (teamsResponse.data.length === 0) {
+          setIsLoading(false);
+          return;
+        }
 
-      const allMentorTeams = mentorTeamsResults.flat();
-      const allMentorshipRequests = mentorshipRequestsResults.flat();
+        // If user has teams, fetch mentor data
+        const mentorTeamsPromises = teamsResponse.data.map((team) =>
+          mentorTeamService.getMentorTeamsByHackathonAndTeam(id, team.id)
+        );
 
-      setMentorTeams(allMentorTeams);
-      setMentorshipRequests(allMentorshipRequests);
+        const mentorshipRequestsPromises = teamsResponse.data.map((team) =>
+          mentorshipRequestService.getMentorshipRequestsByTeamAndHackathon(
+            team.id,
+            id
+          )
+        );
 
-      if (allMentorTeams.length === 0) return;
+        const mentorTeamsResults = await Promise.all(mentorTeamsPromises);
+        const mentorshipRequestsResults = await Promise.all(
+          mentorshipRequestsPromises
+        );
 
-      const mentorshipSessionPromises = allMentorTeams.map((mentorTeam) =>
-        fetchMockMentorshipSessionRequests(mentorTeam.id)
-      );
-      const mentorshipSessionResults = await Promise.all(
-        mentorshipSessionPromises
-      );
+        const allMentorTeams = mentorTeamsResults.flatMap(
+          (result) => result.data
+        );
+        const allMentorshipRequests = mentorshipRequestsResults.flatMap(
+          (result) => result.data
+        );
 
-      setMentorshipSessionRequests(mentorshipSessionResults.flat());
+        setMentorTeams(allMentorTeams);
+        setMentorshipRequests(allMentorshipRequests);
+
+        // Now fetch session requests separately for each mentor team
+        if (allMentorTeams.length > 0) {
+          const sessionRequestsPromises = allMentorTeams.map((mentorTeam) =>
+            mentorshipSessionRequestService.getMentorshipSessionRequestsByMentorTeamId(
+              mentorTeam.id
+            )
+          );
+
+          const sessionRequestsResults = await Promise.all(
+            sessionRequestsPromises
+          );
+          const allSessionRequests = sessionRequestsResults.flatMap(
+            (result) => result.data
+          );
+
+          setMentorshipSessionRequests(allSessionRequests);
+        }
+      } catch (error) {
+        console.error("Failed to fetch hackathon data:", error);
+        showError(
+          "Data Loading Error",
+          "Failed to load hackathon participation data. Please try again later."
+        );
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
-  }, [user, id]);
+  }, [user, id, showError]);
 
   // Determine button title
   let buttonTitle = "Enroll";
@@ -131,6 +207,68 @@ export default function HackathonOverview({
     }
   };
 
+  const handleDataUpdate = async () => {
+    if (!user || teams.length === 0) return;
+
+    try {
+      // Fetch updated mentor data
+      const mentorTeamsPromises = teams.map((team) =>
+        mentorTeamService.getMentorTeamsByHackathonAndTeam(id, team.id)
+      );
+
+      const mentorshipRequestsPromises = teams.map((team) =>
+        mentorshipRequestService.getMentorshipRequestsByTeamAndHackathon(
+          team.id,
+          id
+        )
+      );
+
+      const mentorTeamsResults = await Promise.all(mentorTeamsPromises);
+      const mentorshipRequestsResults = await Promise.all(
+        mentorshipRequestsPromises
+      );
+
+      const allMentorTeams = mentorTeamsResults.flatMap(
+        (result) => result.data
+      );
+      const allMentorshipRequests = mentorshipRequestsResults.flatMap(
+        (result) => result.data
+      );
+
+      setMentorTeams(allMentorTeams);
+      setMentorshipRequests(allMentorshipRequests);
+
+      // Now fetch session requests separately for each mentor team
+      if (allMentorTeams.length > 0) {
+        const sessionRequestsPromises = allMentorTeams.map((mentorTeam) =>
+          mentorshipSessionRequestService.getMentorshipSessionRequestsByMentorTeamId(
+            mentorTeam.id
+          )
+        );
+
+        const sessionRequestsResults = await Promise.all(
+          sessionRequestsPromises
+        );
+        const allSessionRequests = sessionRequestsResults.flatMap(
+          (result) => result.data
+        );
+
+        setMentorshipSessionRequests(allSessionRequests);
+      }
+
+      showSuccess(
+        "Data Updated",
+        "Mentorship data has been successfully updated."
+      );
+    } catch (error) {
+      console.error("Failed to update mentorship data:", error);
+      showError(
+        "Update Error",
+        "Failed to update mentorship data. Please try again later."
+      );
+    }
+  };
+
   return (
     <>
       <div className="p-4 sm:p-6 bg-white border border-gray-200 rounded-lg shadow">
@@ -140,13 +278,35 @@ export default function HackathonOverview({
         <p className="text-gray-600 mt-1 text-sm sm:text-base">📅 {date}</p>
         <p className="mt-4 text-gray-700 text-sm sm:text-base">{subtitle}</p>
         <div className="mt-6 flex gap-4">
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition"
-            onClick={() => setIsModalOpen(true)}
-          >
-            {buttonTitle}
-          </button>
-          {teams.length > 0 && (
+          {isLoading ? (
+            <button
+              className="bg-gray-400 text-white font-bold py-2 px-6 rounded-full cursor-not-allowed"
+              disabled
+            >
+              Loading...
+            </button>
+          ) : isTeamMember ? (
+            <button
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition"
+              onClick={() => setIsModalOpen(true)}
+            >
+              {buttonTitle}
+            </button>
+          ) : (
+            <div>
+              <button
+                className="bg-gray-400 text-white font-bold py-2 px-6 rounded-full cursor-not-allowed"
+                disabled
+              >
+                {buttonTitle}
+              </button>
+              <p className="text-sm text-red-500 mt-1">
+                Only team members can enroll in hackathons
+              </p>
+            </div>
+          )}
+
+          {!isLoading && teams.length > 0 && (
             <>
               <button
                 className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full transition"
@@ -160,6 +320,14 @@ export default function HackathonOverview({
               >
                 Go to board
               </button>
+              {isHackathonEnded && (
+                <button
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-full transition"
+                  onClick={handleGoToFeedback}
+                >
+                  Feedback
+                </button>
+              )}
             </>
           )}
         </div>
@@ -169,16 +337,48 @@ export default function HackathonOverview({
             : `${enrollmentCount} people have registered to participate`}
         </p>
       </div>
-      <EnrollmentModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        individualRegistrations={individualRegistrations}
-        teamRequests={teamRequests}
-        teams={teams}
-        hackathonId={id}
-        minimumTeamMembers={minimumTeamMembers}
-        maximumTeamMembers={maximumTeamMembers}
-      />
+
+      {isTeamMember && (
+        <EnrollmentModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          individualRegistrations={individualRegistrations}
+          teamRequests={teamRequests}
+          teams={teams}
+          hackathonId={id}
+          minimumTeamMembers={minimumTeamMembers}
+          maximumTeamMembers={maximumTeamMembers}
+          onDataUpdate={() => {
+            // Refetch data when enrollment changes
+            if (user) {
+              Promise.all([
+                individualRegistrationRequestService.getIndividualRegistrationRequestsByUserAndHackathon(
+                  user.username,
+                  id
+                ),
+                teamRequestService.getTeamRequestsByHackathonAndUser(
+                  id,
+                  user.id
+                ),
+                teamService.getTeamsByUserAndHackathon(user.id, id),
+              ])
+                .then(([indivRegs, teamReqs, teams]) => {
+                  setIndividualRegistrations(indivRegs.data);
+                  setTeamRequests(teamReqs.data);
+                  setTeams(teams.data);
+                })
+                .catch((error) => {
+                  console.error("Failed to update enrollment data:", error);
+                  showError(
+                    "Update Error",
+                    "Failed to refresh enrollment data."
+                  );
+                });
+            }
+          }}
+        />
+      )}
+
       <MentorshipModal
         isOpen={isMentorshipModalOpen}
         onClose={() => setIsMentorshipModalOpen(false)}
@@ -187,43 +387,16 @@ export default function HackathonOverview({
         mentorshipSessionRequests={mentorshipSessionRequests}
         hackathonId={id}
         teamId={teams.length > 0 ? teams[0].id : ""}
-        onDataUpdate={() => {
-          // Fetch updated data when changes are made
-          const fetchUpdatedData = async () => {
-            if (!user || teams.length === 0) return;
+        onDataUpdate={handleDataUpdate}
+      />
 
-            const mentorTeamPromises = teams.map((team) =>
-              fetchMockMentorTeams(id, team.id)
-            );
-            const mentorshipRequestPromises = teams.map((team) =>
-              fetchMockMentorshipRequests(id, team.id)
-            );
-
-            const mentorTeamsResults = await Promise.all(mentorTeamPromises);
-            const mentorshipRequestsResults = await Promise.all(
-              mentorshipRequestPromises
-            );
-
-            const allMentorTeams = mentorTeamsResults.flat();
-            const allMentorshipRequests = mentorshipRequestsResults.flat();
-
-            setMentorTeams(allMentorTeams);
-            setMentorshipRequests(allMentorshipRequests);
-
-            if (allMentorTeams.length === 0) return;
-
-            const mentorshipSessionPromises = allMentorTeams.map((mentorTeam) =>
-              fetchMockMentorshipSessionRequests(mentorTeam.id)
-            );
-            const mentorshipSessionResults = await Promise.all(
-              mentorshipSessionPromises
-            );
-
-            setMentorshipSessionRequests(mentorshipSessionResults.flat());
-          };
-
-          fetchUpdatedData();
-        }}
+      {/* API Response Modal for showing success/error messages */}
+      <ApiResponseModal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
       />
     </>
   );

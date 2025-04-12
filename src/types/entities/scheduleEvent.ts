@@ -16,10 +16,10 @@ export type ScheduleEvent = {
   location: string;
   startTime: string;
   endTime: string;
-  eventLabel: ScheduleEventLabel;
-  isRecurring: boolean;
-  recurrenceRule: string;
-  fileUrls: FileUrl[];
+  eventLabel?: ScheduleEventLabel;
+  isRecurring?: boolean;
+  recurrenceRule?: string;
+  fileUrls?: FileUrl[];
   attendees?: ScheduleEventAttendee[];
   reminders?: ScheduleEventReminder[];
 } & AuditCreatedBase;

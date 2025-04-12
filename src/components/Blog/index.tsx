@@ -1,5 +1,5 @@
 // src/components/Blog/index.tsx
-import SectionTitle from "../Common/SectionTitle";
+import SectionTitle from "../common/SectionTitle";
 import SingleBlog from "./SingleBlog";
 import blogData from "./blogData";
 

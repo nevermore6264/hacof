@@ -5,19 +5,16 @@ import { MentorshipRequest } from "@/types/entities/mentorshipRequest";
 import { MentorshipSessionRequest } from "@/types/entities/mentorshipSessionRequest";
 import { User } from "@/types/entities/user";
 import { useEffect, useState } from "react";
-import { fetchMockMentors } from "../_mock/fetchMockMentors";
 import MentorTeamsTab from "./MentorTeamsTab";
 import MentorshipRequestsTab from "./MentorshipRequestsTab";
 import SessionRequestsTab from "./SessionRequestsTab";
 import RequestMentorTab from "./RequestMentorTab";
-import {
-  createMentorshipRequest,
-  deleteMentorshipRequest,
-} from "../_api/mentorshipRequestAPI";
-import {
-  createSessionRequest,
-  updateSessionRequest,
-} from "../_api/sessionRequestAPI";
+import { useApiModal } from "@/hooks/useApiModal";
+
+// Import real services instead of mock API functions
+import { mentorshipRequestService } from "@/services/mentorshipRequest.service";
+import { mentorshipSessionRequestService } from "@/services/mentorshipSessionRequest.service";
+import { userHackathonService } from "@/services/userHackathon.service";
 
 type MentorshipModalProps = {
   isOpen: boolean;
@@ -43,37 +40,84 @@ export default function MentorshipModal({
   const [mentors, setMentors] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Use our API modal hook for error and success handling
+  const { modalState, hideModal, showError, showSuccess, showInfo } =
+    useApiModal();
+
   useEffect(() => {
     if (isOpen) {
       setLoading(true);
-      fetchMockMentors(hackathonId)
-        .then((data) => setMentors(data))
+
+      // Replace mock mentor fetching with real service call
+      // Assuming mentors have a specific role in user-hackathon relationship
+      userHackathonService
+        .getUserHackathonsByRole(hackathonId, "MENTOR")
+        .then((response) => {
+          if (response.data) {
+            // Assuming userHackathon contains user data or we need to extract userIds
+            // and fetch user details separately
+            const mentorUsers = response.data.map(
+              (userHackathon) => userHackathon.user
+            ) as User[];
+            setMentors(mentorUsers);
+          } else {
+            showError("Error", "Failed to load mentors");
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to fetch mentors:", error);
+          showError("Error", "Failed to load mentors. Please try again later.");
+        })
         .finally(() => setLoading(false));
     }
-  }, [hackathonId, isOpen]);
+  }, [hackathonId, isOpen, showError]);
 
   // Handler for creating a new mentorship request
   const handleCreateMentorshipRequest = async (mentorId: string) => {
     try {
-      await createMentorshipRequest({
+      const response = await mentorshipRequestService.createMentorshipRequest({
         hackathonId,
         mentorId,
         teamId,
         status: "PENDING",
       });
-      onDataUpdate(); // Refresh data after successful creation
+
+      if (response.data && response.data.id) {
+        showSuccess("Success", "Mentorship request created successfully");
+        onDataUpdate(); // Refresh data after successful creation
+      } else {
+        showError(
+          "Error",
+          response.message || "Failed to create mentorship request"
+        );
+      }
     } catch (error) {
       console.error("Failed to create mentorship request:", error);
+      showError(
+        "Error",
+        "Failed to create mentorship request. Please try again later."
+      );
     }
   };
 
   // Handler for deleting a mentorship request
   const handleDeleteMentorshipRequest = async (requestId: string) => {
     try {
-      await deleteMentorshipRequest(requestId);
-      onDataUpdate(); // Refresh data after successful deletion
+      const response =
+        await mentorshipRequestService.deleteMentorshipRequest(requestId);
+
+      if (response.message) {
+        showSuccess("Success", "Mentorship request deleted successfully");
+        onDataUpdate(); // Refresh data after successful deletion
+      } else {
+        showError("Error", "Failed to delete mentorship request");
+      }
     } catch (error) {
       console.error("Failed to delete mentorship request:", error);
+      showError(
+        "Error",
+        "Failed to delete mentorship request. Please try again later."
+      );
     }
   };
 
@@ -86,13 +130,27 @@ export default function MentorshipModal({
     description: string;
   }) => {
     try {
-      await createSessionRequest({
-        ...data,
-        status: "pending",
-      });
-      onDataUpdate(); // Refresh data after successful creation
+      const response =
+        await mentorshipSessionRequestService.createMentorshipSessionRequest({
+          ...data,
+          status: "PENDING", // Using proper status case according to your service
+        });
+
+      if (response.data && response.data.id) {
+        showSuccess("Success", "Session request created successfully");
+        onDataUpdate(); // Refresh data after successful creation
+      } else {
+        showError(
+          "Error",
+          response.message || "Failed to create session request"
+        );
+      }
     } catch (error) {
       console.error("Failed to create session request:", error);
+      showError(
+        "Error",
+        "Failed to create session request. Please try again later."
+      );
     }
   };
 
@@ -104,14 +162,32 @@ export default function MentorshipModal({
       endTime?: string;
       location?: string;
       description?: string;
-      status?: "pending" | "deleted";
+      status?: "PENDING" | "APPROVED" | "REJECTED" | "DELETED" | "COMPLETED";
+      mentorTeamId: string; // Required by the service
     }
   ) => {
     try {
-      await updateSessionRequest(sessionId, data);
-      onDataUpdate(); // Refresh data after successful update
+      const response =
+        await mentorshipSessionRequestService.updateMentorshipSessionRequest({
+          id: sessionId,
+          ...data,
+        });
+
+      if (response.data) {
+        showSuccess("Success", "Session request updated successfully");
+        onDataUpdate(); // Refresh data after successful update
+      } else {
+        showError(
+          "Error",
+          response.message || "Failed to update session request"
+        );
+      }
     } catch (error) {
       console.error("Failed to update session request:", error);
+      showError(
+        "Error",
+        "Failed to update session request. Please try again later."
+      );
     }
   };
 
@@ -155,6 +231,7 @@ export default function MentorshipModal({
               <Tab.Panel>
                 <MentorTeamsTab
                   mentorTeams={mentorTeams}
+                  mentorshipSessionRequests={mentorshipSessionRequests}
                   onCreateSessionRequest={handleCreateSessionRequest}
                 />
               </Tab.Panel>

@@ -10,5 +10,5 @@ export type ForumThread = {
   forumCategoryId?: string;
   isLocked: boolean;
   isPinned: boolean;
-  threadPosts: ThreadPost[];
+  threadPosts?: ThreadPost[];
 } & AuditCreatedBase;

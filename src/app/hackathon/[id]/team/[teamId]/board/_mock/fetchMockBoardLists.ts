@@ -16,24 +16,6 @@ export const fetchMockBoardListsByBoardId = (
           updatedAt: new Date().toISOString(),
           createdByUserName: "johnsmith",
         },
-        {
-          id: "list2",
-          name: "In Progress",
-          position: 1,
-          boardId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdByUserName: "johnsmith",
-        },
-        {
-          id: "list3",
-          name: "Done",
-          position: 2,
-          boardId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdByUserName: "johnsmith",
-        },
       ];
       resolve(mockBoardLists);
     }, 500);

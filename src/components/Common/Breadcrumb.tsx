@@ -1,4 +1,4 @@
-// src/components/Common/Breadcrumb.tsx
+// src/components/common/Breadcrumb.tsx
 import Link from "next/link";
 
 const Breadcrumb = ({

@@ -10,7 +10,7 @@ export type Schedule = {
   teamId?: string;
   hackathon?: Partial<Hackathon>;
   hackathonId?: string;
-  name: string;
-  description: string;
-  scheduleEvents: ScheduleEvent[];
+  name?: string;
+  description?: string;
+  scheduleEvents?: ScheduleEvent[];
 } & AuditCreatedBase;

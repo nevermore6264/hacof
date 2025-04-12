@@ -1,4 +1,4 @@
-// src/components/Common/SectionTitle.tsx
+// src/components/common/SectionTitle.tsx
 const SectionTitle = ({
   title,
   paragraph,

@@ -1,13 +1,13 @@
 // src/app/hackathon/page.tsx
 "use client";
-import { Metadata } from "next";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import HackathonList from "./_components/HackathonList";
 import Filters from "./_components/Filters";
 import SearchSortBar from "./_components/SearchSortBar";
 import Pagination from "./_components/Pagination";
 import { Hackathon } from "@/types/entities/hackathon";
 import { useQuery } from "@tanstack/react-query";
+import { hackathonService } from "@/services/hackathon.service";
 
 // TODO: {lv2} Research: add Metadata solution for client components
 // export const metadata: Metadata = {
@@ -19,11 +19,8 @@ import { useQuery } from "@tanstack/react-query";
 //NOTE: This page is client component, client side data fetching, client side pagination and filtering
 // TODO: {Lv2} Check optimization, check logic position
 async function getHackathons(): Promise<Hackathon[]> {
-  const res = await fetch(`http://localhost:3000/api/hackathon`);
-  if (!res.ok) {
-    throw new Error("Failed to fetch hackathons");
-  }
-  return res.json();
+  const response = await hackathonService.getAllHackathons();
+  return response.data;
 }
 
 const ITEMS_PER_PAGE = 6; // Limit items per page
@@ -40,6 +37,7 @@ export default function HackathonPage() {
     organizations: [],
   });
   const [page, setPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const {
     data: hackathons = [],
     error,

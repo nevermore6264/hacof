@@ -4,6 +4,10 @@
 import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import KanbanTask from "./KanbanTask";
 import { Column } from "@/store/kanbanStore";
@@ -12,12 +16,20 @@ import { useKanbanStore } from "@/store/kanbanStore";
 interface KanbanColumnProps {
   column: Column;
   isActive?: boolean;
+  isLoading?: boolean;
 }
 
-export default function KanbanColumn({ column, isActive }: KanbanColumnProps) {
+export default function KanbanColumn({
+  column,
+  isActive,
+  isLoading = false,
+}: KanbanColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [columnName, setColumnName] = useState(column.title);
   const [showMenu, setShowMenu] = useState(false);
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
 
   const { setNodeRef: droppableRef } = useDroppable({ id: column.id });
 
@@ -43,6 +55,21 @@ export default function KanbanColumn({ column, isActive }: KanbanColumnProps) {
       await useKanbanStore.getState().deleteList(column.id);
     }
     setShowMenu(false);
+  };
+
+  // Add a function to handle task creation:
+  const handleCreateTask = async () => {
+    if (newTaskTitle.trim() === "") return;
+
+    await useKanbanStore.getState().createTask(column.id, {
+      title: newTaskTitle,
+      description: newTaskDescription || undefined,
+    });
+
+    // Reset form
+    setNewTaskTitle("");
+    setNewTaskDescription("");
+    setIsAddingTask(false);
   };
 
   return (
@@ -137,22 +164,72 @@ export default function KanbanColumn({ column, isActive }: KanbanColumnProps) {
 
       {/* Droppable area for tasks */}
       <div ref={droppableRef} className="space-y-3 min-h-[300px]">
-        {column.tasks.map((task) => (
-          <KanbanTask key={task.id} task={task} />
-        ))}
+        {isLoading ? (
+          // Skeleton cards when loading
+          <>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-20 bg-gray-200 rounded animate-pulse"
+              ></div>
+            ))}
+          </>
+        ) : (
+          // Actual tasks
+          <SortableContext
+            items={column.tasks.map((task) => task.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {column.tasks.map((task) => (
+              <KanbanTask key={task.id} task={task} />
+            ))}
+          </SortableContext>
+        )}
       </div>
 
       {/* Add Card Button */}
-      <button
-        onClick={() => {
-          // TODO: Implement add task functionality
-          console.log("Adding new task to", column.id);
-        }}
-        className="w-full text-gray-500 mt-4 flex items-center space-x-2 p-2 hover:bg-gray-200 rounded"
-      >
-        <span className="text-xl">+</span>
-        <span>Add a card</span>
-      </button>
+      {isAddingTask ? (
+        <div className="mt-4 p-2 bg-white rounded-lg shadow">
+          <input
+            type="text"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            placeholder="Task title"
+            className="w-full mb-2 p-2 border border-gray-300 rounded"
+            autoFocus
+          />
+          <textarea
+            value={newTaskDescription}
+            onChange={(e) => setNewTaskDescription(e.target.value)}
+            placeholder="Description (optional)"
+            className="w-full mb-2 p-2 border border-gray-300 rounded"
+            rows={2}
+          />
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={() => setIsAddingTask(false)}
+              className="px-3 py-1 text-sm bg-gray-200 rounded"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateTask}
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setIsAddingTask(true)}
+          className="w-full text-gray-500 mt-4 flex items-center space-x-2 p-2 hover:bg-gray-200 rounded"
+          disabled={isLoading}
+        >
+          <span className="text-xl">+</span>
+          <span>Add a card</span>
+        </button>
+      )}
     </div>
   );
 }

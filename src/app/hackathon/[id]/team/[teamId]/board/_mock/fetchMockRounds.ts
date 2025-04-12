@@ -6,7 +6,7 @@ export const fetchMockRounds = (hackathonId: string): Promise<Round[]> => {
     setTimeout(() => {
       const mockRounds: Round[] = [
         {
-          id: "r1",
+          id: "1",
           startTime: new Date("2024-06-02T10:00:00Z").toISOString(),
           endTime: new Date("2024-06-02T18:00:00Z").toISOString(),
           roundNumber: 1,
@@ -34,7 +34,7 @@ export const fetchMockRounds = (hackathonId: string): Promise<Round[]> => {
           updatedAt: new Date().toISOString(),
         },
         {
-          id: "r2",
+          id: "2",
           startTime: new Date("2024-06-03T10:00:00Z").toISOString(),
           endTime: new Date("2024-06-03T18:00:00Z").toISOString(),
           roundNumber: 2,
@@ -62,7 +62,7 @@ export const fetchMockRounds = (hackathonId: string): Promise<Round[]> => {
           updatedAt: new Date().toISOString(),
         },
         {
-          id: "round3",
+          id: "4",
           roundNumber: 3,
           roundTitle: "Finals",
           startTime: new Date("2024-06-03T10:00:00Z").toISOString(),
