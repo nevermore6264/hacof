@@ -35,7 +35,7 @@ class TaskService {
     }
   }
 
-  // Update an existing Task
+  // Update an existing Task (used when update taskFiles)
   async updateTask(
     id: string,
     data: {
@@ -69,6 +69,7 @@ class TaskService {
     }
   }
 
+  // Used when update task information (title, description, boardListId, dueDate)
   async updateTaskInformation(
     id: string,
     data: {
