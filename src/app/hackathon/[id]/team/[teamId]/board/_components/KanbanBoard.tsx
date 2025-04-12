@@ -100,10 +100,16 @@ export default function KanbanBoard({
         const { data: boardLists } =
           await boardListService.getBoardListsByBoardId(board.id);
 
+        // Sort board lists by position before mapping to columns
+        const sortedBoardLists = [...boardLists].sort(
+          (a, b) => a.position - b.position
+        );
+
         // Set initial columns with empty tasks (to show skeleton UI)
-        const initialColumns = boardLists.map((list) => ({
+        const initialColumns = sortedBoardLists.map((list) => ({
           id: list.id,
           title: list.name,
+          position: list.position,
           tasks: [],
         }));
 
@@ -111,7 +117,7 @@ export default function KanbanBoard({
         setLoading(false);
 
         // Load tasks for each list progressively
-        for (const list of boardLists) {
+        for (const list of sortedBoardLists) {
           setCurrentLoadingList(list.id);
           const { data: baseTasks } = await taskService.getTasksByBoardListId(
             list.id
@@ -161,6 +167,7 @@ export default function KanbanBoard({
                   status: list.name.toLowerCase().replace(/\s+/g, "-"),
                   description: task.description || "",
                   dueDate: task.dueDate,
+                  position: task.position, // Make sure the position is included
                   assignees:
                     enhancedAssignees
                       ?.map((assignee) => assignee.user)
@@ -177,11 +184,18 @@ export default function KanbanBoard({
 
             enhancedTasks.push(...batchResults);
 
+            // Sort tasks by position before updating the column
+            const sortedEnhancedTasks = [...enhancedTasks].sort(
+              (a, b) => a.position - b.position
+            );
+
             // Update the column with the tasks processed so far
             const updatedColumns = useKanbanStore
               .getState()
               .columns.map((col) =>
-                col.id === list.id ? { ...col, tasks: enhancedTasks } : col
+                col.id === list.id
+                  ? { ...col, tasks: sortedEnhancedTasks }
+                  : col
               );
             setColumns(updatedColumns);
           }
@@ -381,6 +395,11 @@ export default function KanbanBoard({
     );
   }
 
+  // Sort columns by position before rendering
+  const sortedColumns = [...useKanbanStore.getState().columns].sort(
+    (a, b) => a.position - b.position
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -399,11 +418,11 @@ export default function KanbanBoard({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={useKanbanStore.getState().columns.map((col) => col.id)}
+          items={sortedColumns.map((col) => col.id)}
           strategy={horizontalListSortingStrategy}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {useKanbanStore.getState().columns.map((column) => (
+            {sortedColumns.map((column) => (
               <KanbanColumn
                 key={column.id}
                 column={column}
@@ -418,7 +437,10 @@ export default function KanbanBoard({
       {/* Add New List Button */}
       <div className="mt-4">
         <button
-          onClick={() => useKanbanStore.getState().createList("New List")}
+          onClick={() => {
+            const nextPosition = sortedColumns.length;
+            useKanbanStore.getState().createList("New List", nextPosition);
+          }}
           className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg flex items-center"
         >
           <span className="mr-2">+</span>
