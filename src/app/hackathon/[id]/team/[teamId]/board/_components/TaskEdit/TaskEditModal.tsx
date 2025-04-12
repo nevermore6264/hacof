@@ -13,6 +13,9 @@ import TaskComments from "./TaskComments";
 import { BoardLabel } from "@/types/entities/boardLabel";
 import { User } from "@/types/entities/user";
 import { useKanbanStore } from "@/store/kanbanStore";
+import { taskService } from "@/services/task.service";
+import { taskLabelService } from "@/services/taskLabel.service";
+import { taskAssigneeService } from "@/services/taskAssignee.service";
 
 interface TaskEditModalProps {
   task: Task;
@@ -30,6 +33,8 @@ export default function TaskEditModal({
   teamMembers = [],
 }: TaskEditModalProps) {
   const [updatedTask, setUpdatedTask] = useState<Task>(task);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Handle escape key to close the modal
   useEffect(() => {
@@ -44,12 +49,50 @@ export default function TaskEditModal({
   if (!isOpen) return null;
 
   const handleSaveChanges = async () => {
-    // Here you would call your API to update the task
-    // For now just log the changes
-    console.log("Saving task changes:", updatedTask);
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    // Close the modal
-    onClose();
+      // Update task information (title, description, dueDate)
+      const { data: updatedTaskData } = await taskService.updateTaskInformation(
+        task.id,
+        {
+          title: updatedTask.title,
+          description: updatedTask.description || "",
+          boardListId: updatedTask.boardListId,
+          dueDate: updatedTask.dueDate || "",
+        }
+      );
+
+      // Close the modal
+      onClose();
+    } catch (err) {
+      setError("Failed to update task. Please try again.");
+      console.error("Error updating task:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    if (!window.confirm("Are you sure you want to delete this task?")) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      await taskService.deleteTask(task.id);
+
+      // Close the modal
+      onClose();
+    } catch (err) {
+      setError("Failed to delete task. Please try again.");
+      console.error("Error deleting task:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -60,10 +103,17 @@ export default function TaskEditModal({
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
+            disabled={isLoading}
           >
             ✕
           </button>
         </div>
+
+        {error && (
+          <div className="p-2 bg-red-50 text-red-600 text-sm border-b border-red-100">
+            {error}
+          </div>
+        )}
 
         <div className="p-4">
           {/* Task Title */}
@@ -111,7 +161,10 @@ export default function TaskEditModal({
                       .filter(Boolean) || []
                   }
                   availableLabels={boardLabels}
-                  onChange={(labels) => {}}
+                  onChange={(labels) => {
+                    // We'll handle this in the TaskLabels component
+                  }}
+                  taskId={task.id}
                 />
 
                 {/* Task Due Date */}
@@ -129,7 +182,10 @@ export default function TaskEditModal({
                     []
                   }
                   availableMembers={teamMembers}
-                  onChange={(assignees) => {}}
+                  onChange={(assignees) => {
+                    // We'll handle this in the TaskAssignees component
+                  }}
+                  taskId={task.id}
                 />
               </div>
 
@@ -139,20 +195,9 @@ export default function TaskEditModal({
                   Actions
                 </h3>
                 <button
-                  className="w-full text-left text-sm py-1 px-2 text-gray-700 hover:bg-gray-200 rounded"
-                  onClick={() => {}}
-                >
-                  Move
-                </button>
-                <button
-                  className="w-full text-left text-sm py-1 px-2 text-gray-700 hover:bg-gray-200 rounded"
-                  onClick={() => {}}
-                >
-                  Copy
-                </button>
-                <button
                   className="w-full text-left text-sm py-1 px-2 text-red-600 hover:bg-gray-200 rounded"
-                  onClick={() => {}}
+                  onClick={handleDeleteTask}
+                  disabled={isLoading}
                 >
                   Delete
                 </button>
@@ -163,9 +208,10 @@ export default function TaskEditModal({
           <div className="mt-4 flex justify-end">
             <button
               onClick={handleSaveChanges}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+              disabled={isLoading}
             >
-              Save Changes
+              {isLoading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </div>

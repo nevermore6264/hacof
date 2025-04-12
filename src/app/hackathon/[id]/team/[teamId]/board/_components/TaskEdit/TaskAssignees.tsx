@@ -1,33 +1,87 @@
 // src/app/hackathon/[id]/team/[teamId]/board/_components/TaskEdit/TaskAssignees.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@/types/entities/user";
+import { taskAssigneeService } from "@/services/taskAssignee.service";
 
 interface TaskAssigneesProps {
   assignees: User[];
   availableMembers: User[];
   onChange: (assignees: User[]) => void;
+  taskId: string;
 }
 
 export default function TaskAssignees({
   assignees,
   availableMembers,
   onChange,
+  taskId,
 }: TaskAssigneesProps) {
   const [isSelecting, setIsSelecting] = useState(false);
+  const [currentAssignees, setCurrentAssignees] = useState<User[]>(assignees);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleAssignee = (user: User) => {
-    const isAssigned = assignees.some((a) => a.id === user.id);
-    let newAssignees: User[];
+  // Load task assignees when component mounts
+  useEffect(() => {
+    const fetchTaskAssignees = async () => {
+      try {
+        const { data } =
+          await taskAssigneeService.getTaskAssigneesByTaskId(taskId);
+        const assignedUsers = data
+          .map((ta) => ta.user)
+          .filter(Boolean) as User[];
+        setCurrentAssignees(assignedUsers);
+      } catch (err) {
+        console.error("Error fetching task assignees:", err);
+      }
+    };
 
-    if (isAssigned) {
-      newAssignees = assignees.filter((a) => a.id !== user.id);
-    } else {
-      newAssignees = [...assignees, user];
+    fetchTaskAssignees();
+  }, [taskId]);
+
+  const toggleAssignee = async (user: User) => {
+    try {
+      setIsUpdating(true);
+      setError(null);
+
+      const isAssigned = currentAssignees.some((a) => a.id === user.id);
+
+      if (isAssigned) {
+        // Find the taskAssignee to delete
+        const { data: taskAssignees } =
+          await taskAssigneeService.getTaskAssigneesByTaskId(taskId);
+        const assigneeToDelete = taskAssignees.find(
+          (ta) => ta.user?.id === user.id
+        );
+
+        if (assigneeToDelete) {
+          await taskAssigneeService.deleteTaskAssignee(assigneeToDelete.id);
+        }
+
+        // Update local state
+        const newAssignees = currentAssignees.filter((a) => a.id !== user.id);
+        setCurrentAssignees(newAssignees);
+        onChange(newAssignees);
+      } else {
+        // Add new assignee
+        await taskAssigneeService.createTaskAssignee({
+          taskId,
+          userId: user.id,
+        });
+
+        // Update local state
+        const newAssignees = [...currentAssignees, user];
+        setCurrentAssignees(newAssignees);
+        onChange(newAssignees);
+      }
+    } catch (err) {
+      console.error("Error updating task assignee:", err);
+      setError("Failed to update assignee");
+    } finally {
+      setIsUpdating(false);
     }
-
-    onChange(newAssignees);
   };
 
   return (
@@ -35,15 +89,18 @@ export default function TaskAssignees({
       <button
         className="w-full text-left text-sm py-1 px-2 text-gray-700 hover:bg-gray-200 rounded flex items-center"
         onClick={() => setIsSelecting(!isSelecting)}
+        disabled={isUpdating}
       >
         <span className="mr-2">👤</span>
         <span>Members</span>
       </button>
 
+      {error && <div className="mt-1 ml-7 text-xs text-red-500">{error}</div>}
+
       {/* Display assigned members */}
-      {assignees.length > 0 && !isSelecting && (
+      {currentAssignees.length > 0 && !isSelecting && (
         <div className="flex flex-wrap mt-1 ml-7 gap-1">
-          {assignees.map((user) => (
+          {currentAssignees.map((user) => (
             <img
               key={user.id}
               src={user.avatarUrl || "https://via.placeholder.com/30"}
@@ -60,12 +117,14 @@ export default function TaskAssignees({
         <div className="mt-2 p-2 bg-white border border-gray-300 rounded-md shadow-sm">
           <div className="max-h-48 overflow-y-auto">
             {availableMembers.map((user) => {
-              const isAssigned = assignees.some((a) => a.id === user.id);
+              const isAssigned = currentAssignees.some((a) => a.id === user.id);
               return (
                 <div
                   key={user.id}
-                  className="flex items-center mb-1 cursor-pointer hover:bg-gray-100 rounded p-1"
-                  onClick={() => toggleAssignee(user)}
+                  className={`flex items-center mb-1 cursor-pointer hover:bg-gray-100 rounded p-1 ${
+                    isUpdating ? "opacity-50" : ""
+                  }`}
+                  onClick={() => !isUpdating && toggleAssignee(user)}
                 >
                   <img
                     src={user.avatarUrl || "https://via.placeholder.com/30"}
@@ -78,11 +137,11 @@ export default function TaskAssignees({
               );
             })}
           </div>
-
           <div className="mt-2 pt-2 border-t border-gray-200">
             <button
               onClick={() => setIsSelecting(false)}
               className="w-full text-center text-xs text-blue-600 hover:text-blue-800"
+              disabled={isUpdating}
             >
               Close
             </button>

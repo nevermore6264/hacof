@@ -11,10 +11,15 @@ interface TaskDueDateProps {
 
 export default function TaskDueDate({ dueDate, onChange }: TaskDueDateProps) {
   const [isSelecting, setIsSelecting] = useState(false);
-
   const formattedDate = dueDate ? format(parseISO(dueDate), "MMM d, yyyy") : "";
-
   const isPastDue = dueDate && isPast(parseISO(dueDate));
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value
+      ? new Date(e.target.value).toISOString()
+      : undefined;
+    onChange(newDate);
+  };
 
   return (
     <div className="mt-2">
@@ -31,12 +36,7 @@ export default function TaskDueDate({ dueDate, onChange }: TaskDueDateProps) {
           <input
             type="date"
             value={dueDate ? dueDate.split("T")[0] : ""}
-            onChange={(e) => {
-              const newDate = e.target.value
-                ? new Date(e.target.value).toISOString()
-                : undefined;
-              onChange(newDate);
-            }}
+            onChange={handleDateChange}
             className="w-full p-1 border border-gray-300 rounded text-sm"
           />
           <div className="mt-2 flex justify-between">
