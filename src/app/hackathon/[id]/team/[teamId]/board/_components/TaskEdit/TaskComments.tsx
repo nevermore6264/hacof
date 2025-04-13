@@ -11,6 +11,7 @@ interface TaskCommentsProps {
   comments: TaskComment[];
   taskId: string;
   onAddComment?: (comment: TaskComment) => void;
+  onDeleteComment?: (commentId: string) => void;
   onError?: (error: string) => void;
 }
 
@@ -18,6 +19,7 @@ export default function TaskComments({
   comments,
   taskId,
   onAddComment,
+  onDeleteComment,
   onError,
 }: TaskCommentsProps) {
   const { user } = useAuth();
@@ -111,16 +113,13 @@ export default function TaskComments({
 
       await taskCommentService.deleteTaskComment(commentId);
 
-      // Filter out the deleted comment from the local state
-      const filteredComments = comments.filter((c) => c.id !== commentId);
-
-      // Update the parent component's comments list
-      // Since we don't have an onDeleteComment prop, we can use a workaround:
-      // We can create a dummy comment with a special property to signal deletion
-      if (onAddComment) {
+      // Use the dedicated onDeleteComment function if available
+      if (onDeleteComment) {
+        onDeleteComment(commentId);
+      } else if (onAddComment) {
+        // Fallback to the previous workaround if onDeleteComment isn't provided
         const deletedComment = comments.find((c) => c.id === commentId);
         if (deletedComment) {
-          // This is a workaround - the parent component would need to handle this special case
           onAddComment({
             ...deletedComment,
             _isDeleted: true, // Special flag to signal deletion
