@@ -294,8 +294,8 @@ export default function ChatClient() {
           },
         });
         if (response.ok) {
-          const data = await response.json();
-          setUsers(data);
+          const res = await response.json();
+          setUsers(res);
         } else {
           const errorData = await response.json();
           toast.error(errorData.message || "Failed to fetch users");

@@ -77,8 +77,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
                     },
                 });
                 if (response.ok) {
-                    const data = await response.json();
-                    setUsers(data);
+                    const res = await response.json();
+                    setUsers(res);
                 }
             } catch (error) {
                 console.error('Error fetching users:', error);
