@@ -139,6 +139,7 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         title: newTask.title,
         description: newTask.description || "",
         status: column.title.toLowerCase().replace(/\s+/g, "-"),
+        boardListId: listId,
         dueDate: newTask.dueDate,
         position: newTask.position,
         assignees: [],
@@ -250,6 +251,7 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       // Add task to target column with updated status
       const updatedTask = {
         ...task,
+        boardListId: toColumnId,
         status: targetColumn.title.toLowerCase().replace(/\s+/g, "-"),
       };
 
@@ -650,6 +652,7 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       const updatedTasks = newTasks.map((task, index) => ({
         ...task,
         position: index, // Update position property for each task
+        boardListId: columnId,
       }));
 
       // Create updates for the API call
