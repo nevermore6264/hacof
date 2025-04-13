@@ -6,15 +6,9 @@ export const AuthButtons = () => {
     <>
       <Link
         href="/signin"
-        className="hidden px-7 py-3 text-base font-medium text-dark hover:opacity-70 dark:text-white md:block"
+        className="hidden px-6 py-3 bg-[#4A6CF7] text-white text-sm rounded-full font-medium hover:bg-[#4A6CF7]/90 transition md:block"
       >
         Sign In
-      </Link>
-      <Link
-        href="/signup"
-        className="ease-in-up shadow-btn hover:shadow-btn-hover hidden rounded-sm bg-[#4A6CF7] px-8 py-3 text-base font-medium text-white transition duration-300 hover:bg-opacity-90 md:block md:px-9 lg:px-6 xl:px-9"
-      >
-        Sign Up
       </Link>
     </>
   );

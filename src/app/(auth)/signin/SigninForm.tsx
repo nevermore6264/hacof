@@ -202,13 +202,6 @@ const SigninForm = () => {
         </button>
       </div>
 
-      <p className="text-center text-base font-medium text-body-color">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-[#4A6CF7] hover:underline">
-          Sign up
-        </Link>
-      </p>
-
       {error && (
         <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
           <span className="block sm:inline">{error}</span>

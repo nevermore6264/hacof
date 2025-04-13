@@ -31,48 +31,42 @@ export async function GET(request: Request) {
         }
 
         const res = await response.json();
-        console.log("Authentication successful:", res);
 
         // Check if user needs to create password
-        const passwordResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/identity-service/api/v1/users/create-password`,
+        const myInfoResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/identity-service/api/v1/users/my-info`,
             {
-                method: "POST",
+                method: "GET",
                 headers: {
                     "Authorization": `Bearer ${res.data.token}`,
                     "Content-Type": "application/json",
-                    "Accept": "application/json",
                 },
             }
         );
-
-        // If password exists, redirect to home
-        if (passwordResponse.status === 400) {
-            const error = await passwordResponse.json();
-            if (error.code === "PASSWORD_EXISTED") {
-                // Store token in localStorage
-                const script = `
-                    <script>
-                        localStorage.setItem('token', '${res.data.token}');
-                        window.location.href = '/';
-                    </script>
-                `;
-                return new NextResponse(script, {
-                    headers: { 'Content-Type': 'text/html' },
-                });
-            }
+        const resMyInfo = await myInfoResponse.json();
+        if (resMyInfo?.code === 1000 && resMyInfo?.data?.noPassword == true) {
+            // If password doesn't exist, redirect to create password page
+            const script = `
+                <script>
+                    localStorage.setItem('accessToken', '${res?.data?.token}');
+                    window.location.href = '/create-password';
+                </script>
+            `;
+            return new NextResponse(script, {
+                headers: { 'Content-Type': 'text/html' },
+            });
         }
-
-        // If password doesn't exist, redirect to create password page
+        // Store token in localStorage
         const script = `
             <script>
-                localStorage.setItem('token', '${res?.data?.token}');
-                window.location.href = '/create-password';
+                localStorage.setItem('accessToken', '${res.data.token}');
+                window.location.href = '/';
             </script>
         `;
         return new NextResponse(script, {
             headers: { 'Content-Type': 'text/html' },
         });
+
     } catch (error) {
         console.error("Authentication error:", error);
         return NextResponse.json(
