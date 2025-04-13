@@ -6,9 +6,9 @@ import Link from "next/link";
 const Footer = () => {
   return (
     <>
-      <footer className="relative z-10 bg-white pt-16 dark:bg-gray-dark md:pt-20 lg:pt-24 mt-auto">
+      <footer className="relative z-10 bg-white pt-16 dark:bg-gray-dark md:pt-20 lg:pt-24 mt-auto border-t border-gray-200 dark:border-gray-700">
         <div className="container">
-          <div className=" flex flex-wrap">
+          <div className="flex flex-wrap">
             <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-5/12">
               <div className="mb-12 max-w-[360px] lg:mb-16">
                 <Link href="/" className="mb-8 inline-flex">
@@ -17,7 +17,7 @@ const Footer = () => {
                     alt="Hacof"
                     width={40}
                     height={80}
-                    className=" dark:hidden"
+                    className="dark:hidden"
                   />
                   <Image
                     src="/images/logo/logo-name.svg"
@@ -30,13 +30,13 @@ const Footer = () => {
                 <p className="mb-9 text-base leading-relaxed text-body-color dark:text-body-color-dark">
                   © 2024 HACO FPT. All rights reserved.
                 </p>
-                <div className="flex items-center">
+                <div className="flex items-center space-x-4">
                   <a
                     href="/"
                     aria-label="social-link"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mr-6 text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                    className="text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                   >
                     <svg
                       width="18"
@@ -56,7 +56,7 @@ const Footer = () => {
                     aria-label="social-link"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mr-6 text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                    className="text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                   >
                     <svg
                       width="18"
@@ -78,7 +78,7 @@ const Footer = () => {
                     aria-label="social-link"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mr-6 text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                    className="text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                   >
                     <svg
                       width="18"
@@ -114,11 +114,11 @@ const Footer = () => {
                 <h2 className="mb-10 text-xl font-bold text-black dark:text-white">
                   Useful Links
                 </h2>
-                <ul>
+                <ul className="space-y-4">
                   <li>
                     <Link
                       href="/blog"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       Blog
                     </Link>
@@ -126,7 +126,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       Pricing
                     </Link>
@@ -134,7 +134,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/about"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       About
                     </Link>
@@ -148,11 +148,11 @@ const Footer = () => {
                 <h2 className="mb-10 text-xl font-bold text-black dark:text-white">
                   Terms
                 </h2>
-                <ul>
+                <ul className="space-y-4">
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       TOS
                     </Link>
@@ -160,7 +160,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       Privacy Policy
                     </Link>
@@ -168,7 +168,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       Refund Policy
                     </Link>
@@ -182,11 +182,11 @@ const Footer = () => {
                 <h2 className="mb-10 text-xl font-bold text-black dark:text-white">
                   Support & Help
                 </h2>
-                <ul>
+                <ul className="space-y-4">
                   <li>
                     <Link
                       href="/contact"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       Open Support Ticket
                     </Link>
@@ -194,7 +194,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       Terms of Use
                     </Link>
@@ -202,7 +202,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/about"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
+                      className="text-base text-body-color duration-300 hover:text-[#4A6CF7] dark:text-body-color-dark dark:hover:text-[#4A6CF7]"
                     >
                       About
                     </Link>
