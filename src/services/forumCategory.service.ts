@@ -12,7 +12,7 @@ class ForumCategoryService {
     try {
       const response = await apiService.auth.post<ForumCategory>(
         "/communication-service/api/v1/forum-categories",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -96,7 +96,7 @@ class ForumCategoryService {
     try {
       const response = await apiService.auth.put<ForumCategory>(
         `/communication-service/api/v1/forum-categories/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

@@ -15,7 +15,7 @@ class TaskService {
     try {
       const response = await apiService.auth.post<Task>(
         "/communication-service/api/v1/tasks",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -49,7 +49,7 @@ class TaskService {
     try {
       const response = await apiService.auth.put<Task>(
         `/communication-service/api/v1/tasks/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -77,7 +77,7 @@ class TaskService {
     try {
       const response = await apiService.auth.post<FileUrl[]>(
         `/communication-service/api/v1/tasks/${taskId}/files`,
-        { fileUrls }
+        { data: { fileUrls } }
       );
 
       if (!response || !response.data) {
@@ -110,7 +110,7 @@ class TaskService {
     try {
       const response = await apiService.auth.put<Task>(
         `/communication-service/api/v1/tasks/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -230,7 +230,7 @@ class TaskService {
     try {
       const response = await apiService.auth.put<Task[]>(
         "/communication-service/api/v1/tasks/bulk-update",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

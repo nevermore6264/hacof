@@ -90,7 +90,7 @@ class ThreadPostLikeService {
     try {
       const response = await apiService.auth.post<ThreadPostLike>(
         "/communication-service/api/v1/thread-post-likes",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

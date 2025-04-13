@@ -14,7 +14,7 @@ class MentorTeamLimitService {
     try {
       const response = await apiService.auth.post<MentorTeamLimit>(
         "/hackathon-service/api/v1/mentor-team-limits",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -47,7 +47,7 @@ class MentorTeamLimitService {
     try {
       const response = await apiService.auth.put<MentorTeamLimit>(
         `/hackathon-service/api/v1/mentor-team-limits`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

@@ -12,7 +12,7 @@ class TaskLabelService {
     try {
       const response = await apiService.auth.post<TaskLabel>(
         "/communication-service/api/v1/task-labels",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -43,7 +43,7 @@ class TaskLabelService {
     try {
       const response = await apiService.auth.put<TaskLabel>(
         `/communication-service/api/v1/task-labels/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

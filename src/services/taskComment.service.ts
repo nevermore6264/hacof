@@ -12,7 +12,7 @@ class TaskCommentService {
     try {
       const response = await apiService.auth.post<TaskComment>(
         "/communication-service/api/v1/task-comments",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -43,7 +43,7 @@ class TaskCommentService {
     try {
       const response = await apiService.auth.put<TaskComment>(
         `/communication-service/api/v1/task-comments/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

@@ -13,7 +13,7 @@ class ScheduleEventAttendeeService {
     try {
       const response = await apiService.auth.post<ScheduleEventAttendee>(
         "/communication-service/api/v1/schedule-event-attendees",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -46,7 +46,7 @@ class ScheduleEventAttendeeService {
     try {
       const response = await apiService.auth.put<ScheduleEventAttendee>(
         `/communication-service/api/v1/schedule-event-attendees/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
