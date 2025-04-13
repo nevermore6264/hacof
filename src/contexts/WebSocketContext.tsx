@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import { useAuth } from '@/hooks/useAuth_v0';
+import { toast } from 'sonner';
 
 interface WebSocketContextType {
     client: Client | null;
@@ -23,15 +24,38 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     useEffect(() => {
         if (!user?.id) return;
 
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            toast.error('Authentication token not found');
+            return;
+        }
+
         const socket = new SockJS('http://localhost:8083/ws');
         const stompClient = new Client({
             webSocketFactory: () => socket,
             connectHeaders: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                Authorization: `Bearer ${token}`,
             },
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
+            onStompError: (frame) => {
+                console.error('WebSocket error:', frame);
+                if (frame.headers['message']?.includes('401')) {
+                    toast.error('Authentication failed. Please login again.');
+                    // Handle re-authentication or redirect to login
+                } else {
+                    toast.error('WebSocket connection error');
+                }
+            },
+            onWebSocketError: (event) => {
+                console.error('WebSocket error:', event);
+                toast.error('WebSocket connection error');
+            },
+            onDisconnect: () => {
+                setIsConnected(false);
+                toast.error('Disconnected from WebSocket');
+            }
         });
 
         stompClient.onConnect = () => {
@@ -39,16 +63,13 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             setIsConnected(true);
         };
 
-        stompClient.onStompError = (frame) => {
-            console.error('Broker reported error: ' + frame.headers['message']);
-            console.error('Additional details: ' + frame.body);
-        };
-
         stompClient.activate();
         setClient(stompClient);
 
         return () => {
-            stompClient.deactivate();
+            if (stompClient.connected) {
+                stompClient.deactivate();
+            }
         };
     }, [user?.id]);
 
