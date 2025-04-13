@@ -6,30 +6,29 @@ import Link from "next/link";
 const Footer = () => {
   return (
     <>
-      <footer className="relative z-10 bg-white pt-16 dark:bg-gray-dark md:pt-20 lg:pt-24">
+      <footer className="relative z-10 bg-white pt-16 dark:bg-gray-dark md:pt-20 lg:pt-24 mt-auto">
         <div className="container">
           <div className=" flex flex-wrap">
             <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-5/12">
               <div className="mb-12 max-w-[360px] lg:mb-16">
-                <Link href="/" className="mb-8 inline-block">
+                <Link href="/" className="mb-8 inline-flex">
                   <Image
-                    src="/images/logo/logo-2.svg"
-                    alt="logo"
-                    className="w-full dark:hidden"
-                    width={140}
-                    height={30}
+                    src="/images/logo/logoe.svg"
+                    alt="Hacof"
+                    width={40}
+                    height={80}
+                    className=" dark:hidden"
                   />
                   <Image
-                    src="/images/logo/logo.svg"
-                    alt="logo"
-                    className="hidden w-full dark:block"
-                    width={140}
-                    height={30}
+                    src="/images/logo/logo-name.svg"
+                    alt="Hacof"
+                    width={90}
+                    height={90}
+                    className="dark:hidden"
                   />
                 </Link>
                 <p className="mb-9 text-base leading-relaxed text-body-color dark:text-body-color-dark">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Integer lobortis.
+                  © 2024 HACO FPT. All rights reserved.
                 </p>
                 <div className="flex items-center">
                   <a
@@ -211,30 +210,6 @@ const Footer = () => {
                 </ul>
               </div>
             </div>
-          </div>
-
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-[#D2D8E183] to-transparent dark:via-[#959CB183]"></div>
-          <div className="py-8">
-            <p className="text-center text-base text-body-color dark:text-white">
-              Template by{" "}
-              <a
-                href="http://uideck.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#4A6CF7]"
-              >
-                UIdeck
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://nextjstemplates.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#4A6CF7]"
-              >
-                Next.js Templates
-              </a>
-            </p>
           </div>
         </div>
         <div className="absolute right-0 top-14 z-[-1]">

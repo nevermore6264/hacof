@@ -32,13 +32,13 @@ export default function RootLayout({
       */}
       <head />
 
-      <body
-        className={`pt-[142px] bg-[#FCFCFC] dark:bg-black ${inter.className}`}
-      >
+      <body className={`min-h-screen flex flex-col bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
         <WebSocketProvider>
           <Providers>
             <Header />
-            {children}
+            <main className="flex-1 pt-[142px]">
+              {children}
+            </main>
             <Toaster position="top-center" richColors />
             <Footer />
             <ScrollToTop />
