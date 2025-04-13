@@ -15,7 +15,7 @@ import {
 import { Board } from "@/types/entities/board";
 import { BoardLabel } from "@/types/entities/boardLabel";
 import { BoardList } from "@/types/entities/boardList";
-
+import { taskService } from "@/services/task.service";
 export type Task = {
   id: string;
   title: string;
@@ -65,7 +65,7 @@ interface KanbanState {
     }
   ) => Promise<Task | null>;
   updateTask: (updatedTask: Task) => void;
-  removeTask: (taskId: string) => void;
+  removeTask: (taskId: string) => Promise<boolean>;
 
   // Board operations
   setBoard: (board: Board) => void;
@@ -139,6 +139,7 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
         title: newTask.title,
         description: newTask.description || "",
         status: column.title.toLowerCase().replace(/\s+/g, "-"),
+        boardListId: listId,
         dueDate: newTask.dueDate,
         position: newTask.position,
         assignees: [],
@@ -205,28 +206,79 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
   },
 
   // Remove a task from the store
-  removeTask: (taskId) => {
-    set((state) => {
+  removeTask: async (taskId) => {
+    const state = get();
+    set({ isLoading: true, error: null });
+
+    try {
       // Find which column contains this task
       const columnWithTask = state.columns.find((column) =>
         column.tasks.some((task) => task.id === taskId)
       );
 
-      if (!columnWithTask) return state;
+      if (!columnWithTask) {
+        set({ isLoading: false });
+        return false;
+      }
 
-      // Update the columns, removing the task from the appropriate column
-      const updatedColumns = state.columns.map((column) => {
-        if (column.id === columnWithTask.id) {
-          return {
-            ...column,
-            tasks: column.tasks.filter((task) => task.id !== taskId),
-          };
-        }
-        return column;
+      // Find the task to get its position
+      const taskToRemove = columnWithTask.tasks.find(
+        (task) => task.id === taskId
+      );
+      if (!taskToRemove) {
+        set({ isLoading: false });
+        return false;
+      }
+
+      // Get tasks that need position updates (tasks below the current task)
+      const tasksToUpdate = columnWithTask.tasks
+        .filter((t) => t.position > taskToRemove.position)
+        .map((t) => ({
+          id: t.id,
+          boardListId: columnWithTask.id,
+          position: t.position - 1, // Decrement position by 1
+        }));
+
+      // First delete the task from the API
+      await taskService.deleteTask(taskId);
+
+      // If there are tasks that need position updates
+      if (tasksToUpdate.length > 0) {
+        // Update positions of remaining tasks
+        await updateTaskPositions(tasksToUpdate);
+      }
+
+      // Update the local state
+      set({
+        columns: state.columns.map((column) => {
+          if (column.id === columnWithTask.id) {
+            return {
+              ...column,
+              tasks: column.tasks
+                .filter((task) => task.id !== taskId)
+                .map((task) => {
+                  // Adjust positions for tasks that were after the deleted task
+                  if (task.position > taskToRemove.position) {
+                    return { ...task, position: task.position - 1 };
+                  }
+                  return task;
+                }),
+            };
+          }
+          return column;
+        }),
+        isLoading: false,
       });
 
-      return { columns: updatedColumns };
-    });
+      return true;
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to delete task",
+      });
+      return false;
+    }
   },
 
   // Task operations
@@ -250,6 +302,7 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       // Add task to target column with updated status
       const updatedTask = {
         ...task,
+        boardListId: toColumnId,
         status: targetColumn.title.toLowerCase().replace(/\s+/g, "-"),
       };
 
@@ -650,6 +703,7 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       const updatedTasks = newTasks.map((task, index) => ({
         ...task,
         position: index, // Update position property for each task
+        boardListId: columnId,
       }));
 
       // Create updates for the API call

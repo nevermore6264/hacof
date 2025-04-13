@@ -20,6 +20,7 @@ import { taskCommentService } from "@/services/taskComment.service";
 import { FileUrl } from "@/types/entities/fileUrl";
 import { TaskComment } from "@/types/entities/taskComment";
 import { fileUrlService } from "@/services/fileUrl.service";
+
 interface TaskEditModalProps {
   task: Task;
   isOpen: boolean;
@@ -127,13 +128,15 @@ export default function TaskEditModal({
       setIsLoading(true);
       setError(null);
 
-      await taskService.deleteTask(task.id);
+      // Use the enhanced removeTask from the store
+      const success = await removeTask(task.id);
 
-      // Remove the task from the store
-      removeTask(task.id);
-
-      // Close the modal
-      onClose();
+      if (success) {
+        // Close the modal
+        onClose();
+      } else {
+        setError("Failed to delete task. Please try again.");
+      }
     } catch (err) {
       setError("Failed to delete task. Please try again.");
       console.error("Error deleting task:", err);
@@ -143,7 +146,36 @@ export default function TaskEditModal({
   };
 
   const handleAddComment = (comment: TaskComment) => {
-    setComments((prevComments) => [...prevComments, comment]);
+    // Check if this is a deleted comment (using the special flag from TaskComments)
+    if ((comment as any)._isDeleted) {
+      // Remove the comment from the local state
+      setComments((prevComments) =>
+        prevComments.filter((c) => c.id !== comment.id)
+      );
+      return;
+    }
+
+    // If it's a new or edited comment, add/update it in the state
+    setComments((prevComments) => {
+      // Check if this comment already exists (for editing)
+      const existingIndex = prevComments.findIndex((c) => c.id === comment.id);
+
+      if (existingIndex >= 0) {
+        // Update existing comment
+        const updatedComments = [...prevComments];
+        updatedComments[existingIndex] = comment;
+        return updatedComments;
+      } else {
+        // Add new comment
+        return [...prevComments, comment];
+      }
+    });
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    setComments((prevComments) =>
+      prevComments.filter((c) => c.id !== commentId)
+    );
   };
 
   const handleAddFile = (file: FileUrl) => {
@@ -209,6 +241,7 @@ export default function TaskEditModal({
                 comments={comments}
                 taskId={task.id}
                 onAddComment={handleAddComment}
+                onDeleteComment={handleDeleteComment}
                 onError={handleError}
               />
             </div>

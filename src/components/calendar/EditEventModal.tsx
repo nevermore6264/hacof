@@ -125,23 +125,26 @@ const EditEventModal: React.FC<EditEventModalProps> = ({
     setIsLoading(true);
 
     try {
-      // Extract file URLs for the API request
-      const fileUrls = files.map((file) => file.fileUrl);
-
-      // Call the API to update the event
+      // Step 1: Update the basic event information
       const { data: updatedEvent } =
-        await scheduleEventService.updateScheduleEvent(selectedEvent.id, {
-          scheduleId: scheduleId,
-          name: eventName,
-          description: eventDescription,
-          location: eventLocation,
-          startTime: eventStartDate,
-          endTime: eventEndDate || eventStartDate,
-          eventLabel: eventLabel,
-          isRecurring: false,
-          recurrenceRule: undefined,
-          fileUrls: fileUrls,
-        });
+        await scheduleEventService.updateScheduleEventInformation(
+          selectedEvent.id,
+          {
+            scheduleId: scheduleId,
+            name: eventName,
+            description: eventDescription,
+            location: eventLocation,
+            startTime: eventStartDate,
+            endTime: eventEndDate || eventStartDate,
+            eventLabel: eventLabel,
+            isRecurring: false,
+            recurrenceRule: undefined,
+          }
+        );
+
+      // Step 2: Handle the file associations if there are new files that need to be associated
+      // Note: This step is now handled directly in the EventFilesSection component
+      // when files are uploaded, so we don't need to do it again here
 
       // Update UI via the callback
       onUpdateEvent({

@@ -2,7 +2,7 @@
 import { apiService } from "@/services/apiService_v0";
 import { ScheduleEvent } from "@/types/entities/scheduleEvent";
 import { handleApiError } from "@/utils/errorHandler";
-
+import { FileUrl } from "@/types/entities/fileUrl";
 class ScheduleEventService {
   async createScheduleEvent(data: {
     scheduleId: string;
@@ -72,6 +72,77 @@ class ScheduleEventService {
         error,
         {} as ScheduleEvent,
         "[Schedule Event Service] Error updating schedule event:"
+      );
+    }
+  }
+
+  // Used when update schedule event information (without fileUrls)
+  async updateScheduleEventInformation(
+    id: string,
+    data: {
+      scheduleId: string;
+      name?: string;
+      description?: string;
+      location?: string;
+      startTime?: string;
+      endTime?: string;
+      eventLabel?: string;
+      isRecurring?: boolean;
+      recurrenceRule?: string;
+    }
+  ): Promise<{ data: ScheduleEvent; message?: string }> {
+    try {
+      const response = await apiService.auth.put<ScheduleEvent>(
+        `/communication-service/api/v1/schedule-events/${id}`,
+        data
+      );
+
+      if (!response || !response.data) {
+        throw new Error(
+          response?.message || "Failed to update schedule event information"
+        );
+      }
+
+      return {
+        data: response.data,
+        message:
+          response.message || "Schedule event information updated successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<ScheduleEvent>(
+        error,
+        {} as ScheduleEvent,
+        "[Schedule Event Service] Error updating schedule event information:"
+      );
+    }
+  }
+
+  // Create Schedule Event Files (associate fileUrls with a schedule event)
+  async createScheduleEventFiles(
+    scheduleEventId: string,
+    fileUrls: string[]
+  ): Promise<{ data: FileUrl[]; message?: string }> {
+    try {
+      const response = await apiService.auth.post<FileUrl[]>(
+        `/communication-service/api/v1/schedule-events/${scheduleEventId}/files`,
+        { fileUrls }
+      );
+
+      if (!response || !response.data) {
+        throw new Error(
+          response?.message || "Failed to attach files to schedule event"
+        );
+      }
+
+      return {
+        data: response.data,
+        message: response.message || "Schedule event files added successfully",
+      };
+    } catch (error: any) {
+      return handleApiError<FileUrl[]>(
+        error,
+        [],
+        "[Schedule Event Service] Error creating schedule event files:"
       );
     }
   }

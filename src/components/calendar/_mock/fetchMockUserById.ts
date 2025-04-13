@@ -8,6 +8,7 @@ export const fetchMockUserById = (userId: string): Promise<User | null> => {
         id: userId,
         firstName: "Charlie",
         lastName: "Brown",
+        username: "charlie.brown",
         email: "charlie@example.com",
         userRoles: [
           {

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { FileUrl } from "@/types/entities/fileUrl";
 import { fileUrlService } from "@/services/fileUrl.service";
+import { scheduleEventService } from "@/services/scheduleEvent.service";
 
 interface EventFilesSectionProps {
   files: FileUrl[];
@@ -38,7 +39,8 @@ const EventFilesSection: React.FC<EventFilesSectionProps> = ({
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
-    if (!selectedFiles || selectedFiles.length === 0) return;
+    if (!selectedFiles || selectedFiles.length === 0 || !scheduleEventId)
+      return;
 
     setUploading(true);
 
@@ -46,12 +48,24 @@ const EventFilesSection: React.FC<EventFilesSectionProps> = ({
       // Convert FileList to File array
       const filesArray = Array.from(selectedFiles);
 
-      // Call real API to upload files
+      // Step 1: Upload files to the communication service
       const { data: uploadedFiles } =
         await fileUrlService.uploadMultipleFilesCommunication(filesArray);
 
-      // Update files state with newly uploaded files
-      setFiles([...files, ...uploadedFiles]);
+      // Step 2: Extract fileUrls from the uploaded files
+      const fileUrls = uploadedFiles.map((file) => file.fileUrl);
+
+      // Step 3: Associate the uploaded files with the schedule event
+      if (fileUrls.length > 0 && scheduleEventId) {
+        const { data: associatedFiles } =
+          await scheduleEventService.createScheduleEventFiles(
+            scheduleEventId,
+            fileUrls
+          );
+
+        // Step 4: Update local state with the associated files
+        setFiles([...files, ...associatedFiles]);
+      }
     } catch (error) {
       console.error("Error uploading files:", error);
     } finally {
