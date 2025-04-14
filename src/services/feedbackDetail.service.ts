@@ -179,7 +179,7 @@ class FeedbackDetailService {
     try {
       const response = await apiService.auth.post<FeedbackDetail[]>(
         `/feedback-service/api/v1/feedback-details/bulk?feedbackId=${feedbackId}`,
-        { details }
+        { data: { details } }
       );
 
       if (!response || !response.data) {
