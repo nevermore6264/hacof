@@ -171,17 +171,42 @@ export default function ChatClient() {
       const messageBody = {
         content: encodeURIComponent(content),
         fileUrls: messageData?.fileUrls || [],
-        createdByUserName: user.username
       };
 
-      console.log('Sending message with body:', messageBody); // Debug log
+      console.log('Sending message with body:', messageBody);
 
+      // 1. Gửi message qua WebSocket trước
       client.publish({
-        destination: `/app/chat/${selectedChatId}`,
+        destination: `/app/chat/${selectedChatId}/${user.username}`,
         body: JSON.stringify(messageBody)
       });
+
+      // 2. Sau đó gọi API để lưu message
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/messages/${selectedChatId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: content, // Gửi content gốc, không encode
+          fileUrls: messageData?.fileUrls || [],
+        })
+      });
+      console.log('Response:', response);
+      if (!response.ok) {
+        throw new Error('Failed to save message');
+      }
+
+      const savedMessage = await response.json();
+      console.log('Message saved successfully:', savedMessage);
+
     } catch (error) {
-      toast.error('Failed to send message');
+      console.error('Error sending/saving message:', error);
+      toast.error('Failed to save message. The message was sent but may not persist.');
+
+      // Có thể thêm logic retry ở đây nếu cần
     }
   };
 

@@ -17,7 +17,7 @@ export async function POST(
         }
 
         // 3. Parse request body
-        const { content, fileUrls, createdByUserName } = await request.json();
+        const { content, fileUrls } = await request.json();
 
         // 4. Gửi request đến backend API
         const backendResponse = await fetch(
@@ -29,9 +29,10 @@ export async function POST(
                     Authorization: authHeader,
                 },
                 body: JSON.stringify({
-                    content,
-                    fileUrls: fileUrls || [], // Sử dụng fileUrls từ request body
-                    createdByUserName: createdByUserName,
+                    data: {
+                        content: content, // Gửi content gốc, không encode
+                        fileUrls: fileUrls || [],
+                    }
                 }),
             }
         );

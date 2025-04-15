@@ -24,29 +24,15 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     useEffect(() => {
         if (!user?.id) return;
 
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            toast.error('Authentication token not found');
-            return;
-        }
-
         const socket = new SockJS('http://localhost:8083/ws');
         const stompClient = new Client({
             webSocketFactory: () => socket,
-            connectHeaders: {
-                Authorization: `Bearer ${token}`,
-            },
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
             onStompError: (frame) => {
                 console.error('WebSocket error:', frame);
-                if (frame.headers['message']?.includes('401')) {
-                    toast.error('Authentication failed. Please login again.');
-                    // Handle re-authentication or redirect to login
-                } else {
-                    toast.error('WebSocket connection error');
-                }
+                toast.error('WebSocket connection error');
             },
             onWebSocketError: (event) => {
                 console.error('WebSocket error:', event);
