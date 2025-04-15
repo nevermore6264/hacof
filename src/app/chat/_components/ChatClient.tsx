@@ -131,13 +131,19 @@ export default function ChatClient() {
           const messageData = JSON.parse(message.body);
           console.log('Parsed message data:', messageData);
 
+          // Decode message content
+          const decodedMessage = {
+            ...messageData,
+            content: decodeURIComponent(messageData.content)
+          };
+
           // Update chats state
           setChats(prevChats => {
             return prevChats.map(chat => {
               if (chat.id === selectedChatId) {
                 return {
                   ...chat,
-                  messages: [...chat.messages, messageData]
+                  messages: [...chat.messages, decodedMessage]
                 };
               }
               return chat;
@@ -150,8 +156,10 @@ export default function ChatClient() {
               if (item.id.toString() === selectedChatId) {
                 return {
                   ...item,
-                  lastMessage: messageData.fileUrls?.length > 0 ? "Sent an attachment" : messageData.content,
-                  lastMessageTime: messageData.createdAt,
+                  lastMessage: decodedMessage.fileUrls?.length > 0
+                    ? "Sent an attachment"
+                    : decodedMessage.content,
+                  lastMessageTime: decodedMessage.createdAt,
                   isUnread: false
                 };
               }

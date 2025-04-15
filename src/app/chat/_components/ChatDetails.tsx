@@ -164,7 +164,9 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
         if (!content.trim()) return;
 
         try {
-            await onSendMessage(content);
+            // Encode nội dung trước khi gửi
+            const encodedContent = encodeURIComponent(content);
+            await onSendMessage(encodedContent);
             setMessage('');
         } catch (error) {
             toast.error('Failed to send message');
@@ -346,7 +348,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
                         <FaSmile size={20} />
                     </button>
                     {showEmojiPicker && (
-                        <div className="absolute bottom-16">
+                        <div className="absolute bottom-20 z-50">
                             <EmojiPicker onEmojiClick={handleEmojiClick} />
                         </div>
                     )}
@@ -376,7 +378,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
                     </button>
                 </form>
             </div>
-        </div>
+        </div >
     );
 };
 
