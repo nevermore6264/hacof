@@ -114,13 +114,22 @@ export default function ChatClient() {
 
   // Subscribe to chat messages when connected
   useEffect(() => {
-    if (!client || !isConnected || !selectedChatId) return;
+    if (!client || !isConnected || !selectedChatId) {
+      console.log('Cannot subscribe:', { client: !!client, isConnected, selectedChatId });
+      return;
+    }
+
+    const subscriptionTopic = `/topic/conversations/${selectedChatId}`;
+    console.log('Subscribing to:', subscriptionTopic);
 
     const subscription = client.subscribe(
-      `/topic/conversations/${selectedChatId}`,
+      subscriptionTopic,
       (message: { body: string }) => {
+        console.log('Received message on topic:', subscriptionTopic);
+        console.log('Raw message:', message);
         try {
           const messageData = JSON.parse(message.body);
+          console.log('Parsed message data:', messageData);
 
           // Update chats state
           setChats(prevChats => {
@@ -150,12 +159,14 @@ export default function ChatClient() {
             });
           });
         } catch (error) {
+          console.error('Error processing message:', error);
           toast.error('Error processing message');
         }
       }
     );
 
     return () => {
+      console.log('Unsubscribing from:', subscriptionTopic);
       subscription.unsubscribe();
     };
   }, [client, isConnected, selectedChatId]);
@@ -180,20 +191,13 @@ export default function ChatClient() {
         username: user?.username
       });
 
-      const destination = `/chat/${selectedChatId}/${user.username}`;
-      console.log('Destination:', destination);
+      const destination = `/app/chat/${selectedChatId}/${user.username}`;
 
       // 1. Gửi message qua WebSocket
-      try {
-        client.publish({
-          destination: destination,
-          body: JSON.stringify(messageBody)
-        });
-
-        console.log('After publish - Message body:', messageBody);
-      } catch (error) {
-        console.error('Error during publish:', error);
-      }
+      client.publish({
+        destination: destination,
+        body: JSON.stringify(messageBody)
+      });
 
       // 2. Sau đó gọi API để lưu message
       const token = localStorage.getItem('accessToken');
@@ -219,7 +223,6 @@ export default function ChatClient() {
     } catch (error) {
       console.error('Error sending/saving message:', error);
       toast.error('Failed to save message. The message was sent but may not persist.');
-
     }
   };
 
