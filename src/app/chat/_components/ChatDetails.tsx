@@ -225,7 +225,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
     };
 
     return (
-        <div className="w-2/3 flex flex-col bg-white">
+        <div className="w-2/3 flex flex-col bg-white h-full">
             {/* Chat header */}
             <div className="p-4 border-b flex items-center space-x-2">
                 <div className="w-10 h-10 rounded-full bg-gray-300">

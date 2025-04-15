@@ -378,7 +378,7 @@ export default function ChatClient() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100" suppressHydrationWarning>
+    <div className="flex bg-gray-100 h-[calc(100vh-475px)]" suppressHydrationWarning>
       {/* Left Side - Chat List */}
       <ChatList
         chats={chatListItems}
