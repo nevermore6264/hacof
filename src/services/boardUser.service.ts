@@ -116,7 +116,7 @@ class BoardUserService {
     try {
       const response = await apiService.auth.post<BoardUser>(
         "/communication-service/api/v1/board-users",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -149,7 +149,7 @@ class BoardUserService {
     try {
       const response = await apiService.auth.put<BoardUser>(
         `/communication-service/api/v1/board-users/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

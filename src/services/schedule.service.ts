@@ -12,7 +12,7 @@ class ScheduleService {
     try {
       const response = await apiService.auth.post<Schedule>(
         "/communication-service/api/v1/schedules",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -42,7 +42,7 @@ class ScheduleService {
     try {
       const response = await apiService.auth.put<Schedule>(
         `/communication-service/api/v1/schedules/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

@@ -60,7 +60,7 @@ class ThreadPostService {
     try {
       const response = await apiService.auth.post<ThreadPost>(
         "/communication-service/api/v1/thread-posts",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -91,7 +91,7 @@ class ThreadPostService {
     try {
       const response = await apiService.auth.put<ThreadPost>(
         `/communication-service/api/v1/thread-posts/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

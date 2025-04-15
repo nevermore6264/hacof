@@ -87,7 +87,7 @@ class BoardLabelService {
     try {
       const response = await apiService.auth.post<BoardLabel>(
         "/api/v1/board-labels",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -118,7 +118,7 @@ class BoardLabelService {
     try {
       const response = await apiService.auth.put<BoardLabel>(
         `/communication-service/api/v1/board-labels/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

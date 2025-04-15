@@ -13,7 +13,7 @@ class ScheduleEventReminderService {
     try {
       const response = await apiService.auth.post<ScheduleEventReminder>(
         "/communication-service/api/v1/schedule-event-reminders",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -46,7 +46,7 @@ class ScheduleEventReminderService {
     try {
       const response = await apiService.auth.put<ScheduleEventReminder>(
         `/communication-service/api/v1/schedule-event-reminders/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

@@ -13,7 +13,7 @@ class ForumThreadService {
     try {
       const response = await apiService.auth.post<ForumThread>(
         "/communication-service/api/v1/forum-threads",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -121,7 +121,7 @@ class ForumThreadService {
     try {
       const response = await apiService.auth.put<ForumThread>(
         `/communication-service/api/v1/forum-threads/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

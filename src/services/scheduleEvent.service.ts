@@ -18,7 +18,7 @@ class ScheduleEventService {
     try {
       const response = await apiService.auth.post<ScheduleEvent>(
         "/communication-service/api/v1/schedule-events",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -56,7 +56,7 @@ class ScheduleEventService {
     try {
       const response = await apiService.auth.put<ScheduleEvent>(
         `/communication-service/api/v1/schedule-events/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -94,7 +94,7 @@ class ScheduleEventService {
     try {
       const response = await apiService.auth.put<ScheduleEvent>(
         `/communication-service/api/v1/schedule-events/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -125,7 +125,7 @@ class ScheduleEventService {
     try {
       const response = await apiService.auth.post<FileUrl[]>(
         `/communication-service/api/v1/schedule-events/${scheduleEventId}/files`,
-        { fileUrls }
+        { data: { fileUrls } }
       );
 
       if (!response || !response.data) {

@@ -85,7 +85,7 @@ class BoardListService {
     try {
       const response = await apiService.auth.post<BoardList>(
         "/communication-service/api/v1/board-lists",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -116,7 +116,7 @@ class BoardListService {
     try {
       const response = await apiService.auth.put<BoardList>(
         `/communication-service/api/v1/board-lists/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -145,7 +145,7 @@ class BoardListService {
     try {
       const response = await apiService.auth.put<BoardList[]>(
         "/communication-service/api/v1/board-lists/bulk-update",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {

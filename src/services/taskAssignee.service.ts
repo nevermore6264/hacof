@@ -12,7 +12,7 @@ class TaskAssigneeService {
     try {
       const response = await apiService.auth.post<TaskAssignee>(
         "/communication-service/api/v1/task-assignees",
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
@@ -43,7 +43,7 @@ class TaskAssigneeService {
     try {
       const response = await apiService.auth.put<TaskAssignee>(
         `/communication-service/api/v1/task-assignees/${id}`,
-        data
+        { data: data }
       );
 
       if (!response || !response.data) {
