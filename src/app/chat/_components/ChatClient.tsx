@@ -173,13 +173,27 @@ export default function ChatClient() {
         fileUrls: messageData?.fileUrls || [],
       };
 
-      console.log('Sending message with body:', messageBody);
-
-      // 1. Gửi message qua WebSocket trước
-      client.publish({
-        destination: `/app/chat/${selectedChatId}/${user.username}`,
-        body: JSON.stringify(messageBody)
+      console.log('Before sending - Check connection status:', {
+        clientExists: !!client,
+        isConnected,
+        selectedChatId,
+        username: user?.username
       });
+
+      const destination = `/chat/${selectedChatId}/${user.username}`;
+      console.log('Destination:', destination);
+
+      // 1. Gửi message qua WebSocket
+      try {
+        client.publish({
+          destination: destination,
+          body: JSON.stringify(messageBody)
+        });
+
+        console.log('After publish - Message body:', messageBody);
+      } catch (error) {
+        console.error('Error during publish:', error);
+      }
 
       // 2. Sau đó gọi API để lưu message
       const token = localStorage.getItem('accessToken');
@@ -206,7 +220,6 @@ export default function ChatClient() {
       console.error('Error sending/saving message:', error);
       toast.error('Failed to save message. The message was sent but may not persist.');
 
-      // Có thể thêm logic retry ở đây nếu cần
     }
   };
 
