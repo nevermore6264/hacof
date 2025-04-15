@@ -66,6 +66,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
     const { user } = useAuth();
     const [users, setUsers] = useState<User[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
 
     // Fetch users list
     useEffect(() => {
@@ -99,6 +100,20 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
             handleSendMessage(message);
         }
     }, [file]);
+
+    // Thêm useEffect để handle click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     if (!chat) {
         return (
@@ -195,14 +210,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
                     const res = await response.json();
                     const fileUrl = res?.data[0]?.fileUrl;
                     if (fileUrl) {
-                        // Sử dụng WebSocket để gửi tin nhắn có file
-                        const messageBody = {
-                            content: '',
-                            fileUrls: [fileUrl],
-                            createdByUserName: user?.username
-                        };
-
-                        await onSendMessage('', messageBody);
+                        await onSendMessage('', fileUrl);
                         setFile(null);
                         toast.success("File uploaded successfully");
                     }
@@ -348,7 +356,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({ chatId, chats, onSendMessage,
                         <FaSmile size={20} />
                     </button>
                     {showEmojiPicker && (
-                        <div className="absolute bottom-20 z-50">
+                        <div ref={emojiPickerRef} className="absolute z-50" style={{ bottom: '400px' }}>
                             <EmojiPicker onEmojiClick={handleEmojiClick} />
                         </div>
                     )}

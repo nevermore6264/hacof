@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/chat/ChatClient.tsx
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import dynamic from 'next/dynamic';
 import { useAuth } from "@/hooks/useAuth_v0";
 import { User as BaseUser } from "@/types/entities/user";
@@ -180,7 +180,8 @@ export default function ChatClient() {
   }, [client, isConnected, selectedChatId]);
 
   // Send message through WebSocket
-  const sendMessage = async (content: string, messageData?: any) => {
+  const sendMessage = async (content: string, fileUrls: any) => {
+    console.log('sendMessage', content, fileUrls);
     if (!client || !isConnected || !selectedChatId || !user?.username) {
       toast.error('Cannot send message: Missing required information');
       return;
@@ -189,7 +190,7 @@ export default function ChatClient() {
     try {
       const messageBody = {
         content: encodeURIComponent(content),
-        fileUrls: messageData?.fileUrls || [],
+        fileUrls: fileUrls ? [fileUrls] : [],
       };
 
       console.log('Before sending - Check connection status:', {
@@ -217,7 +218,7 @@ export default function ChatClient() {
         },
         body: JSON.stringify({
           content: content, // Gửi content gốc, không encode
-          fileUrls: messageData?.fileUrls || [],
+          fileUrls: fileUrls ? [fileUrls] : [],
         })
       });
       console.log('Response:', response);
@@ -231,45 +232,6 @@ export default function ChatClient() {
     } catch (error) {
       console.error('Error sending/saving message:', error);
       toast.error('Failed to save message. The message was sent but may not persist.');
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
-    if (!client || !isConnected || !selectedChatId || !user?.username) {
-      toast.error('Cannot upload file: Missing required information');
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const fileUrl = data.url;
-
-        const messageBody = {
-          content: `Sent a file: ${file.name}`,
-          fileUrls: [fileUrl],
-          createdByUserName: user.username
-        };
-
-        console.log('Sending file message with body:', messageBody); // Debug log
-
-        client.publish({
-          destination: `/app/chat/${selectedChatId}`,
-          body: JSON.stringify(messageBody)
-        });
-      } else {
-        toast.error('Failed to upload file');
-      }
-    } catch (error) {
-      toast.error('Failed to upload file');
     }
   };
 
