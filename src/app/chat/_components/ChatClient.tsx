@@ -330,20 +330,46 @@ export default function ChatClient() {
     }
 
     try {
+      // 1. Lưu reaction trước
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/reactions/${messageId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          data: {
+            reactionType: reactionType
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save reaction');
+      }
+
+      const savedReaction = await response.json();
+      console.log('Reaction saved successfully:', savedReaction);
+
+      // 2. Gửi qua WebSocket với thông tin đầy đủ từ savedReaction
       const reactionBody = {
-        messageId: parseInt(messageId),
+        id: savedReaction.data.id,
+        messageId: messageId,
         reactionType: reactionType,
-        createdByUserName: user.username
+        createdByUserName: user.username,
+        createdAt: savedReaction.data.createdAt,
+        updatedAt: savedReaction.data.updatedAt
       };
 
-      console.log('Sending reaction with body:', reactionBody); // Debug log
-
       client.publish({
-        destination: `/app/reactions/${parseInt(messageId)}`,
+        destination: `/app/reactions/${messageId}/${user.username}`,
         body: JSON.stringify(reactionBody)
       });
+
     } catch (error) {
-      toast.error('Failed to send reaction');
+      console.error('Error sending/saving reaction:', error);
+      toast.error('Failed to save reaction');
     }
   };
 
