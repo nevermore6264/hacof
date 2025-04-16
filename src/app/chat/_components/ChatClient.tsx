@@ -134,7 +134,8 @@ export default function ChatClient() {
           // Decode message content
           const decodedMessage = {
             ...messageData,
-            content: decodeURIComponent(messageData.content)
+            content: decodeURIComponent(messageData.content),
+            fileUrls: messageData.fileUrls || []
           };
 
           // Update chats state
@@ -173,9 +174,45 @@ export default function ChatClient() {
       }
     );
 
+    // Subscribe to reactions
+    const reactionTopic = `/topic/messages/${selectedChatId}`;
+    const reactionSubscription = client.subscribe(
+      reactionTopic,
+      (message: { body: string }) => {
+        try {
+          const reactionData = JSON.parse(message.body);
+          console.log('Received reaction:', reactionData);
+
+          // Update message reactions in chats state
+          setChats(prevChats => {
+            return prevChats.map(chat => {
+              if (chat.id === selectedChatId) {
+                return {
+                  ...chat,
+                  messages: chat.messages.map(msg => {
+                    if (msg.id === reactionData.messageId.toString()) {
+                      return {
+                        ...msg,
+                        reactions: [...(msg.reactions || []), reactionData]
+                      };
+                    }
+                    return msg;
+                  })
+                };
+              }
+              return chat;
+            });
+          });
+        } catch (error) {
+          console.error('Error processing reaction:', error);
+        }
+      }
+    );
+
     return () => {
       console.log('Unsubscribing from:', subscriptionTopic);
       subscription.unsubscribe();
+      reactionSubscription.unsubscribe();
     };
   }, [client, isConnected, selectedChatId]);
 
