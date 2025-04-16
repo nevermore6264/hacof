@@ -188,9 +188,36 @@ export default function ChatClient() {
     }
 
     try {
+      // 1. Lưu message trước để có messageId và các thông tin đầy đủ
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/messages/${selectedChatId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: content,
+          fileUrls: fileUrls ? [fileUrls] : [],
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save message');
+      }
+
+      const savedMessage = await response.json();
+      console.log('Message saved successfully:', savedMessage);
+
+      // 2. Gửi qua WebSocket với thông tin đầy đủ từ savedMessage
       const messageBody = {
+        id: savedMessage.data.id,
         content: encodeURIComponent(content),
-        fileUrls: fileUrls ? [fileUrls] : [],
+        fileUrls: savedMessage.data.fileUrls || [],
+        conversationId: selectedChatId,
+        createdAt: savedMessage.data.createdAt,
+        createdByUserName: user.username,
+        reactions: []
       };
 
       console.log('Before sending - Check connection status:', {
@@ -201,37 +228,14 @@ export default function ChatClient() {
       });
 
       const destination = `/app/chat/${selectedChatId}/${user.username}`;
-
-      // 1. Gửi message qua WebSocket
       client.publish({
         destination: destination,
         body: JSON.stringify(messageBody)
       });
 
-      // 2. Sau đó gọi API để lưu message
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/messages/${selectedChatId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          content: content, // Gửi content gốc, không encode
-          fileUrls: fileUrls ? [fileUrls] : [],
-        })
-      });
-      console.log('Response:', response);
-      if (!response.ok) {
-        throw new Error('Failed to save message');
-      }
-
-      const savedMessage = await response.json();
-      console.log('Message saved successfully:', savedMessage);
-
     } catch (error) {
       console.error('Error sending/saving message:', error);
-      toast.error('Failed to save message. The message was sent but may not persist.');
+      toast.error('Failed to save message');
     }
   };
 
