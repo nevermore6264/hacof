@@ -87,6 +87,11 @@ export default function HackathonPage() {
 
   return (
     <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold text-gray-900">Hackathon</h1>
+      <p className="mt-2 text-gray-600">
+        Join exciting hackathons and showcase your skills!
+      </p>
+
       <div className="flex gap-4">
         {/* Sidebar Filters */}
         <div className="w-1/4">
